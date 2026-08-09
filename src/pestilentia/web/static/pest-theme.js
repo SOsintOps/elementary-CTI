@@ -9,7 +9,12 @@ window.PEST = {
     status: { ok: '#68b723', warn: '#f9c440', down: '#ed5353', off: '#95a3ab' },  // Lime/Banana/Strawberry/Slate (elementary OS)
     // Sequential scale for victim-count choropleths (YlOrRd)
     choroScale: [[0, '#ffffb2'], [0.25, '#fecc5c'], [0.5, '#fd8d3c'], [0.75, '#f03b20'], [1, '#bd0026']],
-    plotlyConfig: { responsive: true, displayModeBar: false },
+    // topojsonURL: Plotly fetches world boundaries at *render* time; the
+    // default is cdn.plot.ly, which the CSP (connect-src 'self') blocks and
+    // the no-remote-assets rule forbids anyway. Trailing slash required.
+    // Any future geo scope/resolution beyond the defaults must vendor its
+    // file here too, or the map goes blank with only a console CSP error.
+    plotlyConfig: { responsive: true, displayModeBar: false, topojsonURL: '/static/vendor/plotly-topojson/' },
     _geoBase: function () {
         var dark = this.isDark();
         return {

@@ -49,6 +49,11 @@ class Settings:
     ai_model_triage: str = "claude-haiku-4-5"
     ai_model_analysis: str = "claude-sonnet-5"
     ai_model_local: str = "qwen2.5:1.5b"
+    # NVIDIA NIM (build.nvidia.com) key. Free-tier cloud provider adopted
+    # 2026-08-09 when Anthropic Console credit fell through; empty means the
+    # nvidia provider cannot call (the router can still route to it — the
+    # adapter refuses at call time with a message naming this setting).
+    ai_nvidia_api_key: str = ""
 
     # Campaign clustering vectoriser: "auto" prefers embeddings and falls
     # back to TF-IDF when the model was never fetched; "embedding" and
@@ -93,6 +98,7 @@ def _load() -> Settings:
         "ai_model_triage": os.getenv("PEST_AI_MODEL_TRIAGE"),
         "ai_model_analysis": os.getenv("PEST_AI_MODEL_ANALYSIS"),
         "ai_model_local": os.getenv("PEST_AI_MODEL_LOCAL"),
+        "ai_nvidia_api_key": os.getenv("PEST_AI_NVIDIA_API_KEY"),
         "cluster_backend": os.getenv("PEST_AI_CLUSTER_BACKEND"),
         "secret_key": os.getenv("PEST_SECRET_KEY"),
         "auth_user": os.getenv("PEST_AUTH_USER"),
