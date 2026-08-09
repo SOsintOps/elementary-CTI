@@ -1,0 +1,28 @@
+.venv/
+venv/
+.git/
+.github/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.env
+*.env.local
+.DS_Store
+*.sqlite3
+data/
+docs/
+tests/
+*.md
+# The /guide Changelog tab renders this at request time, so it has to be in
+# the build context despite the blanket *.md exclusion above.
+!CHANGELOG.md
+!pyproject.toml
+
+# Local embedding vector cache: rebuilt at runtime, never shipped.
+.embedding-cache/

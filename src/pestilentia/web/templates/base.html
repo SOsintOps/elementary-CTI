@@ -1,0 +1,191 @@
+<!-- "Sometimes, Watson, the inadequacy of our abilities drives us to seek solutions elsewhere." — Sherlock Holmes, Elementary -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Elementary CTI{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v={{ app_version }}">
+    <link rel="apple-touch-icon" href="/static/favicon.svg?v={{ app_version }}">
+    <script>
+        (function () {
+            var q = new URLSearchParams(window.location.search).get('theme');
+            var t = q || localStorage.getItem('pest-theme');
+            if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            if (t === 'dark') document.documentElement.classList.add('dark');
+            if (q) localStorage.setItem('pest-theme', q);
+            window.toggleTheme = function () {
+                var dark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('pest-theme', dark ? 'dark' : 'light');
+                location.reload();
+            };
+            // User font scale: root rem scaling, the whole Tailwind scale follows
+            var fq = new URLSearchParams(window.location.search).get('font');
+            if (fq) localStorage.setItem('pest-font-scale', fq);
+            var fs = parseFloat(localStorage.getItem('pest-font-scale') || '100');
+            if (fs !== 100) document.documentElement.style.fontSize = fs + '%';
+            window.adjustFont = function (delta) {
+                var cur = parseFloat(localStorage.getItem('pest-font-scale') || '100');
+                var next = Math.min(137.5, Math.max(87.5, cur + delta));
+                localStorage.setItem('pest-font-scale', String(next));
+                document.documentElement.style.fontSize = next + '%';
+            };
+        })();
+    </script>
+    <script src="/static/pest-theme.js?v={{ app_version }}"></script>
+    <link rel="stylesheet" href="/static/fonts/inter.css?v={{ app_version }}">
+    <script src="/static/vendor/tailwindcss-play.js?v={{ app_version }}"></script>
+    <script src="/static/vendor/htmx.min.js?v={{ app_version }}"></script>
+    <script>
+        // CSRF-aware fetch wrapper: injects X-CSRF-Token header on non-GET requests.
+        window.csrfFetch = function (url, opts) {
+            opts = opts || {};
+            var method = (opts.method || 'GET').toUpperCase();
+            if (method !== 'GET' && method !== 'HEAD') {
+                var meta = document.querySelector('meta[name="csrf-token"]');
+                var token = meta ? meta.getAttribute('content') : '';
+                opts.headers = Object.assign({}, opts.headers || {}, { 'X-CSRF-Token': token });
+            }
+            return fetch(url, opts);
+        };
+    </script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        base: { bg: '#fafafa', card: '#ffffff', raised: '#f0f0f0' },
+                        // All values from the official elementary OS palette (UI-SPEC §2)
+                        accent: { DEFAULT: '#3689e6', light: '#64baff', dim: '#0d52bf' },  // Blueberry 500/300/700
+                        status: {
+                            ok: { DEFAULT: '#206b00', dot: '#68b723', bg: '#f6fbef', border: '#d1ff82' },      // Lime
+                            warn: { DEFAULT: '#ad5f00', dot: '#f9c440', bg: '#fefaec', border: '#ffe16b' },    // Banana
+                            down: { DEFAULT: '#a10705', dot: '#ed5353', bg: '#fdf0ef', border: '#ff8c82' },    // Strawberry
+                            off: { DEFAULT: '#485a6c', dot: '#95a3ab', bg: '#f7f9fa', border: '#d9dfe4' }      // Slate
+                        },
+                        surface: { DEFAULT: '#f2f2f2', light: '#e8e8e8', dark: '#d4d4d4' },
+                        // Dark "noir" surfaces — Slate/Silver families (Elementary series mood, UI-SPEC §2)
+                        noir: {
+                            bg: '#0e141f',      // Slate 900
+                            card: '#1a2433',    // derived Slate 900/700 midpoint
+                            raised: '#273445',  // Slate 700
+                            border: '#3a4a5e',  // derived Slate 600
+                            line: '#2c394b',    // derived (subtle row separators)
+                            text: '#d4d4d4',    // Silver 300
+                            hi: '#fafafa',      // Silver 100
+                            mute: '#95a3ab'     // Slate 100
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar-link { transition: all 0.15s ease; border-left: 3px solid transparent; color: #555; }
+        .sidebar-link:hover { background: rgba(54, 137, 230, 0.06); color: #333; }
+        .sidebar-link.active { background: rgba(54, 137, 230, 0.10); color: #3689e6; border-left-color: #3689e6; font-weight: 500; }
+        /* Sidebar drawer behaviour below md breakpoint */
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); transition: transform 0.2s ease; z-index: 40; }
+            #sidebar.open { transform: translateX(0); }
+            #sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 30; display: none; }
+            #sidebar-backdrop.open { display: block; }
+        }
+        @media (min-width: 768px) {
+            #sidebar-backdrop, #sidebar-toggle { display: none; }
+        }
+        /* Visible keyboard focus on buttons/links (Chromium hides the default
+           outline on rounded elements) */
+        button:focus-visible, a:focus-visible {
+            outline: 2px solid #3689e6;
+            outline-offset: 2px;
+        }
+        /* Disabled buttons should look disabled */
+        button[disabled] { opacity: 0.5; cursor: not-allowed; }
+        /* Numeric columns align vertically (tabular figures, Inter supports tnum) */
+        table { font-variant-numeric: tabular-nums; }
+        /* Dark (noir) sidebar + focus */
+        .dark .sidebar-link { color: #95a3ab; }
+        .dark .sidebar-link:hover { background: rgba(54, 137, 230, 0.10); color: #d4d4d4; }
+        .dark .sidebar-link.active { background: rgba(54, 137, 230, 0.16); color: #64baff; border-left-color: #64baff; }
+        .dark button:focus-visible, .dark a:focus-visible { outline-color: #64baff; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-base-bg dark:bg-noir-bg text-gray-700 dark:text-noir-text min-h-screen flex font-sans">
+    <!-- Mobile backdrop -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar(false)" aria-hidden="true"></div>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-56 bg-white dark:bg-noir-card min-h-screen flex flex-col fixed border-r border-gray-200 dark:border-noir-border" aria-label="Primary navigation">
+        <div class="p-4 border-b border-gray-200 dark:border-noir-border">
+            <h1 class="text-lg font-semibold text-accent tracking-tight">&#x1F50D; Elementary CTI</h1>
+            <p class="text-[11px] text-gray-400 dark:text-noir-mute mt-0.5 tracking-wide">Cyber Threat Intelligence</p>
+        </div>
+        <div class="px-2 pt-2 pb-1">
+            <form action="/search" method="get" class="relative">
+                <input type="text" name="q" placeholder="Search..."
+                       class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-xs text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
+                <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-noir-mute hover:text-accent">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+        <nav class="flex-1 p-2 space-y-0.5">
+            <a href="/" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="/victims" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'victims' %}active{% endif %}">Victims</a>
+            <a href="/groups" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'groups' %}active{% endif %}">Adversaries</a>
+            <a href="/cyberattacks" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'cyberattacks' %}active{% endif %}">Cyberattacks</a>
+            <a href="/ai/articles" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'articles' %}active{% endif %}">Articles</a>
+            <a href="/ai/campaigns" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'campaigns' %}active{% endif %}">Campaigns</a>
+            <a href="/attack" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'attack' %}active{% endif %}">ATT&CK</a>
+            <a href="/map" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'map' %}active{% endif %}">Map</a>
+            <a href="/btc" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'btc' %}active{% endif %}">BTC Explorer</a>
+            <a href="/watchlist" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'watchlist' %}active{% endif %}">Watchlist</a>
+            <hr class="border-gray-200 dark:border-noir-border my-2">
+            <a href="/pipeline" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'pipeline' %}active{% endif %}">Pipeline</a>
+            <a href="/guide" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'guide' %}active{% endif %}">Guida</a>
+        </nav>
+        <!-- "There is no branch of detective science so important as the art of tracing footsteps." — Sherlock Holmes, Elementary -->
+        <div class="p-3 border-t border-gray-200 dark:border-noir-border text-[11px] text-gray-400 dark:text-noir-mute flex items-center justify-between">
+            <span>v0.9.0.dev0</span>
+            <span class="flex items-center gap-2.5">
+                <button onclick="adjustFont(-12.5)" aria-label="Riduci dimensione caratteri" title="Riduci caratteri" class="leading-none hover:text-accent transition-colors">A−</button>
+                <button onclick="adjustFont(12.5)" aria-label="Aumenta dimensione caratteri" title="Aumenta caratteri" class="text-[13px] leading-none hover:text-accent transition-colors">A+</button>
+                <button onclick="toggleTheme()" aria-label="Toggle dark mode" title="Tema chiaro/scuro" class="text-sm leading-none hover:text-accent transition-colors">◐</button>
+            </span>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-4 md:p-6 md:ml-56">
+        <div class="flex items-center gap-3 mb-6">
+            <button id="sidebar-toggle" type="button" onclick="toggleSidebar()"
+                    class="md:hidden p-2 -ml-1 rounded text-gray-600 dark:text-noir-text hover:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    aria-label="Open navigation menu" aria-controls="sidebar" aria-expanded="false">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-noir-hi">{% block header %}{% endblock %}</h2>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+        window.toggleSidebar = function (force) {
+            var sidebar = document.getElementById('sidebar');
+            var backdrop = document.getElementById('sidebar-backdrop');
+            var toggle = document.getElementById('sidebar-toggle');
+            var open = typeof force === 'boolean' ? force : !sidebar.classList.contains('open');
+            sidebar.classList.toggle('open', open);
+            backdrop.classList.toggle('open', open);
+            if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+    </script>
+</body>
+</html>

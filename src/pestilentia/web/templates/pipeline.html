@@ -1,0 +1,359 @@
+<!-- "My mind rebels at stagnation." — Sherlock Holmes, Elementary -->
+{% extends "base.html" %}
+{% block title %}Pipeline — Elementary CTI{% endblock %}
+{% block header %}Pipeline Status{% endblock %}
+
+{% block content %}
+<p class="text-xs text-status-off dark:text-status-off-dot mb-4">Pannello di controllo della pipeline di raccolta e arricchimento dati. Ogni fonte può essere attivata o disattivata individualmente tramite il toggle: le fonti disabilitate vengono saltate sia dallo scheduler automatico (ciclo ogni 2 ore) sia dal refresh manuale. Le schede mostrano lo stato corrente (Active, Backfilling, Disabled) e un indicatore di salute (verde/giallo/rosso) basato sull'ultimo health check. La tabella "Enrichment Sources" riporta le metriche chiave per ogni arricchimento, mentre "Source Health" verifica la raggiungibilità e l'integrità dei dati delle fonti esterne.</p>
+{# Five cards now (one per data source + MITRE, Ransomwhere, deepdarkCTI,
+   Articles): xl fits them in a single row, lg falls back to 3+2. #}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+    {% for source in sources %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 {% if not source.enabled %}opacity-50{% endif %}" id="card-{{ source.source_name }}">
+        <div class="flex items-center justify-between mb-1">
+            <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">{{ source.source_name }}</div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer toggle-source" {% if source.enabled %}checked{% endif %}
+                       data-source="{{ source.source_name }}">
+                <div class="w-9 h-5 bg-gray-200 dark:bg-noir-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+            </label>
+        </div>
+        <div class="text-lg font-bold mt-1 {% if source.backfill_done and source.enabled %}text-status-ok dark:text-status-ok-dot{% elif not source.enabled %}text-status-off dark:text-status-off-dot{% else %}text-status-warn dark:text-status-warn-dot{% endif %}">
+            {% if not source.enabled %}Disabled{% elif source.backfill_done %}Active{% else %}Backfilling{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 {% if not mitre.enabled %}opacity-50{% endif %}" id="card-mitre">
+        <div class="flex items-center justify-between mb-1">
+            <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">MITRE ATT&CK</div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="toggle-mitre" {% if mitre.enabled %}checked{% endif %}>
+                <div class="w-9 h-5 bg-gray-200 dark:bg-noir-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+            </label>
+        </div>
+        <div class="text-lg font-bold mt-1 {% if mitre.last_enrichment and mitre.enabled %}text-status-ok dark:text-status-ok-dot{% elif not mitre.enabled %}text-status-off dark:text-status-off-dot{% else %}text-status-warn dark:text-status-warn-dot{% endif %}">
+            {% if not mitre.enabled %}Disabled{% elif mitre.last_enrichment %}Active{% else %}Not run{% endif %}
+        </div>
+    </div>
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 {% if not ransomwhere.enabled %}opacity-50{% endif %}" id="card-ransomwhere">
+        <div class="flex items-center justify-between mb-1">
+            <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">Ransomwhere</div>
+            <div class="flex items-center gap-2">
+                {% if health.get('ransomwhere') %}
+                {% set h = health['ransomwhere'] %}
+                <span class="inline-block w-2.5 h-2.5 rounded-full {% if h.status == 'ok' %}bg-status-ok-dot{% elif h.status == 'degraded' %}bg-status-warn-dot{% else %}bg-status-down-dot{% endif %}" title="{{ h.status }}{% if h.error_message %}: {{ h.error_message }}{% endif %}"></span>
+                {% endif %}
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer toggle-enrichment" {% if ransomwhere.enabled %}checked{% endif %}
+                           data-enrichment="ransomwhere">
+                    <div class="w-9 h-5 bg-gray-200 dark:bg-noir-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                </label>
+            </div>
+        </div>
+        <div class="text-lg font-bold mt-1 {% if not ransomwhere.enabled %}text-status-off dark:text-status-off-dot{% elif ransomwhere.last_enrichment %}text-status-ok dark:text-status-ok-dot{% else %}text-status-warn dark:text-status-warn-dot{% endif %}">
+            {% if not ransomwhere.enabled %}Disabled{% elif ransomwhere.last_enrichment %}Active{% else %}Not run{% endif %}
+        </div>
+    </div>
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 {% if not deepdarkcti.enabled %}opacity-50{% endif %}" id="card-deepdarkcti">
+        <div class="flex items-center justify-between mb-1">
+            <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">deepdarkCTI</div>
+            <div class="flex items-center gap-2">
+                {% set dd_keys = ['deepdarkcti:ransomware_gang', 'deepdarkcti:telegram_threat_actors', 'deepdarkcti:twitter_threat_actors'] %}
+                {% set ns = namespace(worst='ok') %}
+                {% for k in dd_keys %}
+                    {% if health.get(k) %}
+                        {% if health[k].status == 'down' %}{% set ns.worst = 'down' %}
+                        {% elif health[k].status == 'degraded' and ns.worst != 'down' %}{% set ns.worst = 'degraded' %}{% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% if health.get('deepdarkcti:ransomware_gang') %}
+                <span class="inline-block w-2.5 h-2.5 rounded-full {% if ns.worst == 'ok' %}bg-status-ok-dot{% elif ns.worst == 'degraded' %}bg-status-warn-dot{% else %}bg-status-down-dot{% endif %}" title="{{ ns.worst }}"></span>
+                {% endif %}
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer toggle-enrichment" {% if deepdarkcti.enabled %}checked{% endif %}
+                           data-enrichment="deepdarkcti">
+                    <div class="w-9 h-5 bg-gray-200 dark:bg-noir-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                </label>
+            </div>
+        </div>
+        <div class="text-lg font-bold mt-1 {% if not deepdarkcti.enabled %}text-status-off dark:text-status-off-dot{% elif deepdarkcti.last_enrichment %}text-status-ok dark:text-status-ok-dot{% else %}text-status-warn dark:text-status-warn-dot{% endif %}">
+            {% if not deepdarkcti.enabled %}Disabled{% elif deepdarkcti.last_enrichment %}Active{% else %}Not run{% endif %}
+        </div>
+    </div>
+
+    {# Article ingest (AI pipeline Phase 2). Counters, not just a state word:
+       "Active" with zero articles told the analyst nothing useful. #}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 {% if not articles.enabled %}opacity-50{% endif %}" id="card-articles">
+        <div class="flex items-center justify-between mb-1">
+            <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">Articles</div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer toggle-enrichment" {% if articles.enabled %}checked{% endif %}
+                       data-enrichment="articles">
+                <div class="w-9 h-5 bg-gray-200 dark:bg-noir-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+            </label>
+        </div>
+        <div class="text-lg font-bold mt-1 {% if not articles.enabled %}text-status-off dark:text-status-off-dot{% elif articles.last_enrichment %}text-status-ok dark:text-status-ok-dot{% else %}text-status-warn dark:text-status-warn-dot{% endif %}">
+            {% if not articles.enabled %}Disabled{% elif articles.last_enrichment %}Active{% else %}Not run{% endif %}
+        </div>
+        <div class="text-xs text-slate-500 dark:text-noir-mute mt-1">
+            <a href="/ai/articles" class="text-accent hover:underline">{{ articles.total_articles }} articles</a>
+            · {{ articles.full_text }} full text
+            · {{ articles.sources_enabled }}/{{ articles.sources_total }} feeds
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">
+    <h3 class="text-xs font-semibold text-status-off dark:text-status-off-dot uppercase tracking-wider mb-3">Backfill Progress</h3>
+    <table class="w-full text-sm">
+        <thead><tr class="text-slate-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+            <th class="text-left py-2">Source</th><th class="text-left py-2">Status</th><th class="text-left py-2">Years Completed</th>
+        </tr></thead>
+        <tbody>
+        {% for source in sources %}
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2">{{ source.source_name }}</td>
+            <td class="py-2">
+                {% if not source.enabled %}
+                <span class="px-2 py-0.5 bg-slate-200 dark:bg-noir-raised text-slate-500 dark:text-noir-mute rounded-full text-xs">Disabled</span>
+                {% elif source.backfill_done %}
+                <span class="px-2 py-0.5 bg-status-ok-bg dark:bg-status-ok-dot/10 border border-status-ok-border dark:border-status-ok-dot/30 text-status-ok dark:text-status-ok-dot rounded-full text-xs">Complete</span>
+                {% else %}
+                <span class="px-2 py-0.5 bg-status-warn-bg dark:bg-status-warn-dot/10 border border-status-warn-border dark:border-status-warn-dot/30 text-status-warn dark:text-status-warn-dot rounded-full text-xs">In Progress</span>
+                {% endif %}
+            </td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">{{ source.years_done | join(", ") if source.years_done else "—" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">
+    <h3 class="text-xs font-semibold text-status-off dark:text-status-off-dot uppercase tracking-wider mb-3">Enrichment Sources</h3>
+    <table class="w-full text-sm">
+        <thead><tr class="text-slate-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+            <th class="text-left py-2">Source</th><th class="text-left py-2">Status</th><th class="text-left py-2">Last Run</th>
+            <th class="text-left py-2">Type</th><th class="text-right py-2">Key Metric</th>
+        </tr></thead>
+        <tbody>
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2">MITRE ATT&CK</td>
+            <td class="py-2">{% if health.get('mitre_attack') %}{% set h = health['mitre_attack'] %}<span class="px-2 py-0.5 rounded-full text-xs {% if h.status == 'ok' %}bg-status-ok-bg dark:bg-status-ok-dot/10 border border-status-ok-border dark:border-status-ok-dot/30 text-status-ok dark:text-status-ok-dot{% elif h.status == 'degraded' %}bg-status-warn-bg dark:bg-status-warn-dot/10 border border-status-warn-border dark:border-status-warn-dot/30 text-status-warn dark:text-status-warn-dot{% else %}bg-status-down-bg dark:bg-status-down-dot/10 border border-status-down-border dark:border-status-down-dot/30 text-status-down dark:text-status-down-dot{% endif %}">{{ h.status }}</span>{% else %}<span class="text-status-off dark:text-status-off-dot">—</span>{% endif %}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">{{ mitre.last_enrichment.strftime('%Y-%m-%d %H:%M UTC') if mitre.last_enrichment else '—' }}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">TTPs, Tools, Aliases</td>
+            <td class="py-2 text-right">{{ mitre.groups_with_ttps }} groups / {{ mitre.total_ttps }} TTPs / {{ mitre.total_tools }} tools</td>
+        </tr>
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2">Ransomwhere</td>
+            <td class="py-2">{% if health.get('ransomwhere') %}{% set h = health['ransomwhere'] %}<span class="px-2 py-0.5 rounded-full text-xs {% if h.status == 'ok' %}bg-status-ok-bg dark:bg-status-ok-dot/10 border border-status-ok-border dark:border-status-ok-dot/30 text-status-ok dark:text-status-ok-dot{% elif h.status == 'degraded' %}bg-status-warn-bg dark:bg-status-warn-dot/10 border border-status-warn-border dark:border-status-warn-dot/30 text-status-warn dark:text-status-warn-dot{% else %}bg-status-down-bg dark:bg-status-down-dot/10 border border-status-down-border dark:border-status-down-dot/30 text-status-down dark:text-status-down-dot{% endif %}">{{ h.status }}</span>{% else %}<span class="text-status-off dark:text-status-off-dot">—</span>{% endif %}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">{{ ransomwhere.last_enrichment.strftime('%Y-%m-%d %H:%M UTC') if ransomwhere.last_enrichment else '—' }}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">BTC Payments</td>
+            <td class="py-2 text-right">{{ ransomwhere.groups_with_btc }} groups / {{ ransomwhere.total_txs }} txs / ${{ "{:,.0f}".format(ransomwhere.total_usd) }}</td>
+        </tr>
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2">deepdarkCTI</td>
+            <td class="py-2">{% set dd_keys = ['deepdarkcti:ransomware_gang', 'deepdarkcti:telegram_threat_actors', 'deepdarkcti:twitter_threat_actors'] %}{% set ns = namespace(worst='ok', has_any=false) %}{% for k in dd_keys %}{% if health.get(k) %}{% set ns.has_any = true %}{% if health[k].status == 'down' %}{% set ns.worst = 'down' %}{% elif health[k].status == 'degraded' and ns.worst != 'down' %}{% set ns.worst = 'degraded' %}{% endif %}{% endif %}{% endfor %}{% if ns.has_any %}<span class="px-2 py-0.5 rounded-full text-xs {% if ns.worst == 'ok' %}bg-status-ok-bg dark:bg-status-ok-dot/10 border border-status-ok-border dark:border-status-ok-dot/30 text-status-ok dark:text-status-ok-dot{% elif ns.worst == 'degraded' %}bg-status-warn-bg dark:bg-status-warn-dot/10 border border-status-warn-border dark:border-status-warn-dot/30 text-status-warn dark:text-status-warn-dot{% else %}bg-status-down-bg dark:bg-status-down-dot/10 border border-status-down-border dark:border-status-down-dot/30 text-status-down dark:text-status-down-dot{% endif %}">{{ ns.worst }}</span>{% else %}<span class="text-status-off dark:text-status-off-dot">—</span>{% endif %}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">{{ deepdarkcti.last_enrichment.strftime('%Y-%m-%d %H:%M UTC') if deepdarkcti.last_enrichment else '—' }}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">OSINT, Comms</td>
+            <td class="py-2 text-right">{{ deepdarkcti.groups_with_comms }} groups / {{ deepdarkcti.total_comms }} channels</td>
+        </tr>
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2">Articles (RSS)</td>
+            <td class="py-2">{% if articles.last_enrichment %}<span class="px-2 py-0.5 rounded-full text-xs bg-status-ok-bg dark:bg-status-ok-dot/10 border border-status-ok-border dark:border-status-ok-dot/30 text-status-ok dark:text-status-ok-dot">ok</span>{% else %}<span class="text-status-off dark:text-status-off-dot">—</span>{% endif %}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">{{ articles.last_enrichment.strftime('%Y-%m-%d %H:%M UTC') if articles.last_enrichment else '—' }}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot">CTI articles</td>
+            <td class="py-2 text-right">{{ articles.sources_enabled }} feeds / {{ articles.total_articles }} articles</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
+    <h3 class="text-xs font-semibold text-status-off dark:text-status-off-dot uppercase tracking-wider mb-3">Data Sources</h3>
+    <table class="w-full text-sm">
+        <thead><tr class="text-slate-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+            <th class="text-left py-2">Name</th><th class="text-left py-2">Base URL</th>
+            <th class="text-right py-2">Victims</th><th class="text-right py-2">Groups</th><th class="text-right py-2">Attacks</th>
+        </tr></thead>
+        <tbody>
+        {% for ds in data_sources %}
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2">{{ ds.source_name }}</td>
+            <td class="py-2 font-mono text-xs text-status-off dark:text-status-off-dot">{{ ds.base_url or "—" }}</td>
+            <td class="py-2 text-right">{{ ds.victim_count }}</td>
+            <td class="py-2 text-right">{{ ds.group_count }}</td>
+            <td class="py-2 text-right">{{ ds.attack_count }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-semibold text-status-off dark:text-status-off-dot uppercase tracking-wider">Source Health</h3>
+        <button id="btn-health-check" onclick="runHealthCheck()" class="px-3 py-1 text-xs bg-accent text-white rounded hover:bg-accent-dim transition">Run Check</button>
+    </div>
+
+    {% set all_health_keys = ['mitre_attack', 'ransomwhere', 'deepdarkcti:ransomware_gang', 'deepdarkcti:telegram_threat_actors', 'deepdarkcti:twitter_threat_actors'] %}
+    {% set health_labels = {'mitre_attack': 'MITRE ATT&CK', 'ransomwhere': 'Ransomwhere API', 'deepdarkcti:ransomware_gang': 'deepdarkCTI — Ransomware Gangs', 'deepdarkcti:telegram_threat_actors': 'deepdarkCTI — Telegram Actors', 'deepdarkcti:twitter_threat_actors': 'deepdarkCTI — Twitter Actors'} %}
+
+    {% if health %}
+    {# Summary banner #}
+    {% set ns = namespace(total=0, ok=0, degraded=0, down=0, not_checked=0) %}
+    {% for key in all_health_keys %}
+        {% set ns.total = ns.total + 1 %}
+        {% if health.get(key) %}
+            {% if health[key].status == 'ok' %}{% set ns.ok = ns.ok + 1 %}
+            {% elif health[key].status == 'degraded' %}{% set ns.degraded = ns.degraded + 1 %}
+            {% else %}{% set ns.down = ns.down + 1 %}{% endif %}
+        {% else %}
+            {% set ns.not_checked = ns.not_checked + 1 %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="flex items-center gap-3 mb-4 px-3 py-2 rounded-lg text-sm
+        {% if ns.down > 0 %}bg-red-50 dark:bg-noir-raised border border-red-200 dark:border-noir-border
+        {% elif ns.degraded > 0 %}bg-yellow-50 dark:bg-noir-raised border border-yellow-200 dark:border-noir-border
+        {% elif ns.not_checked > 0 %}bg-slate-50 border border-slate-200
+        {% else %}bg-green-50 dark:bg-noir-raised border border-green-200 dark:border-noir-border{% endif %}">
+        {% if ns.down > 0 %}
+            <span class="text-status-down dark:text-status-down-dot font-semibold">{{ ns.down }}/{{ ns.total }} sources unreachable</span>
+        {% elif ns.degraded > 0 %}
+            <span class="text-yellow-600 dark:text-yellow-300 font-semibold">{{ ns.degraded }}/{{ ns.total }} sources degraded</span>
+        {% elif ns.not_checked > 0 %}
+            <span class="text-slate-500 dark:text-noir-mute">{{ ns.ok }}/{{ ns.total }} checked — {{ ns.not_checked }} pending</span>
+        {% else %}
+            <span class="text-status-ok dark:text-status-ok-dot font-semibold">All {{ ns.total }} sources reachable and valid</span>
+        {% endif %}
+        {% if health.values()|list and health.values()|list|first %}
+            {% set any_h = health.values()|list|first %}
+            {% if any_h.last_check %}
+            <span class="text-status-off dark:text-status-off-dot text-xs ml-auto">Last check: {{ any_h.last_check.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    {# Detail table #}
+    <table class="w-full text-sm">
+        <thead><tr class="text-slate-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+            <th class="text-left py-2">Source</th>
+            <th class="text-left py-2">Reachable</th>
+            <th class="text-left py-2">Format</th>
+            <th class="text-left py-2">Details</th>
+        </tr></thead>
+        <tbody>
+        {% for key in all_health_keys %}
+        {% if health.get(key) %}
+        {% set h = health[key] %}
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-2 font-medium">{{ health_labels.get(key, key) }}</td>
+            <td class="py-2">
+                {% if h.http_status == 200 %}
+                    <span class="inline-flex items-center gap-1 text-status-ok dark:text-status-ok-dot text-xs"><span class="inline-block w-2 h-2 rounded-full bg-status-ok-dot"></span> Online</span>
+                {% elif h.http_status %}
+                    <span class="inline-flex items-center gap-1 text-status-down dark:text-status-down-dot text-xs"><span class="inline-block w-2 h-2 rounded-full bg-status-down-dot"></span> HTTP {{ h.http_status }}</span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 text-status-down dark:text-status-down-dot text-xs"><span class="inline-block w-2 h-2 rounded-full bg-status-down-dot"></span> Unreachable</span>
+                {% endif %}
+            </td>
+            <td class="py-2">
+                {% if h.format_valid is none %}
+                    <span class="text-status-off dark:text-status-off-dot text-xs">N/A</span>
+                {% elif h.format_valid %}
+                    <span class="text-status-ok dark:text-status-ok-dot text-xs">Valid ({{ h.row_count }} rows)</span>
+                {% else %}
+                    <span class="text-yellow-600 dark:text-yellow-300 text-xs">Degraded ({{ h.row_count }} rows)</span>
+                {% endif %}
+            </td>
+            <td class="py-2 text-xs text-status-off dark:text-status-off-dot">
+                {% if h.error_message %}
+                    <span class="text-status-down dark:text-status-down-dot">{{ h.error_message }}</span>
+                {% elif h.status == 'ok' %}
+                    OK — last verified {{ h.last_ok.strftime('%d/%m %H:%M') if h.last_ok else 'never' }}
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr class="border-b border-gray-100 dark:border-noir-line opacity-50">
+            <td class="py-2">{{ health_labels.get(key, key) }}</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot text-xs">Not checked</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot text-xs">—</td>
+            <td class="py-2 text-status-off dark:text-status-off-dot text-xs">Click "Run Check" to verify</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-6">
+        <p class="text-status-off dark:text-status-off-dot text-sm mb-2">No health checks performed yet</p>
+        <p class="text-slate-300 text-xs">Click "Run Check" to verify all enrichment sources are online and returning valid data</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+async function runHealthCheck() {
+    var btn = document.getElementById('btn-health-check');
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    try {
+        await csrfFetch('/api/v1/health', {method: 'POST'});
+        location.reload();
+    } catch (e) {
+        btn.textContent = 'Failed';
+    }
+}
+
+function updateCard(card, enabled) {
+    card.classList.toggle('opacity-50', !enabled);
+    var status = card.querySelector('.text-lg');
+    status.textContent = enabled ? 'Active' : 'Disabled';
+    status.className = 'text-lg font-bold mt-1 ' + (enabled ? 'text-status-ok dark:text-status-ok-dot' : 'text-status-off dark:text-status-off-dot');
+}
+
+document.querySelectorAll('.toggle-source').forEach(function(el) {
+    el.addEventListener('change', async function() {
+        var name = this.dataset.source;
+        var card = document.getElementById('card-' + name);
+        try {
+            var resp = await csrfFetch('/api/v1/source/' + encodeURIComponent(name) + '/toggle', {method: 'POST'});
+            var data = await resp.json();
+            updateCard(card, data.enabled);
+        } catch (e) {
+            this.checked = !this.checked;
+        }
+    });
+});
+
+var mitreEl = document.getElementById('toggle-mitre');
+if (mitreEl) {
+    mitreEl.addEventListener('change', async function() {
+        var card = document.getElementById('card-mitre');
+        try {
+            var resp = await csrfFetch('/api/v1/mitre/toggle', {method: 'POST'});
+            var data = await resp.json();
+            updateCard(card, data.enabled);
+        } catch (e) {
+            this.checked = !this.checked;
+        }
+    });
+}
+
+document.querySelectorAll('.toggle-enrichment').forEach(function(el) {
+    el.addEventListener('change', async function() {
+        var name = this.dataset.enrichment;
+        var card = document.getElementById('card-' + name);
+        try {
+            var resp = await csrfFetch('/api/v1/enrichment/' + encodeURIComponent(name) + '/toggle', {method: 'POST'});
+            var data = await resp.json();
+            updateCard(card, data.enabled);
+        } catch (e) {
+            this.checked = !this.checked;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,679 @@
+{% extends "base.html" %}
+{% block title %}{{ group.group_name }} — Elementary CTI{% endblock %}
+{% block header %}{% endblock %}
+
+{% block head %}
+<script src="/static/vendor/plotly-2.35.2.min.js?v={{ app_version }}"></script>
+{% endblock %}
+
+{% from "_sparkline.html" import sparkline %}
+{% block content %}
+{# ── Header ── #}
+<div class="flex items-center gap-4 mb-4">
+    <img src="/avatar/{{ group.group_name }}" alt="{{ group.group_name }} avatar" class="w-16 h-16 rounded-lg border border-gray-200 dark:border-noir-border shadow-sm">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-noir-hi">{{ group.country_of_origin | flag }} {{ group.group_name }}</h2>
+        {% set aliases = group.aliases | parse_aliases %}
+        {% if aliases %}
+        <p class="text-sm mt-0.5"><span class="font-semibold text-gray-800 dark:text-noir-hi">Known Aliases</span> <span class="text-gray-400 dark:text-noir-mute">{{ aliases | join(", ") }}</span></p>
+        {% endif %}
+        {% if last_update %}
+        <p class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">Data as of {{ last_update.strftime('%Y-%m-%d %H:%M') }} UTC</p>
+        {% endif %}
+        {% if spark %}
+        <div class="flex items-center gap-2 mt-1">
+            {{ sparkline(spark, width=140, height=26, label=group.group_name ~ " activity, last 12 months") }}
+            <span class="text-xs text-gray-400 dark:text-noir-mute">victims, last 12 months</span>
+        </div>
+        {% endif %}
+        {% if is_hacktivist %}
+        <span class="inline-block text-xs bg-orange-100 dark:bg-noir-raised text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full font-medium">Hacktivist / Non-ransomware</span>
+        <p class="text-sm text-orange-500">{{ victim_count }} claims</p>
+        {% else %}
+        <p class="text-sm text-red-500">{{ victim_count }} victims</p>
+        {% endif %}
+    </div>
+    <button id="refresh-btn" onclick="doRefresh()" class="ml-auto text-xs bg-accent hover:bg-accent-dim text-white px-3 py-1 rounded transition-colors">Refresh Now</button>
+</div>
+
+{# ── Map (always visible) ── #}
+{% if country_data %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ "Claims" if is_hacktivist else "Victims" }} Geographic Distribution</h3>
+        <div class="flex gap-1" id="map-period-btns">
+            <button data-period="7d" class="px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors">7d</button>
+            <button data-period="1m" class="px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors">1m</button>
+            <button data-period="1y" class="px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors">1y</button>
+            <button data-period="all" class="px-2.5 py-1 text-xs rounded border border-accent text-accent font-semibold transition-colors">All</button>
+        </div>
+    </div>
+    <div id="group-map" style="height: 280px;"><span class="text-xs text-gray-400 dark:text-noir-mute italic">Loading map…</span></div>
+</div>
+{% endif %}
+
+{# ── Tab Navigation ── #}
+<div class="border-b border-gray-200 dark:border-noir-border mb-4">
+    <nav class="flex gap-6" id="tab-nav" role="tablist">
+        <button data-tab="overview" role="tab" aria-selected="true" aria-controls="tab-overview" class="tab-btn pb-2 text-sm font-medium border-b-2 border-accent text-accent">Overview</button>
+        <button data-tab="infrastructure" role="tab" aria-selected="false" aria-controls="tab-infrastructure" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Infrastructure</button>
+        <button data-tab="arsenal" role="tab" aria-selected="false" aria-controls="tab-arsenal" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Arsenal</button>
+        <button data-tab="ttps" role="tab" aria-selected="false" aria-controls="tab-ttps" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">TTPs</button>
+        <button data-tab="victims" role="tab" aria-selected="false" aria-controls="tab-victims" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">{{ "Claims" if is_hacktivist else "Victims" }}</button>
+        <button data-tab="references" role="tab" aria-selected="false" aria-controls="tab-references" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">References</button>
+    </nav>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Tab: Overview ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="tab-overview" role="tabpanel" class="tab-panel">
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Profile</h3>
+        <dl class="space-y-4 text-sm">
+            {% set aliases = group.aliases | parse_aliases %}
+            {% if aliases %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Aliases</dt>
+                <dd class="flex flex-wrap gap-1">
+                    {% for alias in aliases %}
+                    <span class="text-xs bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border">{{ alias }}</span>
+                    {% endfor %}
+                </dd>
+            </div>
+            {% endif %}
+            {% if group.description %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Description <span class="normal-case tracking-normal">— ransomware.live</span></dt>
+                <dd class="text-gray-600 dark:text-noir-text text-sm leading-relaxed">{{ group.description | clean_desc }}</dd>
+            </div>
+            {% endif %}
+            {% if mitre_profile and mitre_profile.description %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">
+                    Profile — MITRE ATT&CK{% if mitre_profile.mitre_id %} ({{ mitre_profile.mitre_id }}){% endif %}
+                    {% if mitre_fetched %}<span class="normal-case tracking-normal">· updated {{ mitre_fetched.strftime('%Y-%m-%d') }}</span>{% endif %}
+                </dt>
+                <dd class="text-gray-600 dark:text-noir-text text-sm leading-relaxed">
+                    {{ mitre_profile.description | clean_desc }}
+                    {% if mitre_profile.mitre_url %}
+                    <a href="{{ mitre_profile.mitre_url | safe_url }}" target="_blank" rel="noopener" class="text-accent hover:underline text-xs">View on attack.mitre.org →</a>
+                    {% endif %}
+                </dd>
+            </div>
+            {% endif %}
+            {% if group.country_of_origin %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Origin</dt>
+                <dd class="text-gray-600 dark:text-noir-text">{{ group.country_of_origin | flag }} {{ group.country_of_origin }}</dd>
+            </div>
+            {% endif %}
+            {% set gtype = group.group_type | parse_group_type %}
+            {% if gtype %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Type</dt>
+                <dd><span class="inline-block bg-indigo-50 dark:bg-noir-raised text-indigo-700 dark:text-indigo-300 text-xs px-2 py-0.5 rounded font-medium">{{ gtype }}</span></dd>
+            </div>
+            {% endif %}
+            {% if group.lineage %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Lineage</dt>
+                <dd class="text-gray-600 dark:text-noir-text text-sm">{{ group.lineage }}</dd>
+            </div>
+            {% endif %}
+            {% if group.extensions %}
+            <div>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Extensions</dt>
+                <dd class="flex flex-wrap gap-1">
+                    {% for ext in group.extensions.split(',') %}
+                    <span class="font-mono text-xs bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border">{{ ext.strip() }}</span>
+                    {% endfor %}
+                </dd>
+            </div>
+            {% endif %}
+        </dl>
+    </div>
+
+    {# Diamond Model + Pyramid of Pain side by side #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Diamond Model</h3>
+            <div class="flex justify-center">
+                {# Canonical orientation (Caltagirone et al.): socio-political
+                   axis vertical (Adversary/Victim), technical axis horizontal
+                   (Capability/Infrastructure) #}
+                <svg viewBox="0 0 480 372" class="w-full max-w-[480px] h-auto select-none">
+                    {# Axes (dashed) + rhombus edges #}
+                    <line x1="240" y1="58" x2="240" y2="314" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4"/>
+                    <line x1="84" y1="186" x2="396" y2="186" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4"/>
+                    <line x1="240" y1="58" x2="396" y2="186" stroke="#d1d5db" stroke-width="1.5"/>
+                    <line x1="396" y1="186" x2="240" y2="314" stroke="#d1d5db" stroke-width="1.5"/>
+                    <line x1="240" y1="314" x2="84" y2="186" stroke="#d1d5db" stroke-width="1.5"/>
+                    <line x1="84" y1="186" x2="240" y2="58" stroke="#d1d5db" stroke-width="1.5"/>
+                    <text x="232" y="122" text-anchor="middle" fill="#cbd5e1" font-size="7" letter-spacing="1" transform="rotate(-90 232 122)">SOCIO-POLITICAL</text>
+                    <text x="318" y="180" text-anchor="middle" fill="#cbd5e1" font-size="7" letter-spacing="1">TECHNICAL</text>
+
+                    {# Adversary — top #}
+                    <g class="cursor-pointer" onclick="toggleDiamond('adversary')">
+                        <title>Adversary — click for details</title>
+                        <circle cx="240" cy="58" r="36" fill="#ecf5fe" stroke="#3689e6" stroke-width="2" class="hover:brightness-95 transition-all"/>
+                        <text x="240" y="62" text-anchor="middle" font-size="16">{{ group.country_of_origin | flag if group.country_of_origin else '?' }}</text>
+                        <text x="240" y="78" text-anchor="middle" fill="#0d52bf" font-size="7" letter-spacing="0.5">ORIGIN</text>
+                    </g>
+                    <text x="240" y="12" text-anchor="middle" fill="#374151" font-size="11" font-weight="600">Adversary</text>
+
+                    {# Capability — left (technical axis) #}
+                    <g class="cursor-pointer" onclick="toggleDiamond('capability')">
+                        <title>Capability — click for details</title>
+                        <circle cx="84" cy="186" r="36" fill="#fefaec" stroke="#d48e15" stroke-width="2" class="hover:brightness-95 transition-all"/>
+                        <text x="84" y="190" text-anchor="middle" fill="#ad5f00" font-size="15" font-weight="700">{{ ttp_count + tool_count }}</text>
+                        <text x="84" y="205" text-anchor="middle" fill="#ad5f00" font-size="7" letter-spacing="0.5">TTPs + TOOLS</text>
+                    </g>
+                    <text x="84" y="244" text-anchor="middle" fill="#374151" font-size="11" font-weight="600">Capability</text>
+
+                    {# Infrastructure — right (technical axis) #}
+                    <g class="cursor-pointer" onclick="toggleDiamond('infrastructure')">
+                        <title>Infrastructure — click for details</title>
+                        <circle cx="396" cy="186" r="36" fill="{{ '#f7f9fa' if not group.locations else '#f7f0fc' }}" stroke="{{ '#95a3ab' if not group.locations else '#7a36b1' }}" stroke-width="2" class="hover:brightness-95 transition-all"/>
+                        <text x="396" y="190" text-anchor="middle" fill="{{ '#485a6c' if not group.locations else '#4c158a' }}" font-size="15" font-weight="700">{{ group.locations | length if group.locations else '—' }}</text>
+                        <text x="396" y="205" text-anchor="middle" fill="{{ '#485a6c' if not group.locations else '#4c158a' }}" font-size="7" letter-spacing="0.5">SITES</text>
+                    </g>
+                    <text x="396" y="244" text-anchor="middle" fill="#374151" font-size="11" font-weight="600">Infrastructure</text>
+
+                    {# Victim — bottom (socio-political axis) #}
+                    <g class="cursor-pointer" onclick="toggleDiamond('victim')">
+                        <title>Victim — click for details</title>
+                        <circle cx="240" cy="314" r="36" fill="#fdf0ef" stroke="#ed5353" stroke-width="2" class="hover:brightness-95 transition-all"/>
+                        <text x="240" y="318" text-anchor="middle" fill="#a10705" font-size="15" font-weight="700">{{ victim_count }}</text>
+                        <text x="240" y="333" text-anchor="middle" fill="#a10705" font-size="7" letter-spacing="0.5">{{ "CLAIMS" if is_hacktivist else "VICTIMS" }}</text>
+                    </g>
+                    <text x="240" y="368" text-anchor="middle" fill="#374151" font-size="11" font-weight="600">Victim</text>
+                </svg>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Pyramid of Pain</h3>
+            <div class="flex justify-center">
+                {# True pyramid: apex (130,22), base y=280 half-width 120 —
+                   band i spans half-widths 20*i → 20*(i+1), so the silhouette
+                   is one continuous triangle; labels sit in a column on the
+                   right with leader lines #}
+                <svg viewBox="0 0 400 300" class="w-full max-w-[400px] h-auto select-none">
+                    {# Pain is an ORDERED scale, so the encoding is sequential:
+                       one hue (Blueberry), monotonic in luminance, not six
+                       categorical hues. The previous rainbow failed CVD
+                       separation — adjacent bands sat at deutan ΔE 0.5 in dark
+                       mode. Ramp runs dark->light going down in light mode and
+                       inverts on the dark surface. See UI-SPEC §2.
+
+                       `pending` marks levels the pipeline cannot populate yet
+                       (no IOC extraction until Phase 4). "Not collected yet" and
+                       "collected, none found" are different claims. #}
+                    {% set layers = [
+                        ("TTPs", ttp_count, false, "#0d52bf", "#8cd5ff"),
+                        ("Tools", tool_count, false, "#3689e6", "#64baff"),
+                        ("Network/Host Artifacts", 0, true, "#64baff", "#3689e6"),
+                        ("Domain Names", 0, true, "#8cd5ff", "#2a6bb0"),
+                        ("IP Addresses", 0, true, "#c6e2ff", "#1d4a7a"),
+                        ("Hash Values", 0, true, "#e8f3ff", "#16324f"),
+                    ] %}
+                    {% for name, count, pending, ramp_light, ramp_dark in layers %}
+                        {% set i = loop.index0 %}
+                        {% set yt = 22 + i * 43 %}
+                        {% set yb = yt + 43 %}
+                        {% set wt = 20 * i %}
+                        {% set wb = 20 * (i + 1) %}
+                        <polygon
+                            points="{{ 130 - wt }},{{ yt }} {{ 130 + wt }},{{ yt }} {{ 130 + wb }},{{ yb }} {{ 130 - wb }},{{ yb }}"
+                            class="{{ 'fill-[#f3f4f6] dark:fill-[#222c3b]' if not count else 'fill-[' ~ ramp_light ~ '] dark:fill-[' ~ ramp_dark ~ ']' }} stroke-[#ffffff] dark:stroke-[#1a2433]"
+                            stroke-width="2"
+                        >{% if pending %}<title>{{ name }} — not collected yet: requires IOC extraction (Phase 4)</title>{% endif %}</polygon>
+                        {% set yc = yt + 25 %}
+                        {% set edge = 130 + ((yc - 22) * 120 / 258) | round | int %}
+                        <line x1="{{ edge + 6 }}" y1="{{ yc - 4 }}" x2="256" y2="{{ yc - 4 }}" class="stroke-[#e5e7eb] dark:stroke-[#3a4a5e]" stroke-width="1" stroke-dasharray="2,3"/>
+                        {# Labels wear text tokens, never the band colour — the band carries identity #}
+                        <text x="262" y="{{ yc - 1 }}" class="{{ 'fill-gray-800 dark:fill-noir-hi' if count else 'fill-gray-400 dark:fill-noir-mute' }}" font-size="10" font-weight="{{ '600' if count else '400' }}">{{ name }}</text>
+                        {% if count %}
+                        <text x="262" y="{{ yc + 11 }}" class="fill-gray-800 dark:fill-noir-hi" font-size="9" font-weight="600">{{ count }}</text>
+                        {% elif pending %}
+                        <text x="262" y="{{ yc + 11 }}" class="fill-gray-400 dark:fill-noir-mute" font-size="9" font-style="italic">Not collected yet</text>
+                        {% else %}
+                        <text x="262" y="{{ yc + 11 }}" class="fill-gray-400 dark:fill-noir-mute" font-size="9" font-style="italic">None found</text>
+                        {% endif %}
+                    {% endfor %}
+                    {# Crisp outer silhouette on top of the bands #}
+                    <polygon points="130,22 250,280 10,280" fill="none" class="stroke-[#d1d5db] dark:stroke-[#3a4a5e]" stroke-width="1"/>
+                    <text x="130" y="13" text-anchor="middle" class="fill-gray-500 dark:fill-noir-mute" font-size="9" font-weight="600">Tough</text>
+                    <text x="130" y="294" text-anchor="middle" class="fill-gray-500 dark:fill-noir-mute" font-size="9" font-weight="600">Trivial</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    {# Diamond detail panels #}
+    <div id="diamond-adversary" class="hidden mt-4 p-3 bg-blue-50 dark:bg-noir-raised border border-blue-200 dark:border-noir-border rounded-lg text-sm">
+        <h4 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">Adversary — {{ group.group_name }}</h4>
+        {% set aliases = group.aliases | parse_aliases %}
+        {% if aliases %}
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Aliases:</span> {{ aliases | join(', ') }}</p>
+        {% endif %}
+        {% if group.country_of_origin %}
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Origin:</span> {{ group.country_of_origin | flag }} {{ group.country_of_origin }}</p>
+        {% endif %}
+        {% if group.description %}
+        <div class="text-gray-600 dark:text-noir-text text-sm leading-relaxed">{{ group.description | clean_desc }}</div>
+        {% endif %}
+    </div>
+    <div id="diamond-capability" class="hidden mt-4 p-3 bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg text-sm">
+        <h4 class="font-semibold text-amber-700 dark:text-amber-300 mb-2">Capability</h4>
+        {% if ttp_count %}
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">TTPs:</span> {{ ttp_count }} techniques across {{ ttps_by_tactic | length }} tactics</p>
+        {% endif %}
+        {% if tool_count %}
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Tools:</span> {{ tool_count }} across {{ tools_by_cat | length }} categories</p>
+        {% endif %}
+        {% if not ttp_count and not tool_count %}
+        <p class="text-gray-400 dark:text-noir-mute italic">No capability data available.</p>
+        {% endif %}
+    </div>
+    <div id="diamond-infrastructure" class="hidden mt-4 p-3 {{ 'bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border' if not group.locations else 'bg-violet-50 dark:bg-noir-raised border border-violet-200 dark:border-noir-border' }} rounded-lg text-sm">
+        <h4 class="font-semibold {{ 'text-gray-700 dark:text-noir-text' if not group.locations else 'text-violet-700 dark:text-violet-300' }} mb-2">Infrastructure</h4>
+        {% if group.locations %}
+        <ul class="space-y-1">
+        {% for loc in group.locations[:10] %}
+            <li class="flex items-center gap-2 text-gray-600 dark:text-noir-text">
+                <span class="w-2 h-2 rounded-full {% if loc.available %}bg-status-ok-dot{% else %}bg-status-down-dot{% endif %}"></span>
+                <span class="font-mono text-xs">{{ loc.fqdn or loc.title or "—" }}</span>
+            </li>
+        {% endfor %}
+        </ul>
+        {% if group.locations | length > 10 %}
+        <p class="text-gray-400 dark:text-noir-mute text-xs mt-1">… and {{ group.locations | length - 10 }} more</p>
+        {% endif %}
+        {% else %}
+        <p class="text-gray-400 dark:text-noir-mute italic">No infrastructure data available.</p>
+        {% endif %}
+    </div>
+    <div id="diamond-victim" class="hidden mt-4 p-3 bg-red-50 dark:bg-noir-raised border border-red-200 dark:border-noir-border rounded-lg text-sm">
+        <h4 class="font-semibold text-red-700 dark:text-red-300 mb-2">Victim — {{ victim_count }} total</h4>
+        {% if top_countries %}
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Top countries:</span>
+            {% for c in top_countries %}{{ c.code }} ({{ c.count }}){% if not loop.last %}, {% endif %}{% endfor %}
+        </p>
+        {% endif %}
+        {% if victims %}
+        <p class="text-gray-600 dark:text-noir-text"><span class="text-gray-400 dark:text-noir-mute">Latest:</span> {{ victims[0].victim_name or victims[0].domain or "—" }} ({{ victims[0].attackdate.strftime('%Y-%m-%d') if victims[0].attackdate else "—" }})</p>
+        {% endif %}
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Tab: Infrastructure ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="tab-infrastructure" role="tabpanel" class="tab-panel hidden">
+    {% if group.locations %}
+    {% set online = group.locations | selectattr('available') | list %}
+    {% set offline = group.locations | rejectattr('available') | list %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Locations ({{ group.locations | length }})</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs font-medium text-status-ok dark:text-status-ok-dot mb-2">Online ({{ online | length }})</p>
+                <ul class="space-y-0.5 max-h-60 overflow-y-auto">
+                {% for loc in online %}
+                    <li class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 bg-status-ok-dot"></span>
+                        <span class="font-mono text-xs text-gray-500 dark:text-noir-mute truncate">{{ loc.fqdn or loc.title or "—" }}</span>
+                    </li>
+                {% endfor %}
+                {% if not online %}
+                    <li class="text-xs text-gray-400 dark:text-noir-mute italic">None</li>
+                {% endif %}
+                </ul>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-status-down dark:text-status-down-dot mb-2">Offline ({{ offline | length }})</p>
+                <ul class="space-y-0.5 max-h-60 overflow-y-auto">
+                {% for loc in offline %}
+                    <li class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0 bg-status-down-dot"></span>
+                        <span class="font-mono text-xs text-gray-500 dark:text-noir-mute truncate">{{ loc.fqdn or loc.title or "—" }}</span>
+                    </li>
+                {% endfor %}
+                {% if not offline %}
+                    <li class="text-xs text-gray-400 dark:text-noir-mute italic">None</li>
+                {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No infrastructure data available.</p>
+    </div>
+    {% endif %}
+
+    {# ── Financial Intelligence (Ransomwhere) ── #}
+    {% if btc_tx_count > 0 %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Financial Intelligence</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
+                <p class="text-lg font-bold text-amber-700 dark:text-amber-300">${{ "{:,.0f}".format(btc_total_usd) }}</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">Total USD</p>
+            </div>
+            <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
+                <p class="text-lg font-bold text-amber-700 dark:text-amber-300">{{ "%.4f"|format(btc_total_btc) }}</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">Total BTC</p>
+            </div>
+            <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
+                <p class="text-lg font-bold text-amber-700 dark:text-amber-300">{{ btc_tx_count }}</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">Transactions</p>
+            </div>
+            <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
+                <p class="text-lg font-bold text-amber-700 dark:text-amber-300">{{ btc_addr_count }}</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">Addresses</p>
+            </div>
+        </div>
+        <p class="text-xs text-gray-400 dark:text-noir-mute">Source: <a href="https://ransomwhe.re" target="_blank" class="text-accent hover:underline">Ransomwhere</a></p>
+    </div>
+    {% endif %}
+
+    {# ── BTC Addresses ── #}
+    {% set btc_list = group.btc_addresses | parse_json_list %}
+    {% if btc_list %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">BTC Addresses ({{ btc_list | length }})</h3>
+        <ul class="space-y-0.5 max-h-48 overflow-y-auto">
+        {% for addr in btc_list %}
+            <li class="font-mono text-xs text-gray-500 dark:text-noir-mute break-all">
+                <a href="https://www.blockchain.com/btc/address/{{ addr }}" target="_blank" class="hover:text-accent">{{ addr }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {# ── Communication Channels (deepdarkCTI) ── #}
+    {% if group.comms %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Communication Channels ({{ group.comms | length }})</h3>
+        <ul class="space-y-1">
+        {% for comm in group.comms %}
+            <li class="flex items-center gap-2">
+                <span class="text-xs font-medium text-gray-500 dark:text-noir-mute uppercase w-16">{{ comm.channel_type }}</span>
+                {% if comm.channel_value.startswith('http') %}
+                    <a href="{{ comm.channel_value | safe_url }}" target="_blank" class="font-mono text-xs text-accent hover:underline truncate">{{ comm.channel_value }}</a>
+                {% else %}
+                    <span class="font-mono text-xs text-gray-600 dark:text-noir-text truncate">{{ comm.channel_value }}</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+        <p class="text-xs text-gray-400 dark:text-noir-mute mt-2">Source: <a href="https://github.com/fastfire/deepdarkCTI" target="_blank" class="text-accent hover:underline">deepdarkCTI</a></p>
+    </div>
+    {% endif %}
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Tab: Arsenal (Tools only) ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="tab-arsenal" role="tabpanel" class="tab-panel hidden">
+    {% if tools_by_cat %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Tools ({{ tool_count }})</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for cat, tool_list in tools_by_cat.items() %}
+            <div>
+                <h4 class="text-xs font-medium text-accent mb-1">{{ cat }}</h4>
+                <div class="flex flex-wrap gap-1">
+                {% for tool in tool_list %}
+                    <span class="text-xs bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border">{{ tool }}</span>
+                {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No tools data available.</p>
+    </div>
+    {% endif %}
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Tab: TTPs ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="tab-ttps" role="tabpanel" class="tab-panel hidden">
+    {% if ttps_by_tactic %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">MITRE ATT&CK TTPs ({{ ttp_count }})</h3>
+            <span class="flex gap-3">
+                {% if ttp_count %}<a href="/attack?group_id={{ group.id }}" class="text-xs text-accent hover:underline">View as matrix →</a>{% endif %}
+                <a href="/api/v1/groups/{{ group.id }}/stix" class="text-xs text-accent hover:underline" title="STIX 2.1 bundle — pushable into MISP or OpenCTI">Export STIX ↓</a>
+            </span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for tactic, techniques in ttps_by_tactic.items() %}
+            <div>
+                <h4 class="text-xs font-medium text-accent mb-1">{{ tactic }}</h4>
+                <table class="w-full text-xs">
+                {% for t in techniques %}
+                    <tr class="border-b border-gray-100 dark:border-noir-line">
+                        <td class="py-1 text-gray-400 dark:text-noir-mute w-24 font-mono">{{ t.technique_id }}</td>
+                        <td class="py-1 text-gray-700 dark:text-noir-text">{{ t.technique_name }}</td>
+                        <td class="py-1 text-gray-400 dark:text-noir-mute pl-2">{{ t.technique_details or "" }}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No TTP data available.</p>
+    </div>
+    {% endif %}
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Tab: Victims ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="tab-victims" role="tabpanel" class="tab-panel hidden">
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Recent {{ "Claims" if is_hacktivist else "Victims" }} ({{ victim_count }})</h3>
+        {% if is_hacktivist %}
+        <p class="text-xs text-orange-600 dark:text-orange-300 bg-orange-50 dark:bg-noir-raised border border-orange-200 dark:border-noir-border rounded px-3 py-1.5 mb-3">This group is classified as hacktivist / non-ransomware. Entries below are claims or posts, not confirmed victims.</p>
+        {% endif %}
+        <table class="w-full text-sm">
+            <thead><tr class="text-gray-400 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+                <th class="text-left py-2">{{ "Title" if is_hacktivist else "Name" }}</th>
+                {% if not is_hacktivist %}<th class="text-left py-2">Domain</th>{% endif %}
+                <th class="text-left py-2">Country</th>
+                <th class="text-left py-2">Date</th>
+            </tr></thead>
+            <tbody>
+            {% for v in victims %}
+            <tr class="border-b border-gray-100 dark:border-noir-line hover:bg-gray-50 dark:hover:bg-noir-raised">
+                <td class="py-1.5"><a href="/victims/{{ v.id }}" class="text-accent hover:underline">{{ v.victim_name or "—" }}</a></td>
+                {% if not is_hacktivist %}<td class="py-1.5 text-gray-500 dark:text-noir-mute font-mono text-xs">{{ v.domain or "—" }}</td>{% endif %}
+                <td class="py-1.5 text-gray-500 dark:text-noir-mute">{{ v.country.iso_code if v.country else "—" }}</td>
+                <td class="py-1.5 text-gray-400 dark:text-noir-mute">{{ v.attackdate.strftime('%Y-%m-%d') if v.attackdate else "—" }}</td>
+            </tr>
+            {% endfor %}
+            {% if not victims %}
+            <tr><td colspan="{{ 3 if is_hacktivist else 4 }}" class="py-4 text-center text-gray-400 dark:text-noir-mute">No {{ "claims" if is_hacktivist else "victims" }} recorded.</td></tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Tab: References ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="tab-references" role="tabpanel" class="tab-panel hidden">
+    {% set src_urls = group.description | extract_sources %}
+    {% if group.references or group.source or src_urls or group.url %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">References</h3>
+        <div class="flex flex-wrap gap-2 mb-3">
+            {% if group.source %}
+            <span class="inline-flex items-center bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text text-xs px-2.5 py-1 rounded-full font-medium">{{ group.source.source_name }}</span>
+            {% endif %}
+            {% if group.url %}
+            <a href="{{ group.url | safe_url }}" target="_blank" rel="noopener" class="inline-flex items-center bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full font-medium hover:bg-accent/20 transition-colors">{{ group.url | replace('https://', '') | replace('http://', '') | truncate(40) }}</a>
+            {% endif %}
+            {% for url in src_urls %}
+            <a href="{{ url | safe_url }}" target="_blank" rel="noopener" class="inline-flex items-center bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full font-medium hover:bg-accent/20 transition-colors">{{ url | replace('https://', '') | replace('http://', '') | truncate(40) }}</a>
+            {% endfor %}
+        </div>
+        {% if group.references %}
+        <ul class="space-y-1 text-sm">
+        {% for ref in group.references %}
+            <li><a href="{{ ref.url | safe_url }}" target="_blank" rel="noopener" class="text-accent hover:underline text-xs break-all">{{ ref.url }}</a></li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No references available.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="mt-4">
+    <a href="/groups" class="text-sm text-gray-400 dark:text-noir-mute hover:text-accent">&larr; Back to adversaries</a>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Scripts ── #}
+{# ══════════════════════════════════════════════ #}
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) {
+            b.className = 'tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors';
+            b.setAttribute('aria-selected', 'false');
+        });
+        this.className = 'tab-btn pb-2 text-sm font-medium border-b-2 border-accent text-accent';
+        this.setAttribute('aria-selected', 'true');
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.add('hidden'); });
+        document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
+    });
+});
+// Keyboard navigation between tabs (ARIA tablist pattern)
+document.getElementById('tab-nav').addEventListener('keydown', function(e) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    var tabs = Array.prototype.slice.call(this.querySelectorAll('.tab-btn'));
+    var i = tabs.indexOf(document.activeElement);
+    if (i === -1) return;
+    e.preventDefault();
+    var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    next.focus();
+    next.click();
+});
+
+// Diamond Model toggle
+function toggleDiamond(vertex) {
+    var el = document.getElementById('diamond-' + vertex);
+    var wasHidden = el.classList.contains('hidden');
+    document.querySelectorAll('[id^="diamond-"]').forEach(function(d) { d.classList.add('hidden'); });
+    if (wasHidden) el.classList.remove('hidden');
+}
+</script>
+
+{% if country_data %}
+<script>
+var iso2to3 = PEST.iso2to3;
+var mapLayout = PEST.geoLayout({ height: 280, geo: { showcoastlines: false, showcountries: false } });
+var mapOpts = PEST.plotlyConfig;
+var originIso2 = {{ (group.country_of_origin or '') | tojson }};
+var originIso3 = iso2to3[originIso2] || '';
+
+function renderMap(data) {
+    var maxC = Math.max(...data.map(function(d) { return d.count; }), 1);
+    var traces = [{
+        type: 'choropleth',
+        locations: data.map(function(d) { return iso2to3[d.code] || d.code; }),
+        z: data.map(function(d) { return Math.log1p(d.count); }),
+        text: data.map(function(d) { return d.code + ': ' + d.count; }),
+        colorscale: [[0,'#ffffb2'],[0.25,'#fecc5c'],[0.5,'#fd8d3c'],[0.75,'#f03b20'],[1,'#bd0026']],
+        zmin: 0,
+        zmax: Math.log1p(maxC),
+        showscale: false,
+        marker: { line: { color: '#999999', width: 0.3 } },
+        hovertemplate: '%{text}<extra></extra>'
+    }];
+    if (originIso3) {
+        var originVictims = data.find(function(d) { return d.code === originIso2; });
+        traces.push({
+            type: 'choropleth',
+            locations: [originIso3],
+            z: [1],
+            text: [originIso2 + ': origin' + (originVictims ? ' (' + originVictims.count + ' victims)' : '')],
+            colorscale: [[0, 'rgba(59,130,246,0.2)'], [1, 'rgba(59,130,246,0.2)']],
+            showscale: false,
+            marker: { line: { color: '#3b82f6', width: 2 } },
+            hovertemplate: '%{text}<extra></extra>'
+        });
+    }
+    Plotly.react('group-map', traces, mapLayout, mapOpts).then(function() {
+        var ph = document.querySelector('#group-map > span'); if (ph) ph.remove();
+        if (!originIso3) return;
+        var svg = document.querySelector('#group-map svg');
+        if (!svg) return;
+        var defs = svg.querySelector('defs');
+        if (!defs) { defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs'); svg.insertBefore(defs, svg.firstChild); }
+        if (!defs.querySelector('#origin-stripes')) {
+            var pat = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+            pat.setAttribute('id', 'origin-stripes');
+            pat.setAttribute('width', '8');
+            pat.setAttribute('height', '8');
+            pat.setAttribute('patternUnits', 'userSpaceOnUse');
+            pat.setAttribute('patternTransform', 'rotate(45)');
+            pat.innerHTML = '<rect width="8" height="8" fill="rgba(59,130,246,0.1)"/><line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" stroke-width="2" opacity="0.45"/>';
+            defs.appendChild(pat);
+        }
+        var traceGroups = svg.querySelectorAll('.choroplethlayer .trace');
+        if (traceGroups.length >= 2) {
+            traceGroups[1].querySelectorAll('path').forEach(function(p) {
+                p.style.fill = 'url(#origin-stripes)';
+            });
+        }
+    });
+}
+
+renderMap({{ country_data | tojson }});
+
+document.querySelectorAll('#map-period-btns button').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+        document.querySelectorAll('#map-period-btns button').forEach(function(b) {
+            b.className = 'px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors';
+        });
+        this.className = 'px-2.5 py-1 text-xs rounded border border-accent text-accent font-semibold transition-colors';
+        var resp = await fetch('/api/v1/groups/{{ group.id }}/geodata?period=' + this.dataset.period);
+        var data = await resp.json();
+        renderMap(data);
+    });
+});
+</script>
+{% endif %}
+
+<script>
+function doRefresh() {
+    var btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = 'Refreshing…';
+    csrfFetch('/api/v1/refresh', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function() { location.reload(); })
+        .catch(function() { btn.textContent = 'Error'; setTimeout(function() { btn.textContent = 'Refresh Now'; btn.disabled = false; }, 3000); });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,1313 @@
+<!-- "Education never ends, Watson." — Sherlock Holmes, Elementary -->
+{% extends "base.html" %}
+{% block title %}Guida — Elementary CTI{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+
+{# ── Tab Navigation ── #}
+<div class="border-b border-gray-200 dark:border-noir-border mb-6">
+    <nav class="flex gap-6" id="guide-tabs" role="tablist">
+        <button data-tab="help" role="tab" aria-selected="true" aria-controls="guide-help" class="guide-tab pb-2 text-sm font-medium border-b-2 border-accent text-accent">Guida Utente</button>
+        <button data-tab="api" role="tab" aria-selected="false" aria-controls="guide-api" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">API</button>
+        <button data-tab="pipeline" role="tab" aria-selected="false" aria-controls="guide-pipeline" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Pipeline</button>
+        <button data-tab="glossary" role="tab" aria-selected="false" aria-controls="guide-glossary" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Glossario</button>
+        <button data-tab="sources" role="tab" aria-selected="false" aria-controls="guide-sources" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Fonti</button>
+        <button data-tab="playbook" role="tab" aria-selected="false" aria-controls="guide-playbook" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Playbook</button>
+        <button data-tab="faq" role="tab" aria-selected="false" aria-controls="guide-faq" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">FAQ</button>
+        <button data-tab="methodology" role="tab" aria-selected="false" aria-controls="guide-methodology" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Metodologia</button>
+        <button data-tab="changelog" role="tab" aria-selected="false" aria-controls="guide-changelog" class="guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Changelog</button>
+    </nav>
+</div>
+
+{# ═══════��════════════════════════════════��═════ #}
+{# ── Guida Utente ── #}
+{# ═════════════════════════════���════════════════ #}
+<div id="guide-help" role="tabpanel" class="guide-panel">
+<div class="flex gap-6">
+    {# ── Menu pagine ── #}
+    <nav class="w-44 shrink-0">
+        <ul class="space-y-0.5 text-sm sticky top-6">
+            <li><button data-help="overview" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-accent font-medium bg-accent/10">Panoramica</button></li>
+            <li><button data-help="dashboard" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Dashboard</button></li>
+            <li><button data-help="victims" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Victims</button></li>
+            <li><button data-help="adversaries" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Adversaries</button></li>
+            <li><button data-help="cyberattacks" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Cyberattacks</button></li>
+            <li><button data-help="map" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Map</button></li>
+            <li><button data-help="btc" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">BTC Explorer</button></li>
+            <li><button data-help="search" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Search</button></li>
+            <li><button data-help="watchlist" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Watchlist</button></li>
+            <li><button data-help="pipeline-page" class="help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised">Pipeline</button></li>
+        </ul>
+    </nav>
+    {# ── Contenuto help ── #}
+    <div class="flex-1">
+        <div id="help-overview" class="help-section bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Panoramica</h3>
+            <p>Elementary CTI è una piattaforma di Cyber Threat Intelligence specializzata nel monitoraggio delle minacce ransomware. Aggrega dati da molteplici fonti in un database unificato, li arricchisce con informazioni tattiche, finanziarie e operative, e li presenta attraverso un'interfaccia web interattiva.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Fonti dati</h4>
+            <p>La piattaforma integra le seguenti fonti di intelligence:</p>
+            <ul class="list-disc ml-5 space-y-1">
+                <li><strong>ransomware.live</strong> — Feed principale: gruppi ransomware, vittime, cyberattacchi, infrastruttura dark web, indirizzi BTC, estensioni file, lineage tra gruppi</li>
+                <li><strong>MITRE ATT&CK</strong> — Arricchimento tattico: tecniche (TTPs), strumenti software, alias, riferimenti, mappatura per tattica (Initial Access, Execution, Persistence, ecc.)</li>
+                <li><strong>Ransomwhere</strong> — Arricchimento finanziario: pagamenti in BTC associati a famiglie ransomware, con importi in USD e date delle transazioni</li>
+                <li><strong>deepdarkCTI</strong> — Arricchimento operativo: stato dei siti onion (online/offline), canali di comunicazione (Tox, Telegram, Twitter, email, Jabber), feed RSS</li>
+            </ul>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Navigazione</h4>
+            <p>Usa la barra laterale a sinistra per accedere alle diverse sezioni. La casella di ricerca globale in alto a destra permette di cercare rapidamente vittime, gruppi e attacchi da qualsiasi pagina. Il contatore degli alert nella barra laterale mostra le notifiche non lette dalla watchlist.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Aggiornamento dati</h4>
+            <p>I dati vengono aggiornati automaticamente dallo scheduler ogni 2 ore per i feed principali e settimanalmente per le fonti di arricchimento. È possibile forzare un aggiornamento manuale dalla pagina Pipeline o tramite l'API <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded text-gray-700 dark:text-noir-text">POST /api/v1/refresh</code>.</p>
+        </div>
+        <div id="help-dashboard" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Dashboard</h3>
+            <p>La dashboard è la pagina iniziale della piattaforma e offre una visione d'insieme dello stato delle minacce ransomware.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Schede riepilogative</h4>
+            <p>Nella parte superiore vengono mostrati i contatori principali: numero totale di vittime, gruppi avversari, cyberattacchi registrati, paesi coinvolti e fonti dati attive. Il contatore delle fonti include sia i feed dati primari (es. ransomware.live) sia le fonti di arricchimento attive (MITRE, Ransomwhere, deepdarkCTI).</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Vittime recenti</h4>
+            <p>La tabella delle vittime recenti mostra le ultime vittime registrate con nome, gruppo responsabile, paese e data. Tre tab permettono di filtrare per periodo: ultimi 7 giorni, ultimo mese, ultimo anno. Ogni riga è cliccabile per accedere al dettaglio della vittima.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Mappa geografica</h4>
+            <p>La mappa coropletica mostra la distribuzione globale delle vittime. I colori vanno dal giallo chiaro (poche vittime) al rosso scuro (molte vittime), usando una scala quantile per evidenziare le differenze tra paesi. Passa il mouse su un paese per vedere il conteggio esatto.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Gruppi più attivi</h4>
+            <p>La sezione in basso mostra i gruppi ransomware con il maggior numero di vittime, con avatar pixel-art generati deterministicamente dal nome del gruppo e una breve descrizione.</p>
+        </div>
+        <div id="help-victims" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Victims</h3>
+            <p>Elenco completo di tutte le vittime di ransomware registrate nella piattaforma, con navigazione paginata (50 elementi per pagina).</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Filtri</h4>
+            <ul class="list-disc ml-5 space-y-1">
+                <li><strong>Testo libero</strong> — Cerca per nome vittima o dominio web. La ricerca è case-insensitive e supporta corrispondenze parziali.</li>
+                <li><strong>Gruppo</strong> — Menu a tendina per filtrare le vittime di un gruppo specifico (es. lockbit, akira, clop).</li>
+                <li><strong>Paese</strong> — Menu a tendina per filtrare per codice ISO del paese della vittima (es. US, IT, DE).</li>
+            </ul>
+            <p class="mt-2">I filtri possono essere combinati. Ad esempio, è possibile cercare tutte le vittime italiane del gruppo LockBit che contengono "bank" nel nome.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Dettaglio vittima</h4>
+            <p>Cliccando su una vittima si apre la pagina di dettaglio che mostra: nome, dominio, paese, data dell'attacco, gruppo responsabile, organizzazioni collegate e eventuali duplicati cross-source (la stessa vittima segnalata da fonti diverse). I duplicati vengono identificati tramite matching fuzzy sul nome e sul dominio.</p>
+        </div>
+        <div id="help-adversaries" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Adversaries</h3>
+            <p>Catalogo dei gruppi ransomware monitorati dalla piattaforma. Ogni gruppo è identificato da un avatar pixel-art generato deterministicamente, un conteggio delle vittime e una descrizione sintetica. I gruppi hacktivisti sono contrassegnati da un badge arancione e le loro "vittime" sono etichettate come "claims" per riflettere la natura diversa delle loro attività.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Pagina di dettaglio gruppo</h4>
+            <p>La pagina di dettaglio di ogni gruppo è organizzata in sei tab, preceduti da una mappa coropletica che mostra la distribuzione geografica delle vittime. Se il paese di origine del gruppo è noto, viene evidenziato con bande diagonali blu sulla mappa.</p>
+            <ul class="list-disc ml-5 mt-2 space-y-2">
+                <li><strong>Overview</strong> — Profilo completo del gruppo: descrizione, paese di origine, tipo di operazione (es. RaaS, Locker, Data Broker), lineage (relazioni con altri gruppi), estensioni file usate per la cifratura, alias noti. Include i modelli analitici Diamond Model (relazione avversario-vittima-infrastruttura-capacità) e Pyramid of Pain (indicatori dalla hash ai TTPs).</li>
+                <li><strong>Infrastructure</strong> — Siti dark web (URL .onion) con stato operativo (online/offline). Sezione Financial Intelligence con le statistiche aggregate dei pagamenti BTC: totale USD ricevuto, totale BTC, numero transazioni, numero indirizzi wallet. Gli indirizzi BTC sono cliccabili e collegati a blockchain.com per la verifica. Sezione Communication Channels con i canali operativi del gruppo (Tox ID, handle Telegram, account Twitter, email, Jabber).</li>
+                <li><strong>Arsenal</strong> — Strumenti software usati dal gruppo, categorizzati per funzione: furto di credenziali (Mimikatz, LaZagne), evasione difese, comando e controllo (Cobalt Strike, Brute Ratel), movimento laterale, esfiltrazione dati. Dati provenienti dall'arricchimento MITRE ATT&CK.</li>
+                <li><strong>TTPs</strong> — Tecniche MITRE ATT&CK associate al gruppo, organizzate per tattica (Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, Impact). Ogni tecnica è identificata dal codice MITRE (es. T1566) e dal nome.</li>
+                <li><strong>Victims</strong> — Lista delle vittime recenti del gruppo con nome, paese e data dell'attacco. Per i gruppi hacktivisti, la colonna si chiama "Title" anziché "Name" e il dominio è nascosto, in quanto le entry sono spesso titoli di articoli piuttosto che nomi di organizzazioni.</li>
+                <li><strong>References</strong> — Badge delle fonti dati che contribuiscono al profilo del gruppo, alert CISA (Cybersecurity and Infrastructure Security Agency), report sulle minacce pubblicati, link diretti alla pagina MITRE ATT&CK del gruppo.</li>
+            </ul>
+        </div>
+        <div id="help-cyberattacks" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Cyberattacks</h3>
+            <p>Lista paginata di tutti i cyberattacchi registrati nella piattaforma. I cyberattacchi rappresentano eventi specifici di attacco, distinti dalle vittime: una stessa vittima può essere associata a più attacchi nel tempo, e un attacco può coinvolgere informazioni aggiuntive come titoli di comunicati, date di pubblicazione e descrizioni.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Filtri disponibili</h4>
+            <ul class="list-disc ml-5 space-y-1">
+                <li><strong>Testo libero</strong> — Cerca per nome della vittima o titolo del comunicato dell'attacco.</li>
+                <li><strong>Paese</strong> — Filtra per codice ISO del paese della vittima coinvolta.</li>
+            </ul>
+            <p class="mt-2">I risultati mostrano: nome vittima, paese, data dell'attacco, titolo del comunicato. Ogni riga è collegata al dettaglio della vittima corrispondente.</p>
+        </div>
+        <div id="help-map" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Map</h3>
+            <p>Mappa coropletica interattiva a schermo intero che mostra la distribuzione globale delle vittime di ransomware per paese.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Filtro temporale</h4>
+            <p>Cinque opzioni di filtro permettono di analizzare l'andamento delle minacce in periodi diversi:</p>
+            <ul class="list-disc ml-5 space-y-1">
+                <li><strong>7 giorni</strong> — Attività della settimana corrente, utile per il monitoraggio operativo quotidiano.</li>
+                <li><strong>15 giorni</strong> — Visione bisettimanale, utile per individuare tendenze a breve termine.</li>
+                <li><strong>1 mese</strong> — Panoramica mensile per report periodici.</li>
+                <li><strong>1 anno</strong> — Distribuzione annuale per analisi di trend a medio termine.</li>
+                <li><strong>All</strong> — Dati storici completi dalla prima raccolta (default).</li>
+            </ul>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Interazione</h4>
+            <p>Passa il mouse su un paese per visualizzare il conteggio esatto delle vittime in un tooltip. La scala cromatica usa la palette YlOrRd (giallo-arancione-rosso) con binning quantile per massimizzare la leggibilità anche con distribuzioni molto sbilanciate (es. USA con migliaia di vittime vs paesi con singole unità). Clicca su un paese per filtrare la lista vittime.</p>
+        </div>
+        <div id="help-btc" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">BTC Explorer</h3>
+            <p>Strumento di ricerca e analisi degli indirizzi Bitcoin associati ai gruppi ransomware. I dati provengono dall'arricchimento Ransomwhere, che traccia i pagamenti delle vittime verso wallet controllati dai gruppi.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Schede riepilogative</h4>
+            <p>Nella parte superiore della pagina vengono mostrate le statistiche aggregate: totale USD ricevuto da tutti i gruppi, totale BTC, numero di transazioni tracciate e numero di indirizzi wallet distinti.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Ricerca indirizzi</h4>
+            <p>La casella di ricerca permette di cercare indirizzi BTC per corrispondenza parziale. Inserisci l'inizio di un indirizzo (es. <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded text-gray-700 dark:text-noir-text">bc1q...</code>) per trovare tutti i wallet corrispondenti. I risultati mostrano: indirizzo, gruppo associato, numero transazioni, totale BTC, totale USD, data prima e ultima transazione.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Top 20</h4>
+            <p>Senza ricerca attiva, la pagina mostra i 20 indirizzi con il maggior volume di BTC ricevuto, utile per identificare i wallet più rilevanti nell'ecosistema ransomware. Ogni indirizzo è collegato a blockchain.com per la verifica on-chain.</p>
+        </div>
+        <div id="help-search" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Search</h3>
+            <p>Motore di ricerca globale che interroga simultaneamente tutte le entità della piattaforma: vittime, gruppi avversari e cyberattacchi.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Come funziona</h4>
+            <p>Inserisci una o più parole chiave nella casella di ricerca. La ricerca è case-insensitive e cerca corrispondenze parziali nei seguenti campi:</p>
+            <ul class="list-disc ml-5 space-y-1">
+                <li><strong>Vittime</strong> — Nome vittima, dominio web</li>
+                <li><strong>Gruppi</strong> — Nome del gruppo, alias noti, descrizione</li>
+                <li><strong>Cyberattacchi</strong> — Nome vittima, titolo del comunicato</li>
+            </ul>
+            <p class="mt-2">I risultati sono raggruppati per categoria e mostrati con un massimo di 20 elementi per tipo. La ricerca è accessibile anche dalla casella in alto a destra della barra di navigazione, disponibile da qualsiasi pagina.</p>
+        </div>
+        <div id="help-watchlist" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Watchlist</h3>
+            <p>Sistema di monitoraggio proattivo per aziende e organizzazioni specifiche. Permette di ricevere notifiche immediate quando una nuova vittima corrisponde a un target nella watchlist.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Aggiungere un target</h4>
+            <p>Compila il form con il nome dell'azienda da monitorare e, opzionalmente, il dominio web e parole chiave aggiuntive. Il matching usa un algoritmo fuzzy (soglia configurabile, default 85%) che confronta il nome della vittima con i target nella watchlist, tollerando variazioni di capitalizzazione, abbreviazioni e piccoli errori di battitura.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Alert e notifiche</h4>
+            <p>Quando un refresh dati identifica una nuova vittima che corrisponde a un target della watchlist, viene generato un alert visibile nella pagina Watchlist e il contatore nella barra laterale si aggiorna. Gli alert possono essere contrassegnati come letti singolarmente o tutti in blocco. Le notifiche vengono anche inviate ai canali configurati:</p>
+            <ul class="list-disc ml-5 space-y-1">
+                <li><strong>Log</strong> — Canale predefinito, scrive gli alert nel log dell'applicazione.</li>
+                <li><strong>Webhook</strong> — Invia una richiesta HTTP POST con payload JSON a un URL configurato. Supporta retry con backoff esponenziale e autenticazione tramite header segreto.</li>
+            </ul>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Gestione</h4>
+            <p>I target della watchlist possono essere eliminati con il pulsante di cancellazione. L'eliminazione rimuove il target dal monitoraggio ma non gli alert già generati.</p>
+        </div>
+        <div id="help-pipeline-page" class="help-section hidden bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-3">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Pipeline</h3>
+            <p>Pannello di controllo per il monitoraggio e la gestione della pipeline di raccolta e arricchimento dati.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Schede delle fonti</h4>
+            <p>Ogni fonte dati e di arricchimento ha una scheda con lo stato corrente (Active, Backfilling, Disabled, Not run) e un interruttore per attivarla o disattivarla. Le fonti disabilitate vengono saltate sia durante lo scheduler automatico che durante il refresh manuale. Un indicatore colorato (verde/giallo/rosso) mostra lo stato dell'ultimo health check.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Backfill Progress</h4>
+            <p>Tabella che mostra lo stato del backfill storico per ogni fonte dati primaria. Il backfill recupera i dati storici anno per anno, dalla data di inizio della piattaforma (2020) fino all'anno corrente. Una volta completato, la fonte passa alla modalità incrementale (solo dati nuovi).</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Enrichment Sources</h4>
+            <p>Tabella delle fonti di arricchimento con: stato health check (ok/degraded/down), data ultimo arricchimento, tipo di dati forniti e metriche chiave (es. numero TTPs per MITRE, numero transazioni per Ransomwhere, numero canali per deepdarkCTI).</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Source Health</h4>
+            <p>Sezione dedicata al monitoraggio della salute delle fonti esterne. Per ogni fonte viene verificato: la raggiungibilità HTTP, la validità del formato dati ricevuto e il numero di righe/record (per deepdarkCTI). Un banner riassuntivo in cima indica se tutte le fonti sono operative o se ci sono problemi. Il pulsante "Run Check" esegue immediatamente tutti i controlli. I check vengono anche eseguiti automaticamente dallo scheduler dopo ogni ciclo di arricchimento.</p>
+            <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-4">Data Sources</h4>
+            <p>Tabella con le statistiche per ogni fonte dati primaria: URL base, numero di vittime, gruppi e attacchi importati. Utile per verificare la distribuzione dei dati tra le diverse fonti.</p>
+        </div>
+    </div>
+</div>
+</div>
+
+{# ═══════���════════════════════════��═════════════ #}
+{# ── API Guide ── #}
+{# ═���════════════════════════════════════���═══════ #}
+<div id="guide-api" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 space-y-8 text-sm text-gray-600 dark:text-noir-text">
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">REST API</h3>
+        <p>Tutti gli endpoint sono sotto <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded text-gray-700 dark:text-noir-text">/api/v1/</code>. Le risposte sono in formato JSON. Nessuna autenticazione richiesta nella versione corrente.</p>
+        <p class="mt-2">Documentazione interattiva: <a href="/docs" class="text-accent hover:underline" target="_blank">Swagger UI</a> &middot; <a href="/redoc" class="text-accent hover:underline" target="_blank">ReDoc</a></p>
+    </section>
+
+    <hr class="border-gray-200 dark:border-noir-border">
+
+    {# ── Stats ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/stats</code></h4>
+        <p>Statistiche generali della piattaforma.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "victims": 27122, "groups": 360, "cyberattacks": 3434, "countries": 185, "sources": 2 }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Victims list ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/victims</code></h4>
+        <p>Lista vittime paginata con filtri.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri query</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">page</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">int, default 1</td><td class="py-1">Pagina corrente</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">q</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Ricerca per nome o dominio</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">group</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Filtra per nome gruppo</td></tr>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">country</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Filtra per codice ISO paese</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "total": 27122, "page": 1, "pages": 543, "items": [{ "id": 1, "victim_name": "...", "domain": "...", "group": "...", "country": "US", "attackdate": "2024-01-15" }] }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Victim detail ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/victims/{victim_id}</code></h4>
+        <p>Dettaglio singola vittima con gruppo e paese.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri path</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">victim_id</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">int</td><td class="py-1">ID vittima</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-1 text-sm text-gray-400 dark:text-noir-mute">Restituisce 404 se non trovata.</p>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Groups list ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/groups</code></h4>
+        <p>Tutti i gruppi avversari ordinati per numero di vittime (decrescente).</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>[{ "id": 10, "group_name": "akira", "victim_count": 438, "description": "...", "country_of_origin": "RU", "aliases": [...] }]</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Group detail ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/groups/{group_id}</code></h4>
+        <p>Dettaglio singolo gruppo con conteggio vittime.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri path</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">group_id</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">int</td><td class="py-1">ID gruppo</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-1 text-sm text-gray-400 dark:text-noir-mute">Restituisce 404 se non trovato.</p>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Group geodata ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/groups/{group_id}/geodata</code></h4>
+        <p>Distribuzione geografica delle vittime di un gruppo.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">group_id</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">int (path)</td><td class="py-1">ID gruppo</td></tr>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">period</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string (query)</td><td class="py-1">Periodo: <code>7d</code>, <code>1m</code>, <code>1y</code>, <code>all</code> (default)</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>[{ "code": "US", "count": 142 }, { "code": "DE", "count": 38 }]</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Group avatar ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/groups/{name}/avatar</code></h4>
+        <p>Avatar pixel-art PNG generato deterministicamente dal nome del gruppo.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">name</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string (path)</td><td class="py-1">Nome del gruppo</td></tr>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">size</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">int (query), max 512</td><td class="py-1">Dimensione in pixel (default 200)</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-1 text-sm text-gray-400 dark:text-noir-mute">Restituisce <code>image/png</code>.</p>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Cyberattacks ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/cyberattacks</code></h4>
+        <p>Lista cyberattacchi paginata con filtri.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri query</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">page</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">int, default 1</td><td class="py-1">Pagina corrente</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">q</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Ricerca per nome vittima o titolo</td></tr>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">country</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Filtra per codice ISO paese</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "total": 3434, "page": 1, "pages": 69, "items": [{ "victim_name": "...", "country": "FR", "attack_date": "2024-06-01", "title": "..." }] }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Countries ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/countries</code></h4>
+        <p>Lista paesi con conteggio vittime, ordinata per numero decrescente.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>[{ "iso_code": "US", "victim_count": 8234 }, { "iso_code": "GB", "victim_count": 1456 }]</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Map ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/map</code></h4>
+        <p>Dati per la mappa coropletica con filtro temporale.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri query</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">period</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Periodo: <code>7d</code>, <code>15d</code>, <code>1m</code>, <code>1y</code>, <code>all</code> (default)</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "country_data": [{ "code": "US", "count": 142 }], "total_mapped": 27122 }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Pipeline status ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-emerald-600 font-mono text-xs mr-2">GET</span><code class="text-gray-700 dark:text-noir-text">/api/v1/pipeline/status</code></h4>
+        <p>Stato della pipeline: fonti dati, stato backfill, conteggio record per fonte.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>[{ "source_name": "ransomware.live", "backfill_done": true, "victims": 27122, "groups": 360, "attacks": 3434 }]</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Refresh ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-accent font-mono text-xs mr-2">POST</span><code class="text-gray-700 dark:text-noir-text">/api/v1/refresh</code></h4>
+        <p>Avvia un ciclo completo di aggiornamento dati. Esegue in sequenza: (1) ingestione da fonti dati primarie, (2) matching watchlist con dispatch notifiche, (3) arricchimento MITRE ATT&CK, (4) arricchimento Ransomwhere BTC, (5) arricchimento deepdarkCTI. Le fonti disabilitate vengono saltate.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{
+  "status": "ok",
+  "results": [{ "source": "ransomware.live", "victims_added": 12, "groups_added": 0, "cyberattacks_added": 3, "alerts_dispatched": 1 }],
+  "mitre_enrichment": { "matched_groups": 42, "ttps_added": 156, "tools_added": 23 },
+  "ransomwhere_enrichment": { "families_matched": 29, "transactions_added": 5273, "total_usd": 275000000 },
+  "deepdarkcti_enrichment": { "gangs_matched": 244, "comms_added": 31, "onion_urls": 337 }
+}</code></pre>
+        <p class="mt-1 text-sm text-gray-400 dark:text-noir-mute">Le fonti disabilitate vengono saltate con <code>"skipped": true, "reason": "disabled"</code>.</p>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Source toggle ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-accent font-mono text-xs mr-2">POST</span><code class="text-gray-700 dark:text-noir-text">/api/v1/source/{source_name}/toggle</code></h4>
+        <p>Attiva o disattiva una fonte dati. Lo stato viene invertito ad ogni chiamata.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri path</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">source_name</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Nome della fonte (es. <code>ransomware.live</code>)</td></tr>
+            </tbody>
+        </table>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "source": "ransomware.live", "enabled": false }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── MITRE toggle ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-accent font-mono text-xs mr-2">POST</span><code class="text-gray-700 dark:text-noir-text">/api/v1/mitre/toggle</code></h4>
+        <p>Attiva o disattiva l'arricchimento MITRE ATT&CK. Lo stato viene invertito ad ogni chiamata.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "source": "mitre", "enabled": true }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Enrichment toggle ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-accent font-mono text-xs mr-2">POST</span><code class="text-gray-700 dark:text-noir-text">/api/v1/enrichment/{name}/toggle</code></h4>
+        <p>Attiva o disattiva una fonte di arricchimento. Lo stato viene invertito ad ogni chiamata.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Parametri path</p>
+        <table class="mt-1 w-full text-xs border-collapse">
+            <tbody>
+                <tr><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">name</td><td class="py-1 pr-3 text-gray-400 dark:text-noir-mute">string</td><td class="py-1">Nome della fonte: <code>ransomwhere</code> o <code>deepdarkcti</code></td></tr>
+            </tbody>
+        </table>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>{ "source": "ransomwhere", "enabled": false }</code></pre>
+    </section>
+
+    <hr class="border-gray-100 dark:border-noir-line">
+
+    {# ── Health check ── #}
+    <section>
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi mb-1"><span class="text-accent font-mono text-xs mr-2">POST</span><code class="text-gray-700 dark:text-noir-text">/api/v1/health</code></h4>
+        <p>Esegue un health check su tutte le fonti di arricchimento esterne. Verifica raggiungibilità HTTP e validità del formato dati. I risultati vengono salvati nel database e mostrati nella pagina Pipeline.</p>
+        <p class="mt-2 text-sm text-gray-400 dark:text-noir-mute uppercase tracking-wider">Risposta</p>
+        <pre class="mt-1 bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-3 text-xs overflow-x-auto"><code>[
+  { "source": "deepdarkcti:ransomware_gang", "status": "ok", "http_status": 200, "row_count": 627, "format_valid": true },
+  { "source": "deepdarkcti:telegram_threat_actors", "status": "ok", "http_status": 200, "row_count": 915, "format_valid": true },
+  { "source": "deepdarkcti:twitter_threat_actors", "status": "ok", "http_status": 200, "row_count": 40, "format_valid": true },
+  { "source": "ransomwhere", "status": "ok", "http_status": 200 },
+  { "source": "mitre_attack", "status": "ok", "http_status": 200 }
+]</code></pre>
+        <p class="mt-1 text-sm text-gray-400 dark:text-noir-mute">I possibili valori di <code>status</code>: <code>ok</code> (raggiungibile e valido), <code>degraded</code> (raggiungibile ma dati anomali), <code>down</code> (non raggiungibile).</p>
+    </section>
+</div>
+</div>
+
+{# ══════════════════════��═══════════════════════ #}
+{# ── Pipeline ── #}
+{# ══════���═══════════════════════════════════════ #}
+<div id="guide-pipeline" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 space-y-6 text-sm text-gray-600 dark:text-noir-text">
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Pipeline Dati</h3>
+        <p>Elementary CTI raccoglie dati da molteplici fonti di threat intelligence su base schedulata. La pipeline viene eseguita automaticamente e può essere monitorata dalla pagina <a href="/pipeline" class="text-accent hover:underline">Pipeline</a>.</p>
+    </section>
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Fonti Dati</h3>
+        <table class="w-full text-xs border-collapse">
+            <thead>
+                <tr class="border-b border-gray-200 dark:border-noir-border text-left text-gray-400 dark:text-noir-mute uppercase tracking-wider">
+                    <th class="py-2 pr-4">Fonte</th>
+                    <th class="py-2 pr-4">Tipo</th>
+                    <th class="py-2 pr-4">Frequenza</th>
+                    <th class="py-2">Dati</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 dark:text-noir-text">
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-medium">ransomware.live</td><td class="py-1.5 pr-4">REST API</td><td class="py-1.5 pr-4">Ogni 2 ore</td><td class="py-1.5">Gruppi, vittime, cyberattacchi, infrastruttura dark web, indirizzi BTC, estensioni file, lineage tra gruppi, link profilo</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-medium">MITRE ATT&CK</td><td class="py-1.5 pr-4">STIX 2.1 Bundle (JSON)</td><td class="py-1.5 pr-4">Settimanale</td><td class="py-1.5">TTPs per tattica, strumenti software per categoria, alias gruppi, riferimenti (report, alert CISA). Matching per nome normalizzato e alias</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-medium">Ransomwhere</td><td class="py-1.5 pr-4">REST API (JSON)</td><td class="py-1.5 pr-4">Settimanale</td><td class="py-1.5">Transazioni BTC associate a famiglie ransomware: indirizzo wallet, hash transazione, importo BTC, controvalore USD, data. Matching primario per indirizzo BTC, secondario per nome famiglia</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-medium">deepdarkCTI</td><td class="py-1.5 pr-4">Markdown (GitHub)</td><td class="py-1.5 pr-4">Settimanale</td><td class="py-1.5">Tre file: (1) ransomware_gang.md — stato siti onion, URL, credenziali, feed RSS; (2) telegram_threat_actors.md — canali Telegram operativi; (3) twitter_threat_actors.md — account Twitter/X. Matching per nome normalizzato</td></tr>
+            </tbody>
+        </table>
+    </section>
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Flusso di Raccolta Dati</h3>
+        <p class="mb-2">La pipeline opera in due fasi: backfill iniziale (dati storici) e aggiornamento incrementale (solo novità).</p>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-3 mb-1">Fase 1: Backfill</h4>
+        <ol class="list-decimal ml-5 space-y-1">
+            <li>Recupero dati storici anno per anno (dal 2020 all'anno corrente)</li>
+            <li>Creazione gruppi, vittime e cyberattacchi nel database</li>
+            <li>Completamento segnalato in <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded text-gray-700 dark:text-noir-text">info_updates</code> — la fonte passa automaticamente alla fase incrementale</li>
+        </ol>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-3 mb-1">Fase 2: Aggiornamento Incrementale</h4>
+        <ol class="list-decimal ml-5 space-y-1">
+            <li>Recupero vittime recenti e nuovi cyberattacchi da ransomware.live</li>
+            <li>Matching watchlist con algoritmo fuzzy — generazione alert per nuove corrispondenze</li>
+            <li>Dispatch notifiche ai canali configurati (log, webhook)</li>
+        </ol>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mt-3 mb-1">Fase 3: Arricchimento (post-ciclo)</h4>
+        <ol class="list-decimal ml-5 space-y-1">
+            <li><strong>MITRE ATT&CK</strong> — Download bundle STIX, verifica freshness (hash), matching gruppi per nome/alias, importazione TTPs e strumenti</li>
+            <li><strong>Ransomwhere</strong> — Download export completo, matching famiglie per indirizzo BTC e nome, importazione transazioni con deduplicazione</li>
+            <li><strong>deepdarkCTI</strong> — Download e parsing dei 3 file markdown, matching gang per nome, importazione URL onion, canali comunicazione (Tox, Telegram, Twitter, email)</li>
+            <li><strong>Health Check</strong> — Verifica raggiungibilità e integrità di tutte le fonti esterne</li>
+        </ol>
+        <p class="mt-2">Il JSON grezzo di ogni fonte viene salvato in <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded text-gray-700 dark:text-noir-text">group_source_data</code> per futura verifica cross-source e ricostruzione storica.</p>
+    </section>
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Controlli</h3>
+        <p>Ogni fonte dati e di arricchimento (ransomware.live, MITRE ATT&CK, Ransomwhere, deepdarkCTI) può essere attivata o disattivata individualmente dalla pagina <a href="/pipeline" class="text-accent hover:underline">Pipeline</a> tramite interruttori toggle. Le fonti disabilitate vengono saltate sia durante lo scheduler automatico sia durante il refresh manuale via API. Lo stato viene persistito nel database e sopravvive ai riavvii dell'applicazione.</p>
+    </section>
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Health Monitoring</h3>
+        <p>Il sistema di monitoraggio verifica periodicamente la salute delle fonti esterne. Per ogni fonte vengono controllati:</p>
+        <ul class="list-disc ml-5 space-y-1">
+            <li><strong>Raggiungibilità</strong> — Verifica che l'endpoint HTTP risponda con status 200</li>
+            <li><strong>Validità formato</strong> — Per deepdarkCTI: parsing delle tabelle markdown e verifica che il numero di righe sia sopra la soglia minima (es. 400 per ransomware_gang, 500 per telegram_threat_actors)</li>
+            <li><strong>Stato</strong> — <span class="text-green-600 dark:text-green-300">ok</span> (raggiungibile e valido), <span class="text-yellow-600 dark:text-yellow-300">degraded</span> (raggiungibile ma formato anomalo), <span class="text-red-600 dark:text-red-300">down</span> (non raggiungibile)</li>
+        </ul>
+        <p class="mt-2">I check vengono eseguiti automaticamente dopo ogni ciclo di arricchimento nello scheduler e possono essere lanciati manualmente dal pulsante "Run Check" nella pagina Pipeline o via <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded text-gray-700 dark:text-noir-text">POST /api/v1/health</code>.</p>
+    </section>
+    <section>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Configurazione</h3>
+        <table class="w-full text-xs border-collapse">
+            <thead>
+                <tr class="border-b border-gray-200 dark:border-noir-border text-left text-gray-400 dark:text-noir-mute uppercase tracking-wider">
+                    <th class="py-2 pr-4">Variabile</th>
+                    <th class="py-2 pr-4">Default</th>
+                    <th class="py-2">Descrizione</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 dark:text-noir-text">
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_DB_URL</td><td class="py-1.5 pr-4">sqlite:///elementaryctiDB.db</td><td class="py-1.5">Stringa di connessione al database (supporta SQLite e PostgreSQL)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_LOG_LEVEL</td><td class="py-1.5 pr-4">INFO</td><td class="py-1.5">Livello di logging (DEBUG, INFO, WARNING, ERROR)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_INTERVAL_SECONDS</td><td class="py-1.5 pr-4">3600</td><td class="py-1.5">Intervallo tra i cicli dello scheduler (secondi)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_MITRE_ENRICHMENT_HOURS</td><td class="py-1.5 pr-4">168</td><td class="py-1.5">Intervallo arricchimento MITRE ATT&CK (ore, default 1 settimana)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_RANSOMWHERE_ENRICHMENT_HOURS</td><td class="py-1.5 pr-4">168</td><td class="py-1.5">Intervallo arricchimento Ransomwhere BTC (ore, default 1 settimana)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_DEEPDARKCTI_ENRICHMENT_HOURS</td><td class="py-1.5 pr-4">168</td><td class="py-1.5">Intervallo arricchimento deepdarkCTI (ore, default 1 settimana)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_FUZZY_THRESHOLD</td><td class="py-1.5 pr-4">85</td><td class="py-1.5">Soglia minima per il matching fuzzy della watchlist (0-100%)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_AUTH_USER</td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Username per HTTP Basic Auth opzionale (da impostare insieme a PEST_AUTH_PASS)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_AUTH_PASS</td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Password per HTTP Basic Auth opzionale; se assenti, UI e API restano aperte</td></tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Glossario ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="guide-glossary" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text max-h-[75vh] overflow-y-auto space-y-8">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-1">Glossario Threat Intelligence</h3>
+        <p class="text-sm text-slate-400 dark:text-noir-mute">Definizioni orientate alla rilevanza operativa, non solo all'accuratezza accademica. Fonti: MITRE ATT&CK, SANS, NICCS/CISA, Team Cymru.</p>
+    </div>
+
+    {# ── Ransomware & Threat Actors ── #}
+    <section>
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-noir-text border-b border-gray-200 dark:border-noir-border pb-1 mb-3">Ransomware & Threat Actors</h4>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Ransomware</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Malware che cifra i dati della vittima e richiede un riscatto per la chiave di decriptazione. Le operazioni moderne usano la "doppia estorsione" (cifra + esfiltrazione dati). L'infrastruttura viene spesso riutilizzata tra gruppi nominalmente distinti attraverso modelli Ransomware-as-a-Service (RaaS).</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">RaaS (Ransomware-as-a-Service)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Modello operativo in cui gli sviluppatori del ransomware forniscono il malware e l'infrastruttura agli affiliati, che conducono gli attacchi in cambio di una percentuale del riscatto (tipicamente 20-30% agli sviluppatori). Spiega la proliferazione di gruppi con infrastruttura simile.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">APT (Advanced Persistent Threat)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Attore — tipicamente nation-state — caratterizzato da alta capacità, lungo dwell time e obiettivi mission-focused (spionaggio, furto IP). Si distingue dal ransomware per motivazione (non finanziaria) e per investimento in OPSEC e persistenza a lungo termine.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Hacktivist</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Attore motivato ideologicamente che conduce attacchi (DDoS, defacement, data leak) per ragioni politiche o sociali. In Elementary CTI, i gruppi hacktivisti sono contrassegnati automaticamente e le loro "vittime" etichettate come "claims" per riflettere la natura diversa delle attività.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Lineage</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Relazioni genealogiche tra gruppi ransomware: fork, rebrand, affiliazioni. Es. BlackMatter → ALPHV/BlackCat → possibile legame con DarkSide. Il lineage aiuta a predire TTPs e infrastruttura di nuovi gruppi basandosi sui predecessori.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Double Extortion</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Tecnica in cui l'attaccante prima esfiltrava i dati, poi cifra i sistemi. Se la vittima non paga, i dati vengono pubblicati sul leak site del gruppo. Ormai standard per la maggior parte delle operazioni ransomware moderne.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Threat Intelligence Concepts ── #}
+    <section>
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-noir-text border-b border-gray-200 dark:border-noir-border pb-1 mb-3">Concetti di Threat Intelligence</h4>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">CTI (Cyber Threat Intelligence)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Informazione analizzata e contestualizzata su avversari, capacità e intenzioni, prodotta per supportare decisioni. La buona CTI risponde a "chi, cosa, perché e come?" non solo "quale IP?". Il ciclo intelligence — raccolta, processamento, analisi, disseminazione, feedback — si applica alla CTI come a qualsiasi altra disciplina intelligence.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">IOC (Indicator of Compromise)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Artefatto osservabile — indirizzo IP, dominio, hash, chiave di registro, SHA-256 certificato — che indica una compromissione. Gli IOC hanno vita breve: gli attori li cambiano appena vengono pubblicati. In Elementary CTI, gli IOC principali sono gli indirizzi BTC e i siti .onion dei gruppi.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">TTP (Tactics, Techniques & Procedures)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Il "come" di un attacco — i metodi e i pattern usati per raggiungere gli obiettivi. I TTP sono l'intelligence più duratura: gli indicatori ruotano in giorni, l'infrastruttura in settimane, ma i TTP restano stabili per mesi o anni. MITRE ATT&CK è la tassonomia standard. Elementary CTI mappa i TTP per ogni gruppo nella tab dedicata.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Diamond Model</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Framework analitico che modella un evento di intrusione come relazione tra quattro vertici: Avversario, Capacità, Infrastruttura, Vittima. Ogni coppia di vertici definisce un asse di analisi (es. Avversario-Infrastruttura per il pivoting). In Elementary CTI, il Diamond Model è visualizzato nella tab Overview di ogni gruppo.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Pyramid of Pain</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Modello di David Bianco che classifica gli indicatori per il "dolore" che causano all'avversario quando vengono rilevati: dalla base (hash — facili da cambiare) alla cima (TTP — difficili da modificare). In Elementary CTI, la Pyramid of Pain mostra quali livelli di indicatori sono disponibili per ogni gruppo.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">MITRE ATT&CK</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Knowledge base di tattiche e tecniche avversarie basata su osservazioni del mondo reale. Organizzata in 14 tattiche (dalla Reconnaissance all'Impact), con centinaia di tecniche specifiche. Elementary CTI usa il bundle STIX per arricchire i profili dei gruppi con TTPs e strumenti software documentati.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Attribution</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Processo di identificazione dell'attore dietro un'intrusione. L'attribuzione completa (individuo o unità statale) è difficile e raramente necessaria per la difesa. L'attribuzione tattica — identificare un cluster di attori per overlap infrastrutturale, pattern TTP e similarità malware — è operativamente utile e raggiungibile.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Victimology</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Studio di chi viene colpito, perché e in quale sequenza. La vittimologia aiuta a profilare la motivazione dell'attore (spionaggio, finanziaria, hacktivismo), predire futuri target e validare ipotesi di attribuzione. Elementary CTI visualizza la distribuzione geografica delle vittime per identificare pattern di targeting.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Infrastructure & Financial ── #}
+    <section>
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-noir-text border-b border-gray-200 dark:border-noir-border pb-1 mb-3">Infrastruttura & Intelligence Finanziaria</h4>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Leak Site / DLS (Data Leak Site)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Sito dark web (.onion) dove il gruppo ransomware pubblica i dati esfiltrati dalle vittime che non pagano il riscatto. Lo stato operativo (online/offline) dei leak site è tracciato da deepdarkCTI ed è un indicatore dell'attività corrente del gruppo.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">BTC Address (Wallet)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Indirizzo Bitcoin usato dal gruppo per ricevere i pagamenti dei riscatti. Tracciabile sulla blockchain pubblica. In Elementary CTI, i dati Ransomwhere mappano indirizzi → famiglie → transazioni con importi in USD. Utile per stimare il fatturato di un gruppo e identificare relazioni finanziarie.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">C2 (Command & Control)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Infrastruttura di comando usata per controllare i sistemi compromessi: server remoti, canali crittografati, DGA. Nel contesto ransomware, il C2 coordina la fase di esfiltrazione e il deployment del payload di cifratura. I canali di comunicazione (Tox, Telegram) tracciati da deepdarkCTI servono per la negoziazione del riscatto.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Tox ID</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Identificativo nel protocollo di messaggistica Tox (peer-to-peer, crittografato). Usato frequentemente dai gruppi ransomware per la comunicazione con le vittime durante la negoziazione del riscatto, in quanto non richiede registrazione e non è censurabile.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">STIX (Structured Threat Information eXpression)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Standard OASIS per la rappresentazione di threat intelligence in formato JSON strutturato. MITRE ATT&CK distribuisce il suo database come bundle STIX 2.1. Elementary CTI scarica e processa questo bundle per estrarre TTPs, strumenti e relazioni tra gruppi.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">OSINT (Open Source Intelligence)</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Intelligence derivata da fonti pubblicamente accessibili. deepdarkCTI è un progetto OSINT che cura informazioni su gruppi ransomware da fonti aperte (repository GitHub, forum, canali Telegram/Twitter). Complementa le fonti API strutturate con dati operativi aggiornati dalla community.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Defensive & Analysis ── #}
+    <section>
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-noir-text border-b border-gray-200 dark:border-noir-border pb-1 mb-3">Difesa & Analisi</h4>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Threat Hunting</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Processo proattivo e hypothesis-driven di ricerca di attività avversarie che hanno bypassato la detection automatica. Un hunt inizia con un'ipotesi (es. "c'è traffico C2 Cobalt Strike dalla rete interna?"), raccoglie dati rilevanti, li analizza e conferma o smentisce l'ipotesi.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Incident Response</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Processo strutturato per rilevare, contenere, eradicare e recuperare da un incidente di sicurezza. La funzione intelligence supporta l'IR caratterizzando l'attore, definendo lo scope dell'infrastruttura e identificando i meccanismi di persistenza.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Fuzzy Matching</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Algoritmo di confronto approssimato tra stringhe che tollera variazioni di capitalizzazione, abbreviazioni e piccoli errori. In Elementary CTI, usato per: (1) matching watchlist (soglia 85%), (2) correlazione nomi gruppi tra fonti diverse, (3) identificazione duplicati cross-source.</p>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="font-medium text-gray-800 dark:text-noir-hi text-sm">Enrichment</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute mt-1">Processo di aggiunta di contesto e intelligence a dati grezzi da fonti esterne. In Elementary CTI, l'arricchimento opera su tre assi: tattico (MITRE ATT&CK → TTPs), finanziario (Ransomwhere → pagamenti BTC), operativo (deepdarkCTI → stato infrastruttura, canali comunicazione).</p>
+            </div>
+        </div>
+    </section>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Fonti (Sources Deep-Dive) ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="guide-sources" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-8 max-h-[75vh] overflow-y-auto">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-1">Guida alle Fonti Dati</h3>
+        <p class="text-sm text-slate-400 dark:text-noir-mute">Documentazione tecnica di ogni fonte integrata: endpoint, campi, logica di matching, limitazioni e copertura.</p>
+    </div>
+
+    {# ── ransomware.live ── #}
+    <section class="border-l-2 border-accent/30 pl-4 space-y-3">
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi">ransomware.live</h4>
+        <div class="flex gap-2 flex-wrap text-xs">
+            <span class="px-2 py-0.5 rounded border border-green-200 dark:border-noir-border bg-green-50 dark:bg-noir-raised text-green-700 dark:text-green-300">Active</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">REST API</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">Ogni 2 ore</span>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Endpoint</p>
+            <table class="w-full text-xs border-collapse">
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">/api/groups</td><td class="py-1 text-gray-500 dark:text-noir-mute">Lista gruppi con metadati base</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">/api/victims/{year}</td><td class="py-1 text-gray-500 dark:text-noir-mute">Vittime per anno (backfill storico)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">/api/recentvictims</td><td class="py-1 text-gray-500 dark:text-noir-mute">Vittime recenti (aggiornamento incrementale)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">/api/cyberattacks</td><td class="py-1 text-gray-500 dark:text-noir-mute">Feed cyberattacchi con titoli e date</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">/v2/group/{name}</td><td class="py-1 text-gray-500 dark:text-noir-mute">Dettaglio gruppo: tipo, estensioni, lineage, BTC, profili</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Campi importati</p>
+            <ul class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">group_name</span>, <span class="font-mono text-gray-700 dark:text-noir-text">description</span>, <span class="font-mono text-gray-700 dark:text-noir-text">country_of_origin</span> — profilo base</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">group_type</span> (RaaS, Locker, Data Broker, ecc.), <span class="font-mono text-gray-700 dark:text-noir-text">extensions</span> (estensioni file cifrati)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">lineage</span> — relazioni con altri gruppi (predecessori, fork, rebrand)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">btc_addresses</span> — indirizzi wallet BTC noti (usati come chiave primaria per matching Ransomwhere)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">profile_urls</span> — link a siti .onion e mirror clearnet</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">altname</span> — alias aggiuntivi (merge con alias MITRE)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">victim_name</span>, <span class="font-mono text-gray-700 dark:text-noir-text">domain</span>, <span class="font-mono text-gray-700 dark:text-noir-text">country</span>, <span class="font-mono text-gray-700 dark:text-noir-text">attackdate</span> — record vittima</li>
+            </ul>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Flusso operativo</p>
+            <ol class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4">
+                <li>Backfill iniziale: recupero anno per anno (2020→oggi), creazione gruppi + vittime + attacchi</li>
+                <li>Incrementale: solo <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">/api/recentvictims</code> → nuovi record deduplicate per (nome, gruppo, data)</li>
+                <li>Enrichment dettaglio: <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">/v2/group/{name}</code> → tipo, estensioni, lineage, BTC, profili</li>
+                <li>JSON grezzo salvato in <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">group_source_data</code> per audit trail</li>
+            </ol>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Limitazioni</p>
+            <ul class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li>→ Nessuna autenticazione richiesta, ma rate limiting non documentato — mantenuto 1 req/s</li>
+                <li>→ Dati di attribuzione paese non sempre disponibili (molti gruppi senza <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">country_of_origin</code>)</li>
+                <li>→ Vittime duplicate possibili: stessa organizzazione con nomi leggermente diversi in periodi diversi</li>
+                <li>→ Endpoint <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">/v2/group</code> può restituire campi null per gruppi meno documentati</li>
+            </ul>
+        </div>
+    </section>
+
+    {# ── MITRE ATT&CK ── #}
+    <section class="border-l-2 border-blue-300/50 pl-4 space-y-3">
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi">MITRE ATT&CK</h4>
+        <div class="flex gap-2 flex-wrap text-xs">
+            <span class="px-2 py-0.5 rounded border border-green-200 dark:border-noir-border bg-green-50 dark:bg-noir-raised text-green-700 dark:text-green-300">Active</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">STIX 2.1 Bundle</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">Settimanale</span>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Fonte dati</p>
+            <p class="text-sm text-gray-500 dark:text-noir-mute">Bundle JSON (~30 MB) da <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded font-mono">github.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json</code></p>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Oggetti STIX processati</p>
+            <table class="w-full text-xs border-collapse">
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">intrusion-set</td><td class="py-1 text-gray-500 dark:text-noir-mute">Gruppi avversari → matching con Group per nome/alias</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">attack-pattern</td><td class="py-1 text-gray-500 dark:text-noir-mute">Tecniche ATT&CK → tabella GroupTTP (tecnica_id, nome, tattica)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">tool / malware</td><td class="py-1 text-gray-500 dark:text-noir-mute">Strumenti software → tabella GroupTool (nome, tipo, descrizione)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">relationship</td><td class="py-1 text-gray-500 dark:text-noir-mute">Collega gruppi ↔ tecniche ↔ strumenti via source_ref/target_ref</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Logica di matching</p>
+            <ol class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4">
+                <li>Calcolo hash SHA-256 del bundle → confronto con hash precedente (skip se identico)</li>
+                <li>Estrazione intrusion-set con nomi e alias (<code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">x_mitre_aliases</code>)</li>
+                <li>Normalizzazione nome: lowercase, rimozione spazi/trattini</li>
+                <li>Matching: nome normalizzato == <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">Group.group_name</code> normalizzato, oppure presente in <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">Group.aliases</code></li>
+                <li>Per ogni gruppo matchato: importazione TTPs e tools collegati via relationship</li>
+                <li>Merge alias MITRE con alias esistenti (deduplicazione case-insensitive)</li>
+            </ol>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Limitazioni</p>
+            <ul class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li>→ Solo ~42 gruppi ransomware hanno entry in MITRE (su ~360 totali monitorati)</li>
+                <li>→ Bundle pesante (~30 MB): download completo ad ogni check, mitigato da freshness hash</li>
+                <li>→ MITRE aggiorna il bundle poche volte al mese — dati non in tempo reale</li>
+                <li>→ Nomi MITRE usano maiuscole/spazi diversi da ransomware.live (es. "FIN7" vs "fin7"): normalizzazione necessaria</li>
+                <li>→ Alcuni gruppi MITRE sono APT, non ransomware — matchano solo se presenti anche in ransomware.live</li>
+            </ul>
+        </div>
+    </section>
+
+    {# ── Ransomwhere ── #}
+    <section class="border-l-2 border-amber-300/50 pl-4 space-y-3">
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Ransomwhere</h4>
+        <div class="flex gap-2 flex-wrap text-xs">
+            <span class="px-2 py-0.5 rounded border border-green-200 dark:border-noir-border bg-green-50 dark:bg-noir-raised text-green-700 dark:text-green-300">Active</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">REST API (JSON)</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">Settimanale</span>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Endpoint</p>
+            <p class="text-sm text-gray-500 dark:text-noir-mute"><code class="bg-gray-100 dark:bg-noir-raised px-1 rounded font-mono">GET https://api.ransomwhe.re/export</code> — Export completo di tutte le transazioni BTC note</p>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Formato risposta</p>
+            <pre class="bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-2 text-xs overflow-x-auto"><code>{ "result": [
+  { "address": "bc1q...", "family": "REvil", "transactions": [
+    { "hash": "abc123...", "amount": 150000000, "amountUSD": 42000, "time": 1625097600 }
+  ]}
+]}</code></pre>
+            <ul class="mt-2 space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">address</span> — Indirizzo BTC del wallet del gruppo</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">family</span> — Nome della famiglia ransomware (mapping da fare verso Group)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">amount</span> — Importo in satoshi (÷ 10⁸ per BTC)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">amountUSD</span> — Controvalore USD al momento della transazione</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">time</span> — Unix timestamp della transazione</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">hash</span> — Transaction hash (verificabile su blockchain explorer)</li>
+            </ul>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Logica di matching (dual strategy)</p>
+            <ol class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4">
+                <li><strong>Primario — BTC address</strong>: Costruisce indice address→Group da <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">Group.btc_addresses</code> (JSON). Se l'indirizzo Ransomwhere è già noto per un gruppo, match diretto (massima confidenza).</li>
+                <li><strong>Secondario — Nome famiglia</strong>: Normalizza il campo <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">family</code> e confronta con nome/alias dei gruppi. Skip list per nomi ambigui ("unknown", "generic", ecc.).</li>
+                <li>Per ogni match: inserimento <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">GroupBtcTransaction</code> con deduplicazione su (address, tx_hash).</li>
+                <li>Aggiornamento <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">Group.btc_addresses</code> con nuovi indirizzi scoperti.</li>
+            </ol>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Copertura</p>
+            <table class="w-full text-xs border-collapse">
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Famiglie nel dataset</td><td class="py-1 text-gray-500 dark:text-noir-mute">136</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Famiglie matchate</td><td class="py-1 text-gray-500 dark:text-noir-mute">29 (21%)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Transazioni importate</td><td class="py-1 text-gray-500 dark:text-noir-mute">~5,273</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Volume USD totale</td><td class="py-1 text-gray-500 dark:text-noir-mute">~$275M</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Indirizzi distinti</td><td class="py-1 text-gray-500 dark:text-noir-mute">~309</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Limitazioni</p>
+            <ul class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li>→ API non supporta richieste HEAD (restituisce 403) — health check usa GET con stream</li>
+                <li>→ Solo pagamenti noti/segnalati — una frazione del volume reale di riscatti pagati</li>
+                <li>→ Nomi famiglie non standardizzati (es. "REvil" vs "Sodinokibi") — richiede normalizzazione</li>
+                <li>→ Export completo (~15 MB): download integrale ad ogni ciclo, nessun endpoint incrementale</li>
+                <li>→ Controvalore USD calcolato al momento della transazione, non al valore corrente</li>
+                <li>→ Nessuna autenticazione richiesta, ma nessun SLA di disponibilità documentato</li>
+            </ul>
+        </div>
+    </section>
+
+    {# ── deepdarkCTI ── #}
+    <section class="border-l-2 border-purple-300/50 pl-4 space-y-3">
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi">deepdarkCTI</h4>
+        <div class="flex gap-2 flex-wrap text-xs">
+            <span class="px-2 py-0.5 rounded border border-green-200 dark:border-noir-border bg-green-50 dark:bg-noir-raised text-green-700 dark:text-green-300">Active</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">Markdown (GitHub raw)</span>
+            <span class="px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute">Settimanale</span>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">File sorgente (3)</p>
+            <table class="w-full text-xs border-collapse">
+                <thead><tr class="border-b border-gray-200 dark:border-noir-border text-gray-400 dark:text-noir-mute uppercase tracking-wider"><th class="py-1 pr-3 text-left">File</th><th class="py-1 pr-3 text-left">Righe</th><th class="py-1 text-left">Contenuto</th></tr></thead>
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">ransomware_gang.md</td><td class="py-1 pr-3">~627</td><td class="py-1 text-gray-500 dark:text-noir-mute">Nome gang, stato sito (ONLINE/OFFLINE), URL .onion, credenziali, Tox ID, RSS feed</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">telegram_threat_actors.md</td><td class="py-1 pr-3">~915</td><td class="py-1 text-gray-500 dark:text-noir-mute">URL canale Telegram, stato (ONLINE/BANNED), nome threat actor, tipo (Ransomware/Stealer/Hacktivist)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">twitter_threat_actors.md</td><td class="py-1 pr-3">~40</td><td class="py-1 text-gray-500 dark:text-noir-mute">URL profilo Twitter/X, descrizione/nome, categoria, stato account</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Formato (tabelle markdown)</p>
+            <pre class="bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded p-2 text-xs overflow-x-auto"><code>| [Name](http://onion-url.onion) | ONLINE | user:pass | Tox: abc123 | - |
+| [LockBit](http://lock.onion) | OFFLINE | - | - | http://rss.xml |</code></pre>
+            <p class="mt-1 text-sm text-gray-500 dark:text-noir-mute">Parsing via split su <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">|</code>, gestione link markdown <code class="bg-gray-100 dark:bg-noir-raised px-1 rounded">[name](url)</code> e URL raw. Righe con meno di 3 colonne o header vengono ignorate.</p>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Classificazione canali comunicazione</p>
+            <table class="w-full text-xs border-collapse">
+                <thead><tr class="border-b border-gray-200 dark:border-noir-border text-gray-400 dark:text-noir-mute uppercase tracking-wider"><th class="py-1 pr-3 text-left">Tipo</th><th class="py-1 pr-3 text-left">Pattern di riconoscimento</th><th class="py-1 text-left">Esempio</th></tr></thead>
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">telegram</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">t.me/, telegram.me/, @username</td><td class="py-1 text-gray-500 dark:text-noir-mute">t.me/lockbit_chat</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">twitter</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">twitter.com/, x.com/</td><td class="py-1 text-gray-500 dark:text-noir-mute">x.com/darkside_group</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">tox</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">Stringa hex 64+ char o prefisso "Tox:"</td><td class="py-1 text-gray-500 dark:text-noir-mute">A1B2C3...64chars</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">email</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">Pattern @domain</td><td class="py-1 text-gray-500 dark:text-noir-mute">contact@proton.me</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">jabber</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">Contiene "jabber" o dominio XMPP noto</td><td class="py-1 text-gray-500 dark:text-noir-mute">user@jabber.de</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 font-mono text-gray-700 dark:text-noir-text">session</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">Prefisso "05" + hex, o "Session:"</td><td class="py-1 text-gray-500 dark:text-noir-mute">05abc123...66chars</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Copertura</p>
+            <table class="w-full text-xs border-collapse">
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Gang nel dataset</td><td class="py-1 text-gray-500 dark:text-noir-mute">627 (ransomware_gang) + 915 (telegram) + 40 (twitter)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Gang matchate</td><td class="py-1 text-gray-500 dark:text-noir-mute">244 su ransomware_gang (~39%)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">URL onion importati</td><td class="py-1 text-gray-500 dark:text-noir-mute">~337</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Canali comunicazione</td><td class="py-1 text-gray-500 dark:text-noir-mute">~31 (17 telegram + 13 twitter + 1 tox)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Limitazioni</p>
+            <ul class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li>→ Formato markdown non standardizzato: colonne diverse tra i 3 file, qualificatori "(Dark)" nel nome</li>
+                <li>→ Community-maintained: aggiornamenti non garantiti, possibili entry obsolete</li>
+                <li>→ Nomi gang possono includere varianti non presenti in ransomware.live (matching ~39%)</li>
+                <li>→ Stato "ONLINE/OFFLINE" riflette l'ultimo check del maintainer, non un monitoraggio in tempo reale</li>
+                <li>→ Canali Telegram/Twitter vengono bannati frequentemente — dato potenzialmente stale</li>
+                <li>→ Nessun endpoint incrementale: download completo dei 3 file ad ogni ciclo (~3 richieste HTTP)</li>
+            </ul>
+        </div>
+    </section>
+
+    {# ── Health Monitor ── #}
+    <section class="border-l-2 border-gray-300/50 pl-4 space-y-3">
+        <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Health Monitor</h4>
+        <p class="text-sm text-gray-500 dark:text-noir-mute">Il sistema di monitoraggio verifica lo stato di ogni fonte esterna. Non è una fonte dati ma un meta-servizio che garantisce la qualità dei dati importati.</p>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Controlli per fonte</p>
+            <table class="w-full text-xs border-collapse">
+                <thead><tr class="border-b border-gray-200 dark:border-noir-border text-gray-400 dark:text-noir-mute uppercase tracking-wider"><th class="py-1 pr-3 text-left">Fonte</th><th class="py-1 pr-3 text-left">Raggiungibilità</th><th class="py-1 text-left">Validazione formato</th></tr></thead>
+                <tbody>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">MITRE ATT&CK</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">HEAD su URL bundle STIX</td><td class="py-1 text-gray-500 dark:text-noir-mute">N/A (solo availability)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">Ransomwhere</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">GET stream (close dopo status)</td><td class="py-1 text-gray-500 dark:text-noir-mute">N/A (solo availability)</td></tr>
+                    <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1 pr-3 text-gray-700 dark:text-noir-text">deepdarkCTI (×3)</td><td class="py-1 pr-3 text-gray-500 dark:text-noir-mute">GET completo</td><td class="py-1 text-gray-500 dark:text-noir-mute">Parse tabella + count righe vs soglia minima</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-noir-mute uppercase tracking-wider mb-1">Soglie minime (deepdarkCTI)</p>
+            <ul class="space-y-0.5 text-xs text-gray-500 dark:text-noir-mute">
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">ransomware_gang</span>: ≥ 400 righe (attuale: 627)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">telegram_threat_actors</span>: ≥ 500 righe (attuale: 915)</li>
+                <li><span class="font-mono text-gray-700 dark:text-noir-text">twitter_threat_actors</span>: ≥ 20 righe (attuale: 40)</li>
+            </ul>
+            <p class="mt-1 text-sm text-gray-500 dark:text-noir-mute">Se il conteggio scende sotto la soglia → stato <span class="text-yellow-600 dark:text-yellow-300 font-medium">degraded</span> (formato potenzialmente rotto o file troncato).</p>
+        </div>
+    </section>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Playbook (Investigation Guide) ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="guide-playbook" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-8 max-h-[75vh] overflow-y-auto">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-1">Investigation Playbook</h3>
+        <p class="text-sm text-slate-400 dark:text-noir-mute">Guida operativa per l'analista: come usare Elementary CTI per investigare minacce ransomware, correlare indicatori e produrre intelligence actionable.</p>
+    </div>
+
+    {# ── Quick Triage ── #}
+    <section>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="text-accent font-semibold text-xs">01</span>
+            <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Quick Triage — Vittima segnalata</h4>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-noir-mute mb-2">Scenario: un'organizzazione nella tua watchlist è stata segnalata come vittima. Passaggi di triage rapido:</p>
+        <ol class="space-y-1.5 text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4">
+            <li><strong>Verifica alert</strong> — Vai su Watchlist, verifica il match. Controlla il confidence score del matching fuzzy: sopra 95% = quasi certo, 85-95% = verifica manuale nome/dominio.</li>
+            <li><strong>Identifica il gruppo</strong> — Clicca sulla vittima per vedere il gruppo responsabile. Apri il profilo del gruppo.</li>
+            <li><strong>Valuta la minaccia</strong> — Tab Overview: è un gruppo noto? Ha TTPs documentati? È RaaS (più organizzato) o operatore singolo? Controlla il lineage per capire la storia.</li>
+            <li><strong>Check infrastruttura</strong> — Tab Infrastructure: il leak site è online? Ci sono canali di comunicazione attivi? Se il sito è online e la vittima è presente, la situazione è confermata.</li>
+            <li><strong>Intelligence finanziaria</strong> — Financial Intelligence: quanto ha incassato questo gruppo? Gruppi con alto volume BTC = operazioni consolidate, minor probabilità di negoziazione favorevole.</li>
+            <li><strong>Storico vittime</strong> — Tab Victims: quante vittime recenti? Un gruppo molto attivo indica capacità operative in corso. Controlla se ci sono vittime nello stesso settore/paese.</li>
+        </ol>
+    </section>
+
+    {# ── Pivot Strategies ── #}
+    <section>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="text-accent font-semibold text-xs">02</span>
+            <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Pivot Strategies — Espandere l'investigazione</h4>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-noir-mute mb-3">Dato un gruppo o una vittima, queste strategie di pivot permettono di espandere l'analisi. Ordinate per qualità del segnale (dalla più affidabile alla più debole):</p>
+        <div class="space-y-3">
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3 flex gap-3">
+                <span class="shrink-0 w-5 text-center text-xs font-mono text-green-600 dark:text-green-300">1</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-noir-hi">BTC Clustering</p>
+                    <p class="text-sm text-gray-500 dark:text-noir-mute mt-0.5">Cerca gli indirizzi BTC del gruppo nel BTC Explorer. Indirizzi usati dallo stesso wallet cluster possono rivelare altri gruppi collegati o rebrand. Qualità: <span class="text-green-600 dark:text-green-300 font-medium">alta</span> — evidenza crittografica on-chain.</p>
+                </div>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3 flex gap-3">
+                <span class="shrink-0 w-5 text-center text-xs font-mono text-green-600 dark:text-green-300">2</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-noir-hi">Lineage & Rebrand</p>
+                    <p class="text-sm text-gray-500 dark:text-noir-mute mt-0.5">Controlla il campo "Lineage" nella tab Overview. Un gruppo con predecessori noti eredita spesso TTPs, infrastruttura e target sector preferences. Cerca i predecessori per confrontare i profili. Qualità: <span class="text-green-600 dark:text-green-300 font-medium">alta</span> — relazioni documentate.</p>
+                </div>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3 flex gap-3">
+                <span class="shrink-0 w-5 text-center text-xs font-mono text-amber-600 dark:text-amber-300">3</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-noir-hi">TTP Overlap</p>
+                    <p class="text-sm text-gray-500 dark:text-noir-mute mt-0.5">Nella tab TTPs, identifica le tecniche chiave (Initial Access, Execution). Cerca altri gruppi con lo stesso set di tecniche — indica tooling condiviso o affiliazione RaaS comune. Qualità: <span class="text-amber-600 dark:text-amber-300 font-medium">moderata</span> — TTPs possono essere comuni tra gruppi indipendenti.</p>
+                </div>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3 flex gap-3">
+                <span class="shrink-0 w-5 text-center text-xs font-mono text-amber-600 dark:text-amber-300">4</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-noir-hi">Arsenal Overlap</p>
+                    <p class="text-sm text-gray-500 dark:text-noir-mute mt-0.5">Confronta gli strumenti nella tab Arsenal. Gruppi che usano la stessa combinazione specifica (es. Cobalt Strike + Mimikatz + Rclone) possono condividere affiliati o manuali operativi. Qualità: <span class="text-amber-600 dark:text-amber-300 font-medium">moderata</span> — tool comuni nell'ecosistema.</p>
+                </div>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3 flex gap-3">
+                <span class="shrink-0 w-5 text-center text-xs font-mono text-amber-600 dark:text-amber-300">5</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-noir-hi">Targeting Pattern</p>
+                    <p class="text-sm text-gray-500 dark:text-noir-mute mt-0.5">Analizza la distribuzione geografica delle vittime sulla mappa. Gruppi con pattern simili (es. esclusione paesi CIS, focus su settore specifico) possono avere motivazioni o mandati comuni. Usa i filtri temporali per identificare campagne. Qualità: <span class="text-amber-600 dark:text-amber-300 font-medium">moderata</span> — correlazione indiretta.</p>
+                </div>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3 flex gap-3">
+                <span class="shrink-0 w-5 text-center text-xs font-mono text-red-600 dark:text-red-300">6</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-noir-hi">Communication Channel Overlap</p>
+                    <p class="text-sm text-gray-500 dark:text-noir-mute mt-0.5">Controlla i canali nella tab Infrastructure. Gruppi che condividono lo stesso canale Telegram o usano lo stesso Tox ID in periodi diversi possono essere rebrand. Qualità: <span class="text-red-600 dark:text-red-300 font-medium">bassa</span> — canali possono essere riutilizzati o condivisi per negoziazione.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── Confidence Assessment ── #}
+    <section>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="text-accent font-semibold text-xs">03</span>
+            <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Confidence Framework — Valutare il profilo</h4>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-noir-mute mb-3">La confidenza di un profilo gruppo dipende dal numero e dalla qualità delle fonti che convergono. Usa questa scala per valutare quanto è completo e affidabile un profilo:</p>
+        <table class="w-full text-xs border-collapse">
+            <thead><tr class="border-b border-gray-200 dark:border-noir-border text-gray-400 dark:text-noir-mute uppercase tracking-wider">
+                <th class="py-2 pr-3 text-left">Livello</th><th class="py-2 pr-3 text-left">Fonti convergenti</th><th class="py-2 text-left">Significato operativo</th>
+            </tr></thead>
+            <tbody>
+                <tr class="border-b border-gray-100 dark:border-noir-line">
+                    <td class="py-2 pr-3"><span class="px-2 py-0.5 rounded bg-green-50 dark:bg-noir-raised text-green-700 dark:text-green-300 border border-green-200 dark:border-noir-border">Alta</span></td>
+                    <td class="py-2 pr-3 text-gray-600 dark:text-noir-text">4/4 fonti (ransomware.live + MITRE + Ransomwhere + deepdarkCTI)</td>
+                    <td class="py-2 text-gray-500 dark:text-noir-mute">Profilo completo. TTPs, dati finanziari e stato operativo disponibili. Può supportare decisioni di risposta immediata e reporting a stakeholder.</td>
+                </tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line">
+                    <td class="py-2 pr-3"><span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-noir-raised text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-noir-border">Media</span></td>
+                    <td class="py-2 pr-3 text-gray-600 dark:text-noir-text">2-3 fonti (es. ransomware.live + deepdarkCTI, o + MITRE)</td>
+                    <td class="py-2 text-gray-500 dark:text-noir-mute">Profilo parziale. Informazioni sufficienti per triage e prima risposta. Gap finanziari o tattici richiedono ricerca aggiuntiva per decisioni critiche.</td>
+                </tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line">
+                    <td class="py-2 pr-3"><span class="px-2 py-0.5 rounded bg-red-50 dark:bg-noir-raised text-red-700 dark:text-red-300 border border-red-200 dark:border-noir-border">Bassa</span></td>
+                    <td class="py-2 pr-3 text-gray-600 dark:text-noir-text">1 fonte (solo ransomware.live)</td>
+                    <td class="py-2 text-gray-500 dark:text-noir-mute">Solo dati base (nome, vittime, descrizione). Nessun TTP, nessun dato finanziario, nessun canale operativo. Utile per awareness, insufficiente per decisioni operative.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    {# ── Reporting ── #}
+    <section>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="text-accent font-semibold text-xs">04</span>
+            <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Produrre Intelligence — Dall'osservazione al report</h4>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-noir-mute mb-2">Quando produci un report o un briefing basato sui dati di Elementary CTI, segui questa struttura:</p>
+        <div class="space-y-3">
+            <div class="border-l-2 border-accent/30 pl-3">
+                <p class="text-sm font-medium text-gray-700 dark:text-noir-text">Executive Summary</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute">1-2 frasi: chi ha colpito, chi è stato colpito, quando, impatto stimato. Esempio: "Il gruppo Akira ha rivendicato l'azienda X il 15/04. Akira è un operatore RaaS attivo dal 2023 con 438 vittime note e $12M in pagamenti BTC tracciati."</p>
+            </div>
+            <div class="border-l-2 border-accent/30 pl-3">
+                <p class="text-sm font-medium text-gray-700 dark:text-noir-text">Threat Assessment</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute">Profilo del gruppo: tipo, origine, lineage, TTPs principali (da tab MITRE), strumenti noti (da Arsenal). Livello di confidenza basato sulle fonti disponibili.</p>
+            </div>
+            <div class="border-l-2 border-accent/30 pl-3">
+                <p class="text-sm font-medium text-gray-700 dark:text-noir-text">Indicators</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute">Indirizzi BTC (da Financial Intelligence), URL leak site (da Infrastructure), canali comunicazione (da deepdarkCTI). Etichettare ogni indicatore con la fonte: [ransomwhere], [deepdarkcti], [ransomware.live].</p>
+            </div>
+            <div class="border-l-2 border-accent/30 pl-3">
+                <p class="text-sm font-medium text-gray-700 dark:text-noir-text">Context & Pattern</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute">Mappa distribuzione vittime, tendenze temporali (filtro 7gg/1m/1y), confronto con altri gruppi della stessa famiglia/lineage. Evidenziare se il targeting è coerente con pattern noti del gruppo.</p>
+            </div>
+            <div class="border-l-2 border-accent/30 pl-3">
+                <p class="text-sm font-medium text-gray-700 dark:text-noir-text">Gaps & Next Steps</p>
+                <p class="text-sm text-gray-500 dark:text-noir-mute">Cosa non sappiamo: dati mancanti, fonti non matchate, confidenza bassa su specifici aspetti. Azioni raccomandate: monitoraggio watchlist, ricerca OSINT aggiuntiva, condivisione IOC con community.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Common Workflows ── #}
+    <section>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="text-accent font-semibold text-xs">05</span>
+            <h4 class="font-semibold text-gray-800 dark:text-noir-hi">Workflow comuni</h4>
+        </div>
+        <div class="space-y-4">
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="text-sm font-medium text-gray-800 dark:text-noir-hi mb-1">"È comparso un nuovo gruppo — chi sono?"</p>
+                <ol class="text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4 space-y-0.5">
+                    <li>Cerca il nome in Search → verifica se già presente con nome diverso (alias)</li>
+                    <li>Se nuovo: attendi prossimo refresh per dati completi da ransomware.live</li>
+                    <li>Controlla deepdarkCTI: ha già un leak site? Canali Telegram?</li>
+                    <li>Controlla MITRE: ci sono TTPs documentati? (probabilmente no per gruppi nuovissimi)</li>
+                    <li>Controlla lineage: è un rebrand? Cerca somiglianze di nome, infrastruttura, vittime</li>
+                </ol>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="text-sm font-medium text-gray-800 dark:text-noir-hi mb-1">"Qual è il trend delle minacce questo mese?"</p>
+                <ol class="text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4 space-y-0.5">
+                    <li>Dashboard → tab "1 mese" per vittime recenti</li>
+                    <li>Map → filtro "1 month" per distribuzione geografica corrente</li>
+                    <li>Dashboard → sezione "Gruppi più attivi" per chi sta colpendo di più</li>
+                    <li>Pipeline → Enrichment Sources per verificare che i dati siano aggiornati</li>
+                    <li>Confronta con filtro "1 anno" per identificare anomalie vs baseline</li>
+                </ol>
+            </div>
+            <div class="border border-gray-100 dark:border-noir-line rounded-lg p-3">
+                <p class="text-sm font-medium text-gray-800 dark:text-noir-hi mb-1">"Un cliente vuole sapere il rischio per il suo settore/paese"</p>
+                <ol class="text-xs text-gray-500 dark:text-noir-mute list-decimal ml-4 space-y-0.5">
+                    <li>Victims → filtra per paese del cliente</li>
+                    <li>Identifica i gruppi più attivi contro quel paese (tab gruppo → mappa)</li>
+                    <li>Per ogni gruppo rilevante: profila TTPs, initial access vectors, strumenti</li>
+                    <li>BTC Explorer: stima il volume finanziario dei gruppi attivi (indica organizzazione)</li>
+                    <li>Produci briefing con: gruppi top, TTPs più usati, IOC rilevanti, raccomandazioni difensive basate su TTPs</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── FAQ ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="guide-faq" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-4 max-h-[75vh] overflow-y-auto">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-2">Domande Frequenti</h3>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Cos'è Elementary CTI?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Una piattaforma di Cyber Threat Intelligence specializzata nel monitoraggio delle minacce ransomware. Aggrega dati da molteplici fonti (ransomware.live, MITRE ATT&CK, Ransomwhere, deepdarkCTI), li arricchisce con informazioni tattiche, finanziarie e operative, e li presenta attraverso un'interfaccia web interattiva.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Da dove provengono i dati?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Quattro fonti principali: (1) ransomware.live — API con gruppi, vittime, attacchi, infrastruttura; (2) MITRE ATT&CK — bundle STIX con TTPs e strumenti; (3) Ransomwhere — export JSON con transazioni BTC; (4) deepdarkCTI — file markdown con stato siti onion e canali comunicazione. I dati vengono aggiornati automaticamente dallo scheduler.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Con quale frequenza vengono aggiornati i dati?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Il feed principale (ransomware.live) viene aggiornato ogni 2 ore. Le fonti di arricchimento (MITRE, Ransomwhere, deepdarkCTI) settimanalmente (168 ore). Tutti gli intervalli sono configurabili tramite variabili d'ambiente. È possibile forzare un aggiornamento manuale dalla pagina Pipeline o via API.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Come funziona la watchlist?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Aggiungi il nome di un'azienda (e opzionalmente dominio e parole chiave). Ad ogni refresh, il sistema confronta le nuove vittime con i target usando matching fuzzy (soglia 85%). Quando trova una corrispondenza, genera un alert e invia notifiche ai canali configurati (log, webhook). Il matching è case-insensitive e tollera abbreviazioni e piccole variazioni.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Cosa significa quando un gruppo è "hacktivista"?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Alcuni gruppi (es. Handala, Anonymous Sudan) non sono ransomware tradizionali ma attori motivati ideologicamente. Il sistema li identifica automaticamente dalla descrizione e adatta l'interfaccia: le "vittime" diventano "claims", i titoli sostituiscono i nomi di organizzazioni, e un badge arancione indica la natura hacktivista del gruppo.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Come viene fatto il matching tra fonti diverse?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Il matching opera su più livelli: (1) per indirizzo BTC quando disponibile (Ransomwhere → Group.btc_addresses); (2) per nome normalizzato (lowercase, rimozione spazi/trattini); (3) per alias noti (MITRE aliases + ransomware.live altname). Nomi ambigui o generici vengono esclusi per evitare falsi positivi.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Cosa indica lo stato "degraded" nell'health check?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">La fonte è raggiungibile (HTTP 200) ma il formato dei dati è anomalo — tipicamente il numero di righe parsate è inferiore alla soglia minima attesa. Può indicare che il file sorgente è stato troncato, ha cambiato formato, o che la fonte sta avendo problemi temporanei. Il sistema continua a funzionare con i dati già disponibili.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Posso disabilitare singole fonti?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Sì. Dalla pagina Pipeline, ogni fonte ha un interruttore toggle. Le fonti disabilitate vengono saltate sia durante lo scheduler automatico sia durante il refresh manuale via API. Lo stato viene persistito nel database e sopravvive ai riavvii. Utile per debug, ridurre carico, o isolare problemi.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">Come si interpretano i dati BTC?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">La sezione Financial Intelligence mostra le transazioni BTC associate al gruppo: totale USD ricevuto, totale BTC, numero transazioni e indirizzi wallet distinti. I dati provengono da Ransomwhere e rappresentano pagamenti delle vittime tracciati sulla blockchain pubblica. Gli indirizzi sono collegati a blockchain.com per la verifica on-chain. Il controvalore USD usa il tasso al momento della transazione.</p>
+    </div>
+
+    <div class="border border-gray-100 dark:border-noir-line rounded-lg p-4">
+        <p class="font-medium text-gray-800 dark:text-noir-hi">La piattaforma richiede autenticazione?</p>
+        <p class="mt-1 text-gray-500 dark:text-noir-mute">Nella versione corrente no — è progettata per uso interno o su rete privata. Tutti gli endpoint (web e API) sono accessibili senza credenziali. Per deployment in produzione, si raccomanda di posizionare un reverse proxy con autenticazione davanti all'applicazione.</p>
+    </div>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Metodologia ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="guide-methodology" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text space-y-6 max-h-[75vh] overflow-y-auto">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi mb-1">Metodologia di Assessment</h3>
+        <p class="text-sm text-slate-400 dark:text-noir-mute">Come Elementary CTI raccoglie, arricchisce e presenta i dati sulle minacce ransomware.</p>
+    </div>
+
+    <section>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mb-2">Principi fondamentali</h4>
+        <ul class="space-y-2">
+            <li class="flex gap-2"><span class="text-accent shrink-0">1.</span><span><strong>Multi-source convergence</strong> — Nessuna fonte singola è affidabile in isolamento. La confidenza aumenta quando fonti indipendenti convergono sullo stesso segnale. Un gruppo che appare in ransomware.live, ha TTPs documentati in MITRE, transazioni BTC in Ransomwhere e siti onion in deepdarkCTI ha un profilo ad alta confidenza.</span></li>
+            <li class="flex gap-2"><span class="text-accent shrink-0">2.</span><span><strong>Freshness tracking</strong> — Ogni dato ha un timestamp di raccolta. L'intelligence ha una data di scadenza: un sito onion "online" un mese fa potrebbe essere offline oggi. Il sistema traccia la freschezza di ogni arricchimento e segnala quando i dati sono potenzialmente stale.</span></li>
+            <li class="flex gap-2"><span class="text-accent shrink-0">3.</span><span><strong>Deduplicazione intelligente</strong> — La stessa vittima può essere segnalata da più fonti con nomi leggermente diversi. Il matching fuzzy identifica i duplicati e li collega, mantenendo la provenienza originale per ogni record.</span></li>
+            <li class="flex gap-2"><span class="text-accent shrink-0">4.</span><span><strong>Source health verification</strong> — Le fonti esterne possono degradare o scomparire senza preavviso. Il health monitoring automatico verifica periodicamente raggiungibilità e integrità di ogni fonte, segnalando anomalie prima che impattino la qualità dei dati.</span></li>
+        </ul>
+    </section>
+
+    <section>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mb-2">Pipeline di arricchimento</h4>
+        <p class="mb-3">Ogni gruppo ransomware viene arricchito attraverso un pipeline multi-fase che combina dati da fonti indipendenti:</p>
+        <table class="w-full text-xs border-collapse">
+            <thead><tr class="border-b border-gray-200 dark:border-noir-border text-left text-gray-400 dark:text-noir-mute uppercase tracking-wider">
+                <th class="py-2 pr-3">Fase</th><th class="py-2 pr-3">Fonte</th><th class="py-2 pr-3">Matching</th><th class="py-2">Dati aggiunti</th>
+            </tr></thead>
+            <tbody class="text-gray-600 dark:text-noir-text">
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">1</td><td class="py-1.5 pr-3">ransomware.live</td><td class="py-1.5 pr-3">Nome diretto (source of truth)</td><td class="py-1.5">Profilo base, vittime, attacchi, infrastruttura, BTC addresses, lineage</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">2</td><td class="py-1.5 pr-3">MITRE ATT&CK</td><td class="py-1.5 pr-3">Nome normalizzato + alias</td><td class="py-1.5">TTPs per tattica, strumenti software, riferimenti, alias aggiuntivi</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">3</td><td class="py-1.5 pr-3">Ransomwhere</td><td class="py-1.5 pr-3">BTC address (primario) + nome (secondario)</td><td class="py-1.5">Transazioni BTC con importi USD, indirizzi wallet, date</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">4</td><td class="py-1.5 pr-3">deepdarkCTI</td><td class="py-1.5 pr-3">Nome normalizzato</td><td class="py-1.5">Stato siti onion, URL, canali comunicazione (Tox, Telegram, Twitter, email)</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mb-2">Strategia di matching</h4>
+        <p class="mb-2">Il matching tra fonti diverse è il problema centrale dell'aggregazione CTI. Elementary CTI usa una strategia multi-livello:</p>
+        <ul class="space-y-1.5 ml-4">
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span><strong>Matching diretto</strong> — Indirizzo BTC o ID univoco condiviso tra fonte e database. Massima confidenza, zero ambiguità.</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span><strong>Nome normalizzato</strong> — Lowercase, rimozione spazi/trattini/underscore. Es. "LockBit 3.0" → "lockbit30", "ALPHV" → "alphv". Copre la maggior parte dei casi.</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span><strong>Alias lookup</strong> — Confronto con la lista di alias noti (merge MITRE + ransomware.live altname). Es. "BlackCat" trovato come alias di "ALPHV".</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span><strong>Skip list</strong> — Nomi ambigui o generici (es. "unknown", "test", "new") vengono esclusi dal matching per evitare falsi positivi.</span></li>
+        </ul>
+    </section>
+
+    <section>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mb-2">Limitazioni note</h4>
+        <ul class="space-y-1.5 ml-4">
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span>I dati riflettono l'ultima osservazione di ogni fonte, non lo stato in tempo reale. Un sito onion "online" potrebbe essere già offline.</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span>Il matching per nome non cattura tutti i casi: gruppi con nomi completamente diversi tra fonti richiedono mappatura manuale.</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span>Ransomwhere copre solo una frazione delle famiglie ransomware (29/136 matched su ~360 gruppi totali).</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span>deepdarkCTI è curato dalla community e può contenere dati incompleti o non aggiornati per gruppi meno noti.</span></li>
+            <li class="flex gap-2"><span class="text-gray-400 dark:text-noir-mute">→</span><span>L'assenza di dati non è evidenza di assenza: un gruppo senza TTPs MITRE potrebbe semplicemente non essere stato ancora documentato.</span></li>
+        </ul>
+    </section>
+
+    <section>
+        <h4 class="font-semibold text-gray-700 dark:text-noir-text mb-2">Copertura attuale</h4>
+        <table class="w-full text-xs border-collapse">
+            <thead><tr class="border-b border-gray-200 dark:border-noir-border text-left text-gray-400 dark:text-noir-mute uppercase tracking-wider">
+                <th class="py-2 pr-3">Metrica</th><th class="py-2">Valore</th>
+            </tr></thead>
+            <tbody class="text-gray-600 dark:text-noir-text">
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">Gruppi totali monitorati</td><td class="py-1.5">~360</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">Gruppi con TTPs MITRE</td><td class="py-1.5">~42</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">Famiglie con dati BTC (Ransomwhere)</td><td class="py-1.5">29/136</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">Gang con dati operativi (deepdarkCTI)</td><td class="py-1.5">244/627</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">Paesi coinvolti</td><td class="py-1.5">185+</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-3">Vittime totali tracciate</td><td class="py-1.5">27,000+</td></tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════ #}
+{# ── Changelog ── #}
+{# ══════════════════════════════════════════════ #}
+<div id="guide-changelog" role="tabpanel" class="guide-panel hidden">
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-sm text-gray-600 dark:text-noir-text max-h-[75vh] overflow-y-auto">
+    <style>
+        /* Rendered from CHANGELOG.md, so the markup is plain markdown output and
+           cannot carry Tailwind dark: classes — every colour needs an explicit
+           .dark counterpart here (UI-SPEC: no template ships one theme only). */
+        .changelog-content h1 { font-size: 1.375rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
+        .changelog-content h2 { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-top: 1.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
+        .changelog-content h2:first-child { margin-top: 0; }
+        .changelog-content h3 { font-size: 0.875rem; font-weight: 600; color: #374151; margin-top: 1rem; margin-bottom: 0.25rem; }
+        .changelog-content ul { list-style: disc; margin-left: 1.25rem; margin-top: 0.25rem; }
+        .changelog-content li { margin-bottom: 0.25rem; }
+        .changelog-content code { background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.75rem; color: #374151; }
+        .changelog-content p { margin-bottom: 0.5rem; }
+        .changelog-content strong { font-weight: 600; color: #1f2937; }
+        .changelog-content a { color: #3689e6; text-decoration: underline; }
+        .changelog-content hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+        .changelog-content blockquote { border-left: 3px solid #e5e7eb; padding-left: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; }
+        .changelog-missing { color: #6b7280; font-style: italic; }
+
+        .dark .changelog-content h1 { color: #fafafa; }
+        .dark .changelog-content h2 { color: #fafafa; border-bottom-color: #2c394b; }
+        .dark .changelog-content h3 { color: #fafafa; }
+        .dark .changelog-content code { background: #273445; color: #d4d4d4; }
+        .dark .changelog-content strong { color: #fafafa; }
+        .dark .changelog-content a { color: #64baff; }
+        .dark .changelog-content hr { border-top-color: #2c394b; }
+        .dark .changelog-content blockquote { border-left-color: #3a4a5e; color: #95a3ab; }
+        .dark .changelog-missing { color: #95a3ab; }
+    </style>
+    <div class="changelog-content">
+        {{ changelog_html | safe }}
+    </div>
+</div>
+</div>
+
+</div>
+
+<script>
+// Top-level tab switching (Guida Utente / API / Pipeline / Changelog)
+document.querySelectorAll('.guide-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.guide-tab').forEach(function(b) {
+            b.className = 'guide-tab pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors';
+            b.setAttribute('aria-selected', 'false');
+        });
+        this.className = 'guide-tab pb-2 text-sm font-medium border-b-2 border-accent text-accent';
+        this.setAttribute('aria-selected', 'true');
+        document.querySelectorAll('.guide-panel').forEach(function(p) { p.classList.add('hidden'); });
+        document.getElementById('guide-' + this.dataset.tab).classList.remove('hidden');
+    });
+});
+// Keyboard navigation between tabs (ARIA tablist pattern)
+document.getElementById('guide-tabs').addEventListener('keydown', function(e) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    var tabs = Array.prototype.slice.call(this.querySelectorAll('.guide-tab'));
+    var i = tabs.indexOf(document.activeElement);
+    if (i === -1) return;
+    e.preventDefault();
+    var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    next.focus();
+    next.click();
+});
+
+// Help sub-menu switching (Dashboard, Victims, Adversaries, etc.)
+document.querySelectorAll('.help-menu-item').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.help-menu-item').forEach(function(b) {
+            b.className = 'help-menu-item w-full text-left px-3 py-1.5 rounded text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text hover:bg-gray-50 dark:hover:bg-noir-raised';
+        });
+        this.className = 'help-menu-item w-full text-left px-3 py-1.5 rounded text-accent font-medium bg-accent/10';
+        document.querySelectorAll('.help-section').forEach(function(s) { s.classList.add('hidden'); });
+        document.getElementById('help-' + this.dataset.help).classList.remove('hidden');
+    });
+});
+</script>
+{% endblock %}

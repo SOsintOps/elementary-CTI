@@ -1,0 +1,31 @@
+{
+  "added_date": "str",
+  "altname": "null",
+  "description": "str",
+  "locations": [
+    {
+      "available": "bool",
+      "enabled": "bool",
+      "fqdn": "str",
+      "slug": "str",
+      "title": "str",
+      "type": "str"
+    }
+  ],
+  "name": "str",
+  "tools": [],
+  "ttps": [
+    {
+      "tactic_id": "str",
+      "tactic_name": "str",
+      "techniques": [
+        {
+          "technique_details": "str",
+          "technique_id": "str",
+          "technique_name": "str"
+        }
+      ]
+    }
+  ],
+  "url": "str"
+}

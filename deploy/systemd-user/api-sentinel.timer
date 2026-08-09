@@ -1,0 +1,11 @@
+[Unit]
+Description=Weekly trigger for the Elementary CTI API sentinel
+
+[Timer]
+# Sunday morning; Persistent so a powered-off Sunday runs at next boot.
+OnCalendar=Sun 07:30
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

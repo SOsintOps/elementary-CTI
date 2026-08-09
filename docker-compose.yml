@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pestilentia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-pestilentia}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Bound to loopback only — never expose Postgres on the LAN.
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pestilentia}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PEST_DB_URL: postgresql://${POSTGRES_USER:-pestilentia}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pestilentia}
+      PEST_LOG_LEVEL: ${PEST_LOG_LEVEL:-INFO}
+      PEST_API_BASE_URL: https://api.ransomware.live/v2
+      PEST_POLL_INTERVAL_HOURS: "4"
+      PEST_WEB_HOST: "0.0.0.0"
+      PEST_WEB_PORT: "8000"
+      PEST_SECRET_KEY: ${PEST_SECRET_KEY:?set PEST_SECRET_KEY in .env}
+      PEST_AUTH_USER: ${PEST_AUTH_USER:-}
+      PEST_AUTH_PASS: ${PEST_AUTH_PASS:-}
+    ports:
+      - "${PEST_WEB_BIND:-127.0.0.1}:8000:8000"
+
+  scheduler:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PEST_DB_URL: postgresql://${POSTGRES_USER:-pestilentia}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pestilentia}
+      PEST_LOG_LEVEL: ${PEST_LOG_LEVEL:-INFO}
+      PEST_API_BASE_URL: https://api.ransomware.live/v2
+      PEST_POLL_INTERVAL_HOURS: "4"
+      PEST_SECRET_KEY: ${PEST_SECRET_KEY:?set PEST_SECRET_KEY in .env}
+    command: ["uv", "run", "python", "-m", "pestilentia"]
+    # No HTTP server here — disable the image's web HEALTHCHECK (the slim image
+    # has no pgrep either). The restart policy still recovers a crashed process.
+    healthcheck:
+      test: ["NONE"]
+
+volumes:
+  pgdata:

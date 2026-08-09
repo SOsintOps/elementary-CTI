@@ -1,0 +1,118 @@
+<!-- "Follow the money." — Elementary CTI -->
+{% extends "base.html" %}
+{% block title %}BTC Explorer — Elementary CTI{% endblock %}
+{% block header %}BTC Address Explorer{% endblock %}
+
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Esplora gli indirizzi Bitcoin associati ai gruppi ransomware. I dati provengono da Ransomwhere e tracciano i pagamenti delle vittime verso wallet controllati dagli avversari. Cerca un indirizzo (anche parziale) per trovare il gruppo associato, il volume delle transazioni e il controvalore in USD. Senza ricerca attiva, vengono mostrati i 20 indirizzi con il maggior volume BTC. Gli indirizzi sono collegati a blockchain.com per la verifica on-chain.</p>
+<div class="mb-6">
+    <form method="get" action="/btc" class="flex gap-2">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search BTC address (full or partial)…"
+               class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+        <button type="submit" class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-dim transition-colors">Search</button>
+    </form>
+</div>
+
+{% if q and summary %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
+        <p class="text-xl font-bold text-amber-700 dark:text-amber-300">${{ "{:,.0f}".format(summary.total_usd) }}</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">Total USD</p>
+    </div>
+    <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
+        <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ "%.4f"|format(summary.total_btc) }}</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">Total BTC</p>
+    </div>
+    <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
+        <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ summary.total_txs }}</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">Transactions</p>
+    </div>
+    <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
+        <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ summary.addresses }}</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">Addresses</p>
+    </div>
+</div>
+{% endif %}
+
+{% if q and results %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Results for "{{ q }}" ({{ results | length }})</h3>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+                    <th class="text-left py-2">Address</th>
+                    <th class="text-left py-2">Group</th>
+                    <th class="text-right py-2">Txs</th>
+                    <th class="text-right py-2">BTC</th>
+                    <th class="text-right py-2">USD</th>
+                    <th class="text-left py-2">First Seen</th>
+                    <th class="text-left py-2">Last Seen</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in results %}
+                <tr class="border-b border-gray-100 dark:border-noir-line hover:bg-gray-50 dark:hover:bg-noir-raised">
+                    <td class="py-2">
+                        <a href="https://www.blockchain.com/btc/address/{{ r.address }}" target="_blank"
+                           class="font-mono text-xs text-accent hover:underline" title="{{ r.address }}">
+                            {{ r.address[:16] }}…{{ r.address[-8:] }}
+                        </a>
+                    </td>
+                    <td class="py-2">
+                        <a href="/groups/{{ r.group_id }}" class="text-accent hover:underline font-medium">{{ r.group_name }}</a>
+                    </td>
+                    <td class="py-2 text-right">{{ r.tx_count }}</td>
+                    <td class="py-2 text-right font-mono text-xs">{{ "%.4f"|format(r.total_btc) }}</td>
+                    <td class="py-2 text-right font-medium">${{ "{:,.0f}".format(r.total_usd) }}</td>
+                    <td class="py-2 text-gray-400 dark:text-noir-mute text-xs">{{ r.first_seen.strftime('%Y-%m-%d') if r.first_seen else '—' }}</td>
+                    <td class="py-2 text-gray-400 dark:text-noir-mute text-xs">{{ r.last_seen.strftime('%Y-%m-%d') if r.last_seen else '—' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif q %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-center mb-6">
+    <p class="text-gray-400 dark:text-noir-mute">No addresses matching "{{ q }}"</p>
+</div>
+{% endif %}
+
+{% if not q and top_addresses %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Top 20 Addresses by Volume</h3>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
+                    <th class="text-left py-2">#</th>
+                    <th class="text-left py-2">Address</th>
+                    <th class="text-left py-2">Group</th>
+                    <th class="text-right py-2">Txs</th>
+                    <th class="text-right py-2">USD</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in top_addresses %}
+                <tr class="border-b border-gray-100 dark:border-noir-line hover:bg-gray-50 dark:hover:bg-noir-raised">
+                    <td class="py-2 text-gray-400 dark:text-noir-mute text-xs">{{ loop.index }}</td>
+                    <td class="py-2">
+                        <a href="/btc?q={{ r.address }}" class="font-mono text-xs text-accent hover:underline" title="{{ r.address }}">
+                            {{ r.address[:16] }}…{{ r.address[-8:] }}
+                        </a>
+                    </td>
+                    <td class="py-2">
+                        <a href="/groups/{{ r.group_id }}" class="text-accent hover:underline font-medium">{{ r.group_name }}</a>
+                    </td>
+                    <td class="py-2 text-right">{{ r.tx_count }}</td>
+                    <td class="py-2 text-right font-medium">${{ "{:,.0f}".format(r.total_usd) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">Source: <a href="https://ransomwhe.re" target="_blank" class="text-accent hover:underline">Ransomwhere</a> — 265 addresses across 28 groups</p>
+</div>
+{% endif %}
+{% endblock %}

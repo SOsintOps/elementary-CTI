@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Elementary CTI{% endblock %}
+{% block header %}
+<div class="flex items-center gap-4">
+    <span>Dashboard</span>
+    {% if last_update %}
+    <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">Last update: {{ last_update.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+    {% endif %}
+    <button id="refresh-btn" onclick="doRefresh()" class="ml-auto text-xs bg-accent hover:bg-accent-dim text-white px-3 py-1 rounded font-normal transition-colors">Refresh Now</button>
+</div>
+{% endblock %}
+
+{% block head %}
+<script src="/static/vendor/plotly-2.35.2.min.js?v={{ app_version }}"></script>
+{% endblock %}
+
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Panoramica in tempo reale delle minacce ransomware. I contatori aggregano vittime, gruppi avversari, cyberattacchi e paesi coinvolti da tutte le fonti attive. Le vittime recenti sono filtrabili per periodo (7 giorni, 1 mese, 1 anno). Il contatore "Sources" include sia i feed dati primari sia le fonti di arricchimento (MITRE, Ransomwhere, deepdarkCTI). Clicca "Refresh Now" per forzare un aggiornamento manuale di tutte le fonti.</p>
+<!-- Stats cards -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    {# Only metrics that carry a date get a delta and a spark. Group, Country
+       and the source registry have no time dimension, so they stay bare
+       counts — an invented trend would be worse than no trend. #}
+    {% macro delta(t) %}
+        {% if t.delta_pct is not none %}
+        <span class="text-xs font-medium {{ 'text-status-warn dark:text-status-warn-dot' if t.delta_pct > 0 else 'text-status-ok dark:text-status-ok-dot' }}"
+              title="{{ t.current }} in the last {{ t.window_days }} days vs {{ t.previous }} in the {{ t.window_days }} before">
+            {{ '▲' if t.delta_pct > 0 else '▼' }} {{ t.delta_pct | abs }}%
+        </span>
+        <span class="text-xs text-gray-400 dark:text-noir-mute">{{ t.window_days }}d</span>
+        {% else %}
+        <span class="text-xs text-gray-400 dark:text-noir-mute" title="no comparable preceding window">—</span>
+        {% endif %}
+    {% endmacro %}
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Victims</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.victims }}</div>
+        <div class="flex items-center gap-1.5 mt-0.5">{{ delta(trends.victims) }}</div>
+        <div id="spark-victims" class="mt-1" style="height:26px;"></div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Groups</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.groups }}</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Cyberattacks</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.cyberattacks }}</div>
+        <div class="flex items-center gap-1.5 mt-0.5">{{ delta(trends.cyberattacks) }}</div>
+        <div id="spark-cyberattacks" class="mt-1" style="height:26px;"></div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Countries</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.countries }}</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Sources</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.sources }}</div>
+    </div>
+</div>
+
+<!-- Victims over time — the trend axis the dashboard was missing.
+     Single series, so no legend: the card title names it. Buckets are
+     aggregated in SQL, zero-filled, so the payload is one point per month. -->
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 mb-6 shadow-sm">
+    <div class="flex items-baseline justify-between mb-3">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">Victims per Month</h3>
+        {# Range controls sit in one row above the chart. The label states the
+           active window, so the chart is never ambiguous about what it shows. #}
+        <div class="flex items-center gap-2">
+            <span id="timeline-window" class="text-xs text-gray-400 dark:text-noir-mute">last 24 months</span>
+            <div class="flex gap-1" id="timeline-range" role="group" aria-label="Timeline range">
+                {% for months, label in [(3, '3m'), (12, '12m'), (24, '24m'), (60, '5y')] %}
+                <button type="button" data-months="{{ months }}"
+                        aria-pressed="{{ 'true' if months == 24 else 'false' }}"
+                        class="range-btn px-2 py-0.5 text-xs rounded border transition-colors
+                               {% if months == 24 %}border-accent text-accent font-semibold{% else %}border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent{% endif %}">{{ label }}</button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div id="victim-timeline" style="height: 220px;"></div>
+</div>
+
+<!-- Map -->
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 mb-6 shadow-sm">
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Victim Distribution</h3>
+    <div id="choropleth" style="height: 350px;"></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent victims -->
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">Recent Victims</h3>
+            <div class="flex gap-1">
+                {% for tab, label in [("7d", "7 days"), ("1m", "1 month"), ("1y", "1 year")] %}
+                <button onclick="switchVictimsTab('{{tab}}')" id="vtab-{{tab}}"
+                    class="vtab-btn text-xs px-2 py-0.5 rounded {% if tab == '7d' %}bg-accent text-white{% else %}text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text{% endif %}">
+                    {{ label }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        {% for tab in ["7d", "1m", "1y"] %}
+        <div id="vpanel-{{tab}}" class="vtab-panel {% if tab != '7d' %}hidden{% endif %}">
+            {% if recent_victims[tab] %}
+            <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead><tr class="text-gray-400 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border">
+                        <th class="text-left py-2">Name</th>
+                        <th class="text-left py-2">Group</th>
+                        <th class="text-left py-2">Country</th>
+                        <th class="text-left py-2">Discovered</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for v in recent_victims[tab] %}
+                    <tr class="border-b border-gray-100 dark:border-noir-line hover:bg-gray-50 dark:hover:bg-noir-raised">
+                        <td class="py-1.5"><a href="/victims/{{ v.id }}" class="text-accent hover:underline">{{ v.victim_name or "—" }}</a></td>
+                        <td class="py-1.5">
+                            {% if v.group %}
+                            <a href="/groups/{{ v.group.id }}" class="text-gray-600 dark:text-noir-text hover:text-accent">{{ v.group.group_name }}</a>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="py-1.5 text-gray-500 dark:text-noir-mute">{{ v.country.iso_code if v.country else "—" }}</td>
+                        <td class="py-1.5 text-gray-400 dark:text-noir-mute">{{ v.discovered.strftime('%Y-%m-%d') if v.discovered else "—" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-400 dark:text-noir-mute text-sm">No victims in this period.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Top adversaries -->
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">Most Active Adversaries</h3>
+            <div class="flex gap-1">
+                {% for tab, label in [("7d", "7 days"), ("1m", "1 month"), ("1y", "1 year")] %}
+                <button onclick="switchTab('{{tab}}')" id="tab-{{tab}}"
+                    class="tab-btn text-xs px-2 py-0.5 rounded {% if tab == '7d' %}bg-accent text-white{% else %}text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text{% endif %}">
+                    {{ label }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        {% for tab in ["7d", "1m", "1y"] %}
+        <div id="panel-{{tab}}" class="tab-panel space-y-2 max-h-[400px] overflow-y-auto {% if tab != '7d' %}hidden{% endif %}">
+            {% for g, cnt in top_groups[tab] %}
+            <a href="/groups/{{ g.id }}" class="flex items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-noir-raised">
+                <img src="/avatar/{{ g.group_name }}" alt="{{ g.group_name }} avatar" class="w-8 h-8 rounded" loading="lazy">
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-gray-700 dark:text-noir-text truncate">{{ g.country_of_origin | flag }} {{ g.group_name }}</div>
+                </div>
+                <span class="text-sm font-bold text-red-500">{{ cnt }}</span>
+            </a>
+            {% endfor %}
+            {% if not top_groups[tab] %}
+            <p class="text-gray-400 dark:text-noir-mute text-sm py-2">No activity in this period.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// --- Victims per month (single series, SQL-aggregated, zero-filled) ---
+function drawTimeline(series) {
+    if (!series || !series.length) { Plotly.purge('victim-timeline'); return; }
+    Plotly.react('victim-timeline', [{
+        type: 'scatter',
+        mode: 'lines',
+        x: series.map(d => d.month),
+        y: series.map(d => d.count),
+        line: { color: PEST.accent(), width: 2, shape: 'linear' },
+        fill: 'tozeroy',
+        fillcolor: PEST.accentFill(),
+        hovertemplate: '%{y} victims<extra></extra>'
+    }], PEST.timeSeriesLayout(), PEST.plotlyConfig);
+}
+drawTimeline({{ timeline | tojson }});
+
+// Range selector: re-aggregates server-side rather than slicing in the browser,
+// so a wider window really does query more history.
+document.querySelectorAll('#timeline-range .range-btn').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+        var months = parseInt(btn.dataset.months, 10);
+        document.querySelectorAll('#timeline-range .range-btn').forEach(function (b) {
+            var on = b === btn;
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            b.className = 'range-btn px-2 py-0.5 text-xs rounded border transition-colors ' + (on
+                ? 'border-accent text-accent font-semibold'
+                : 'border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent');
+        });
+        var label = months >= 12 && months % 12 === 0
+            ? 'last ' + (months / 12) + (months === 12 ? ' year' : ' years')
+            : 'last ' + months + ' months';
+        document.getElementById('timeline-window').textContent = label;
+        try {
+            var r = await fetch('/api/v1/stats/timeline?months=' + months);
+            if (!r.ok) throw new Error(r.status);
+            drawTimeline((await r.json()).series);
+        } catch (e) {
+            // Leave the previous chart up rather than blanking it on a failure.
+            document.getElementById('timeline-window').textContent = label + ' — update failed';
+        }
+    });
+});
+
+// --- KPI sparklines: 12 months, no axes, no hover — pure shape ---
+const sparks = {{ trends | tojson }};
+function renderSpark(id, values) {
+    if (!values || !values.length) return;
+    Plotly.newPlot(id, [{
+        type: 'scatter', mode: 'lines', y: values,
+        line: { color: PEST.accent(), width: 1.5 },
+        fill: 'tozeroy', fillcolor: PEST.accentFill(), hoverinfo: 'skip'
+    }], {
+        paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+        margin: { t: 2, b: 2, l: 0, r: 0 },
+        xaxis: { visible: false, fixedrange: true },
+        yaxis: { visible: false, fixedrange: true, rangemode: 'tozero' },
+        showlegend: false
+    }, { displayModeBar: false, staticPlot: true, responsive: true });
+}
+renderSpark('spark-victims', sparks.victims && sparks.victims.spark);
+renderSpark('spark-cyberattacks', sparks.cyberattacks && sparks.cyberattacks.spark);
+
+const countryDataAll = {{ country_data | tojson }};
+const iso2to3 = PEST.iso2to3;
+
+const YLOR_RD = PEST.choroScale;
+function renderMap(cdata) {
+    if (cdata.length === 0) {
+        Plotly.purge('choropleth');
+        return;
+    }
+    const counts = cdata.map(d => d.count);
+    const maxCount = Math.max(...counts, 1);
+    const logZ = cdata.map(d => Math.log1p(d.count));
+    const tickCounts = [0, 1, 10, 100, 1000, maxCount].filter(v => v <= maxCount);
+    Plotly.react('choropleth', [{
+        type: 'choropleth',
+        locations: cdata.map(d => iso2to3[d.code] || d.code),
+        z: logZ,
+        text: cdata.map(d => d.code + ': ' + d.count),
+        colorscale: YLOR_RD,
+        zmin: 0,
+        zmax: Math.log1p(maxCount),
+        showscale: true,
+        colorbar: {
+            tickvals: tickCounts.map(v => Math.log1p(v)),
+            ticktext: tickCounts.map(v => v.toLocaleString()),
+            title: { text: 'Victims' }
+        },
+        marker: { line: { color: '#999999', width: 0.5 } },
+        hovertemplate: '%{text}<extra></extra>'
+    }], PEST.geoLayout({ height: 350 }), PEST.plotlyConfig);
+}
+
+renderMap(countryDataAll['7d'] || []);
+
+let currentPeriod = '7d';
+
+function switchVictimsTab(tab) {
+    document.querySelectorAll('.vtab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.vtab-btn').forEach(b => { b.classList.remove('bg-accent', 'text-white'); b.classList.add('text-gray-400 dark:text-noir-mute'); });
+    document.getElementById('vpanel-' + tab).classList.remove('hidden');
+    const btn = document.getElementById('vtab-' + tab);
+    btn.classList.add('bg-accent', 'text-white');
+    btn.classList.remove('text-gray-400 dark:text-noir-mute');
+    currentPeriod = tab;
+    renderMap(countryDataAll[tab] || []);
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('bg-accent', 'text-white'); b.classList.add('text-gray-400 dark:text-noir-mute'); });
+    document.getElementById('panel-' + tab).classList.remove('hidden');
+    const btn = document.getElementById('tab-' + tab);
+    btn.classList.add('bg-accent', 'text-white');
+    btn.classList.remove('text-gray-400 dark:text-noir-mute');
+}
+
+function doRefresh() {
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = 'Refreshing…';
+    csrfFetch('/api/v1/refresh', { method: 'POST' })
+        .then(r => r.json())
+        .then(() => location.reload())
+        .catch(() => { btn.textContent = 'Error'; setTimeout(() => { btn.textContent = 'Refresh Now'; btn.disabled = false; }, 3000); });
+}
+</script>
+{% endblock %}
