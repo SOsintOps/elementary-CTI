@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The AI pipeline made its first real LLM call.** NVIDIA NIM (free tier) is now the preferred cloud provider — adopted when it emerged that the Max subscription carries no Console API credit — with `meta/llama-3.1-8b-instruct` on triage and `meta/llama-3.3-70b-instruct` on analysis, both behind the existing TLP and budget gates. The first caller (`ai/router/nvidia.py`) is plain httpx against the OpenAI-compatible endpoint, keeping the no-vendor-SDK property; its errors name their fix (the 403 family opt-in, the ~40 RPM shared limit). Phase 3 was live-accepted against production Postgres: real triage call, `llm_call_logs` cost rows verified with real token counts at $0, and the prefix cache observed serving 848 of 849 prompt tokens on an identical repeat call
 - **Weekly API contract sentinel.** The in-app health monitor answers "is the source up?"; the sentinel answers what it cannot: *has the shape of the data changed?* A systemd user timer fingerprints the type structure of all 19 upstream contracts against committed baselines (`contracts/`); on drift, a headless Claude session produces an impact analysis — what changed, which code consumes it with file:line, the minimum indispensable fix — as a report, never as applied changes. Nullable fields and empty windows are contract, not drift; a 429 gets a respectful retry and its own status rather than masquerading as an outage. In the live drill the analyst named the silent failure mode (`tx.get("amountUSD", 0) or 0` under-counting USD totals with no error) and even recognised the drill itself, recommending a baseline restore instead of a code change
 
 ### Security
@@ -15,9 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security response headers on every response** — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, a `Permissions-Policy` disabling geolocation/microphone/camera/FLoC, and a Content-Security-Policy. The CSP is honest about the Tailwind Play runtime's in-browser `eval`/inline needs (removing them is gated on the build-step debt in UI-SPEC §9) while locking down `frame-ancestors`, `object-src`, `base-uri` and `form-action`. The `Server` banner no longer leaks the server name or version
 
 ### Changed
+- **Runtime moved to Python 3.14** (Docker base `python:3.11-slim` → `python:3.14-slim`) and CI now tests on 3.14 — the version the image actually ships. Verified three ways before the switch: full suite on a 3.14 host venv, full suite inside the built 3.14 image, and a control run proving the only in-image failures also occur on 3.11 (tests that read repo files the image never carries)
+- **First Dependabot wave drained (10 PRs)**: apscheduler 3.11.3, markdown 3.10.3, ruff 0.16.1, trafilatura 2.2.0, uvicorn 0.52.1 (floor raised from `>=0.30`), plus the four CI actions (checkout, setup-python, setup-uv, upload-artifact) to their current majors
 - The campaigns view shares one embedding model across requests instead of reloading the ~30 MB model on every render; the gain lands on new (cache-miss) articles
 
 ### Fixed
+- **Geographic maps render again.** Plotly fetched its world-boundary topojson from `cdn.plot.ly` at render time; the Content-Security-Policy shipped with the security headers rightly blocked that, and every choropleth (world map, dashboard, group pages) went blank with only a console error as a symptom. The boundary file is now vendored under `static/vendor/plotly-topojson/` and the shared Plotly config points there — the CSP stays intact, and the last runtime CDN dependency is gone. A regression test pins both halves plus a tripwire for any future geo scope whose boundary file is not vendored
 - The Docker image no longer duplicates the whole `/app` tree in a trailing `chown` layer — **1.2 GB → 805 MB**. It also builds from a fresh clone (the lockfile is tracked and the embedding model is fetched during the build rather than copied from a context that might not have it)
 
 

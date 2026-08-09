@@ -79,13 +79,34 @@ class MockProvider:
         )
 
 
-# Anthropic is primary per ADR-006; OpenAI is the documented failover and is
-# registered without models until phase 4 gives it any, so it is inert rather
-# than half-wired. Ollama is the local escape valve for content above the
-# cloud TLP ceiling — triage only, because a 1.5B model with a ~2k context
-# cannot do analysis-grade extraction on this corpus (measured 2026-08-08:
-# mean article ~3.4k tokens).
+# Registry order is preference order. NVIDIA NIM leads — a deliberate
+# deviation from ADR-006's "Anthropic primary", decided 2026-08-09 when it
+# turned out the Max subscription carries no Console API credit
+# (.planning/PLAN-NIM-PROVIDER-2026-08.md; the ADR is a protected path and
+# records the original intent until the user amends it). NIM's free tier has
+# no per-token price, so these Pricing rows are genuinely zero — cost rows
+# stay $0 with real token counts, and BudgetGuard thresholds simply never
+# trip. Both tiers are Llama on purpose: one model-family opt-in surface
+# (other NIM families 403 without registration), and no reasoning models —
+# chain-of-thought is waste where the output is constrained JSON.
+# Anthropic stays registered and callable the day a funded key appears.
+# Ollama is the local escape valve for content above the cloud TLP ceiling —
+# triage only, because a 1.5B model with a ~2k context cannot do
+# analysis-grade extraction on this corpus (measured 2026-08-08: mean
+# article ~3.4k tokens).
 PROVIDERS: dict[str, ProviderSpec] = {
+    "nvidia": ProviderSpec(
+        name="nvidia",
+        is_local=False,
+        models={
+            Tier.TRIAGE: "meta/llama-3.1-8b-instruct",
+            Tier.ANALYSIS: "meta/llama-3.3-70b-instruct",
+        },
+        pricing={
+            Tier.TRIAGE: Pricing(0.0, 0.0),
+            Tier.ANALYSIS: Pricing(0.0, 0.0),
+        },
+    ),
     "anthropic": ProviderSpec(
         name="anthropic",
         is_local=False,
