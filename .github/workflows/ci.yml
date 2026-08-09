@@ -21,7 +21,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --extra dev
 
       - name: Ruff check
         run: uv run ruff check src/ tests/
@@ -43,7 +43,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --extra dev
 
       - name: Run tests with coverage
         run: uv run pytest --cov=pestilentia --cov-report=term-missing --cov-fail-under=40
