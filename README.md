@@ -1,6 +1,6 @@
 # Elementary CTI
 
-<img align="left" width="440" height="480" src="multimedia/medic.jpg">
+<img align="left" width="440" height="440" src="multimedia/elementarycti.png">
 
 **Multi-source ransomware threat intelligence aggregator with MITRE ATT&CK, BTC payment, and operational enrichment.**
 
