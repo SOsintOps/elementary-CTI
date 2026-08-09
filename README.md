@@ -1,5 +1,8 @@
 # Elementary CTI
 
+[![CI](https://github.com/SOsintOps/elementary-CTI/actions/workflows/ci.yml/badge.svg)](https://github.com/SOsintOps/elementary-CTI/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 <img align="left" width="440" height="440" src="multimedia/elementarycti.png">
 
 **Multi-source ransomware threat intelligence aggregator with MITRE ATT&CK, BTC payment, and operational enrichment.**
