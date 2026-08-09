@@ -1,0 +1,15 @@
+# Normalise line endings; let git detect text vs binary.
+* text=auto eol=lf
+
+# Explicitly binary — never touch these.
+*.png binary
+*.jpg binary
+*.hef binary
+*.safetensors binary
+*.db binary
+*.dump binary
+*.woff2 binary
+
+# Keep vendored assets and lockfiles out of language stats / diffs noise.
+static/vendor/** linguist-vendored
+uv.lock -diff linguist-generated
