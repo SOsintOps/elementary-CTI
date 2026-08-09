@@ -34,7 +34,7 @@ dev = [
     "pytest-cov>=6.0",
     "pytest-httpx>=0.30",
     "anyio[trio]>=4.0",
-    "ruff>=0.4",
+    "ruff>=0.16.1",
 ]
 
 [build-system]
