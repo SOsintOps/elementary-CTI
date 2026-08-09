@@ -1,0 +1,57 @@
+# Environment
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+
+# Database (keep elementaryctiDB.db tracked)
+*.sqlite3
+test_web.db
+*.db-wal
+*.db-shm
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Data cache
+data/enterprise-attack.json
+
+# Documents
+*.pdf
+
+# uv — uv.lock is deliberately TRACKED. This is an application, not a
+# library, and the Dockerfile runs `uv sync --frozen`, which cannot work
+# without it: a fresh clone failed to build at all until it was committed.
+
+# Local embedding vector cache (A1) — regenerable, never committed
+.embedding-cache/
+
+# Local embedding model (A2) — fetched by scripts/fetch_embedding_model.py
+.embedding-model/
+
+# Weekly API-sentinel drift reports — regenerable, never committed
+.reports/
+
+# Hailo runtime log — artefact, never tracked
+hailort.log

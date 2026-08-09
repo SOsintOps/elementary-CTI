@@ -1,0 +1,36 @@
+{# Inline SVG sparkline — deliberately not Plotly.
+
+   The adversary list renders every group at once (400+ cards), so a charting
+   library instance per card is not an option. A sparkline has no axes, no
+   legend and no hover by definition, so an SVG polyline is the whole shape.
+
+   Renders nothing when the series is empty; a flat line at zero is a real
+   signal ("dormant"), an absent series is not. #}
+{% macro sparkline(values, width=96, height=22, label="") %}
+    {% if values and values | length > 1 %}
+        {% set vmax = values | max %}
+        {% set n = values | length %}
+        {% set step = (width - 2) / (n - 1) %}
+        <svg viewBox="0 0 {{ width }} {{ height }}" width="{{ width }}" height="{{ height }}"
+             class="overflow-visible" role="img"
+             aria-label="{{ label or 'activity over the last %d months' % n }}">
+            {% set ns = namespace(pts=[], area=[]) %}
+            {% for v in values %}
+                {% set x = 1 + loop.index0 * step %}
+                {# vmax 0 means a flat line on the baseline, not a divide by zero #}
+                {% set y = (height - 2) - ((v / vmax) * (height - 4) if vmax else 0) %}
+                {% set ns.pts = ns.pts + ["%.1f,%.1f" % (x, y)] %}
+            {% endfor %}
+            <polyline points="{{ ns.pts | join(' ') }}"
+                      fill="none" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
+                      class="stroke-[#3689e6] dark:stroke-[#64baff]"/>
+            {# fill-opacity as a plain SVG attribute, not Tailwind's `/12`
+               modifier: the Play runtime emits no rule for an arbitrary hex
+               combined with an opacity modifier, and an SVG with no matching
+               fill rule falls back to solid black. Plain `fill-[#hex]` and
+               `stroke-[#hex]` do work. #}
+            <polygon points="1,{{ height - 2 }} {{ ns.pts | join(' ') }} {{ 1 + (n - 1) * step }},{{ height - 2 }}"
+                     class="fill-[#3689e6] dark:fill-[#64baff]" fill-opacity="0.15"/>
+        </svg>
+    {% endif %}
+{% endmacro %}

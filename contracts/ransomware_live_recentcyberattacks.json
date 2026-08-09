@@ -1,0 +1,15 @@
+{
+  "added": "str",
+  "claim_gang": "str",
+  "claim_url": "str",
+  "country": "str",
+  "date": "str",
+  "description": "str",
+  "domain": "str",
+  "has_infostealer_info": "bool",
+  "link": "str",
+  "summary": "str",
+  "title": "str",
+  "url": "str",
+  "victim": "str"
+}

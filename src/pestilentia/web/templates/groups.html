@@ -1,0 +1,46 @@
+<!-- "The criminal mind is a complex one." — Sherlock Holmes, Elementary -->
+{% extends "base.html" %}
+{% block title %}Adversaries — Elementary CTI{% endblock %}
+{% block header %}Adversaries{% endblock %}
+
+{% from "_sparkline.html" import sparkline %}
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Catalogo dei gruppi ransomware e hacktivisti monitorati. Ogni scheda mostra l'avatar generato, il paese di origine (bandiera), il conteggio vittime e una breve descrizione. Clicca su un gruppo per accedere al profilo completo: panoramica (Diamond Model, Pyramid of Pain), infrastruttura (siti .onion, wallet BTC, canali comunicazione), arsenale (strumenti software), TTPs (tecniche MITRE ATT&CK), lista vittime e riferimenti (report, alert CISA).</p>
+<div class="mb-4">
+    <input id="group-search" type="text" placeholder="Search adversaries…"
+        class="w-full sm:w-80 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-2 text-sm text-gray-700 dark:text-noir-text placeholder-gray-400 focus:outline-none focus:border-accent/50 shadow-sm transition-colors">
+</div>
+
+<div id="group-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {% for g, cnt in groups %}
+    <a href="/groups/{{ g.id }}" data-name="{{ g.group_name | lower }}" class="group-card bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 hover:border-accent/40 hover:shadow-md transition-all shadow-sm">
+        <div class="flex items-center gap-3 mb-2">
+            <img src="/avatar/{{ g.group_name }}" alt="{{ g.group_name }} avatar" class="w-12 h-12 rounded" loading="lazy">
+            <div class="min-w-0">
+                <div class="font-semibold text-gray-800 dark:text-noir-hi truncate">{{ g.country_of_origin | flag }} {{ g.group_name }}</div>
+                <div class="text-xs text-red-500">{{ cnt }} victims</div>
+            </div>
+            {# Activity shape answers "alive or dormant?" — the first question
+               anyone asks of an adversary profile. #}
+            <div class="ml-auto shrink-0">{{ sparkline(sparks.get(g.id), label=g.group_name ~ " activity, last 12 months") }}</div>
+        </div>
+        {% if g.description %}
+        <p class="text-xs text-gray-400 dark:text-noir-mute line-clamp-2">{{ g.description[:120] }}</p>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+
+{% if not groups %}
+<p class="text-gray-400 dark:text-noir-mute text-sm">No adversary groups found.</p>
+{% endif %}
+
+<script>
+document.getElementById('group-search').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.group-card').forEach(card => {
+        card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

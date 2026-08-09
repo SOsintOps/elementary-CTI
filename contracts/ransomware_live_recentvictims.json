@@ -1,0 +1,17 @@
+{
+  "activity": "str",
+  "attackdate": "str",
+  "claim_url": "str",
+  "country": "str",
+  "data_size": "null",
+  "description": "str",
+  "discovered": "str",
+  "domain": "str",
+  "group": "str",
+  "infostealer": "str",
+  "press": "null",
+  "ransom": "null",
+  "screenshot": "str",
+  "url": "str",
+  "victim": "str"
+}

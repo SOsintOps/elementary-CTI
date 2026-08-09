@@ -1,0 +1,95 @@
+<!-- "Excellence is not a destination but a continuously advancing frontier." — Sherlock Holmes, Elementary -->
+{% extends "base.html" %}
+{% block title %}Changelog — Elementary CTI{% endblock %}
+{% block header %}Changelog{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 max-w-3xl text-sm">
+    <article class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.8.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-08-08</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>La pipeline degli articoli è attiva: 12 fonti curate interrogate a ogni ciclo dello scheduler, con deduplica esatta e near-duplicate</li>
+            <li>Nuova pagina Articoli (<code>/ai/articles</code>) con ricerca, filtri per fonte e TLP, e filtro "Solo prioritari"</li>
+            <li>Priority Intelligence Requirements: la watchlist attiva definisce cosa conta, e gli articoli che la intercettano sono contrassegnati</li>
+            <li>Prima serie temporale dell'applicazione: vittime per mese sulla dashboard, con selettore di intervallo e sparkline per avversario</li>
+            <li>Matrice di copertura ATT&amp;CK (<code>/attack</code>) e raggruppamento degli articoli per campagna (<code>/ai/campaigns</code>)</li>
+            <li>Export STIX 2.1 per avversario, pronto per MISP e OpenCTI</li>
+            <li>Alert triagati su tre livelli di severità, con flag "azionato" per misurare l'impatto sulle decisioni</li>
+            <li>Caching condizionale dei feed (etag / last-modified) e User-Agent con versione e contatto</li>
+        </ul>
+    </article>
+
+    <article class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.7.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-06-12</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>Dark mode "noir" (tema della serie Elementary) con toggle ◐ e regolazione dimensione caratteri A−/A+</li>
+            <li>Design system sulla palette ufficiale elementary OS; Diamond Model e Pyramid of Pain ridisegnati (orientamento canonico)</li>
+            <li>Profili avversario multi-fonte: descrizione ransomware.live + profilo MITRE ATT&CK integrale, con storia delle versioni</li>
+            <li>Asset front-end completamente self-hosted (librerie e font Inter): nessuna richiesta remota</li>
+            <li>Tutte le segnalazioni della code review chiuse; schema: datetime timezone-aware, vincolo unico sui cyberattack, CASCADE sugli alert</li>
+            <li>Accessibilità: tab ARIA con navigazione da tastiera, focus visibile, contrasti corretti, alt sugli avatar</li>
+        </ul>
+    </article>
+
+    <article class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.6.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-06-11</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>First tagged release: deployed as a Docker + PostgreSQL stack</li>
+            <li>Security hardening: XSS-safe feed URLs, optional HTTP Basic Auth, webhook SSRF guard, HTTP retries</li>
+            <li>Fixed ISO 8601 date parsing from ransomware.live (recent victims were saved without a date)</li>
+            <li>Concurrency-safe group ingest and MITRE enrichment timezone fix on PostgreSQL</li>
+            <li>Feed URL columns widened to TEXT (long onion URLs); SQLite→PostgreSQL migration tooling</li>
+            <li>v0.6 schema + AI foundation (Phase 1 of 7); AI analysis pipeline still in development</li>
+        </ul>
+    </article>
+
+    <article class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.4.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-04-25</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>Rebrand: Pestilentia → Elementary CTI (Sherlock Holmes theme)</li>
+            <li>Light theme: white cards, gray background, blue accents inspired by elementary.io</li>
+            <li>Pixel art mugshot avatars (Pillow-generated, deterministic, height-scale backdrop)</li>
+            <li>Adversary search bar with live filtering on /groups page</li>
+            <li>Dashboard victims/adversaries panels with scrollbar overflow</li>
+            <li>Choropleth heatmap: land gray → deep red scale</li>
+        </ul>
+    </article>
+
+    <article class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.3.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-04-24</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>MITRE ATT&CK enrichment: 971 TTPs across 46 groups via STIX 2.1 bundle (intrusion-set + software matching)</li>
+            <li>Adversary aliases imported from MITRE, displayed as tags on group detail pages</li>
+            <li>Country of origin flags on adversary cards, dashboard, and group detail pages</li>
+            <li>Dashboard victims card: 7-day / 1-month / 1-year time tabs with synchronized choropleth map</li>
+        </ul>
+    </article>
+
+    <article class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.2.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-04-24</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>Full web interface: dashboard, victims, adversaries, cyberattacks, map, pipeline, search, guide</li>
+            <li>SOC-style dark palette with blue oceans, white borders, red-orange-yellow heat ramp</li>
+            <li>Choropleth maps on dashboard, full map page, and per-adversary detail pages</li>
+            <li>Adversary tools (776), MITRE ATT&CK TTPs (500), and references (96) imported and displayed</li>
+            <li>Dashboard "Most Active Adversaries" with 7-day / 1-month / 1-year tabs</li>
+            <li>"Refresh Now" button + last update timestamp on dashboard and adversary pages</li>
+            <li>Watchlist system: add target companies, automatic matching on ingest, alert notifications</li>
+            <li>Historical backfill: 27,122 victims, 360 groups, 3,434 cyberattacks, 185 countries</li>
+            <li>REST API: POST /api/v1/refresh endpoint for on-demand data updates</li>
+            <li>Database tracked in git (elementaryctiDB.db)</li>
+        </ul>
+    </article>
+
+    <article class="mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-noir-hi">v0.1.0 <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">— 2026-04-24</span></h3>
+        <ul class="mt-2 space-y-1 text-gray-600 dark:text-noir-text list-disc list-inside">
+            <li>Initial release</li>
+            <li>ransomware.live API client with historical backfill</li>
+            <li>SQLAlchemy data model with cross-source deduplication</li>
+            <li>Automated scheduler (backfill-first, then 2h polling)</li>
+            <li>REST API v1 with auto-generated OpenAPI docs</li>
+        </ul>
+    </article>
+</div>
+{% endblock %}

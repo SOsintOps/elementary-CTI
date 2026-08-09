@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Map — Elementary CTI{% endblock %}
+{% block header %}Geographic Distribution{% endblock %}
+
+{% block head %}
+<script src="/static/vendor/plotly-2.35.2.min.js?v={{ app_version }}"></script>
+{% endblock %}
+
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Mappa coropletica della distribuzione globale delle vittime di ransomware. La scala cromatica (giallo-arancione-rosso) usa un binning quantile per evidenziare le differenze anche con distribuzioni sbilanciate. Usa i filtri temporali per analizzare l'evoluzione delle minacce. Passa il mouse su un paese per il conteggio esatto, clicca per filtrare la lista vittime per quel paese.</p>
+<div class="flex items-center gap-4 mb-6">
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 flex-1">
+        <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">Countries Affected</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1" id="stat-countries">{{ country_data | length }}</div>
+    </div>
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 flex-1">
+        <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">Total Victims Mapped</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1" id="stat-total">{{ total_mapped }}</div>
+    </div>
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 flex-shrink-0">
+        <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider mb-2">Time Period</div>
+        <div class="flex gap-1">
+            {% for val, label in [("7d", "7 days"), ("15d", "15 days"), ("1m", "1 month"), ("1y", "1 year"), ("all", "All time")] %}
+            <button onclick="switchMapPeriod('{{val}}')" id="mtab-{{val}}"
+                class="mtab-btn text-xs px-2 py-0.5 rounded {% if period == val %}bg-accent text-white{% else %}text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text{% endif %}">
+                {{ label }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
+    <div id="fullmap" style="height: 600px;"></div>
+</div>
+
+<script>
+const cdata = {{ country_data | tojson }};
+const iso2to3 = PEST.iso2to3;
+const YLOR_RD = PEST.choroScale;
+const counts = cdata.map(d => d.count);
+const maxCount = Math.max(...counts, 1);
+const logZ = cdata.map(d => Math.log1p(d.count));
+const tickCounts = [0, 1, 10, 100, 1000, maxCount].filter(v => v <= maxCount);
+const tickVals = tickCounts.map(v => Math.log1p(v));
+const tickLabels = tickCounts.map(v => v.toLocaleString());
+Plotly.newPlot('fullmap', [{
+    type: 'choropleth',
+    locations: cdata.map(d => iso2to3[d.code] || d.code),
+    z: logZ,
+    customdata: cdata.map(d => d.code),
+    text: cdata.map(d => d.code + ': ' + d.count + ' victims'),
+    colorscale: YLOR_RD,
+    zmin: 0,
+    zmax: Math.log1p(maxCount),
+    showscale: true,
+    colorbar: {
+        tickvals: tickVals,
+        ticktext: tickLabels,
+        title: { text: 'Victims' }
+    },
+    marker: { line: { color: '#999999', width: 0.5 } },
+    hovertemplate: '%{text}<extra></extra>'
+}], PEST.geoLayout({ height: 600, margin: { t: 10, b: 10, l: 10, r: 10 } }), PEST.plotlyConfig);
+
+document.getElementById('fullmap').on('plotly_click', function(data) {
+    if (data.points.length > 0) {
+        window.location.href = '/victims?country=' + data.points[0].customdata;
+    }
+});
+
+function switchMapPeriod(period) {
+    document.querySelectorAll('.mtab-btn').forEach(b => {
+        b.className = 'mtab-btn text-xs px-2 py-0.5 rounded text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text';
+    });
+    document.getElementById('mtab-' + period).className = 'mtab-btn text-xs px-2 py-0.5 rounded bg-accent text-white';
+
+    fetch('/api/v1/map?period=' + period)
+        .then(r => r.json())
+        .then(data => {
+            const cd = data.country_data;
+            const total = data.total_mapped;
+            document.getElementById('stat-countries').textContent = cd.length;
+            document.getElementById('stat-total').textContent = total.toLocaleString();
+
+            const newCounts = cd.map(d => d.count);
+            const newMax = Math.max(...newCounts, 1);
+            const newLogZ = cd.map(d => Math.log1p(d.count));
+            const tCounts = [0, 1, 10, 100, 1000, newMax].filter(v => v <= newMax);
+
+            Plotly.restyle('fullmap', {
+                locations: [cd.map(d => iso2to3[d.code] || d.code)],
+                z: [newLogZ],
+                customdata: [cd.map(d => d.code)],
+                text: [cd.map(d => d.code + ': ' + d.count + ' victims')],
+                zmax: Math.log1p(newMax),
+                'colorbar.tickvals': [tCounts.map(v => Math.log1p(v))],
+                'colorbar.ticktext': [tCounts.map(v => v.toLocaleString())]
+            });
+        });
+}
+</script>
+{% endblock %}

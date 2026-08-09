@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Elementary CTI</title>
+  <rect width="64" height="64" rx="12" fill="#1a1d24"/>
+  <g fill="none" stroke="#3689e6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="27" cy="27" r="14"/>
+    <polygon points="27,18 34,22 34,32 27,36 20,32 20,22" stroke-width="1.8" opacity="0.55"/>
+    <line x1="37.5" y1="37.5" x2="50" y2="50"/>
+  </g>
+</svg>

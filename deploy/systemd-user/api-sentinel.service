@@ -1,0 +1,10 @@
+[Unit]
+Description=Elementary CTI — weekly upstream API contract sentinel
+Documentation=file://%h/github/elementary-CTI/.planning/PLAN-API-SENTINEL-2026-08.md
+
+[Service]
+Type=oneshot
+ExecStart=%h/github/elementary-CTI/scripts/api-sentinel-weekly.sh
+# The analysis stage can legitimately take minutes; the wrapper enforces its
+# own 900s timeout on claude, this is the outer safety net.
+TimeoutStartSec=1500

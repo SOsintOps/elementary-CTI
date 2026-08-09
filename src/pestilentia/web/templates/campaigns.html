@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Campaigns — Elementary CTI{% endblock %}
+{% block header %}
+<div class="flex items-center gap-4">
+    <span>Campaigns</span>
+    <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">
+        {{ clusters | length }} multi-article groups · {{ singletons }} standalone · {{ total_articles }} articles examined
+    </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-2">
+    Articoli raggruppati per <strong>campagna</strong>: report diversi che descrivono lo stesso incidente.
+    Diverso dal dedup — il simhash risponde "è lo stesso articolo?", questo risponde
+    "sono articoli diversi sullo stesso fatto?". Similarità coseno
+    {% if backend == "embedding" %}su <strong>embedding locali</strong> (model2vec, 256 dim){% else %}su <strong>TF-IDF</strong>{% endif %},
+    soglia {{ threshold }}.
+</p>
+{# Stating the limitation on the page, not only in the code: an analyst
+   reading a cluster needs to know what can end up in one. #}
+<div class="mb-4 rounded-lg border border-status-warn-border dark:border-status-warn-dot/30 bg-status-warn-bg dark:bg-status-warn-dot/5 p-3">
+    <p class="text-xs text-status-warn dark:text-status-warn-dot">
+        <strong>Limite noto.</strong> La similarità raggruppa anche report che condividono un
+        <em>template</em> pur riguardando incidenti diversi. Le <em>rubriche ricorrenti</em> di una stessa
+        testata (almeno tre uscite con lo stesso titolo-tipo) sono ora escluse automaticamente, ma articoli
+        dello stesso genere restano accorpabili. Un gruppo va letto come "candidati alla stessa campagna",
+        non come un fatto accertato.
+    </p>
+</div>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
+    Calcolato al volo: nulla è persistito, quindi la soglia resta regolabile senza riscrivere dati.
+</p>
+
+{% if clusters %}
+<div class="space-y-3">
+    {% for cluster in clusters %}
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="flex items-baseline justify-between mb-2">
+            <h3 class="text-xs font-semibold text-gray-500 dark:text-noir-text uppercase tracking-wider">
+                {{ cluster | length }} reports
+            </h3>
+            <span class="text-xs text-gray-400 dark:text-noir-mute">
+                {{ cluster | map(attribute='source') | select | map(attribute='name') | unique | join(' · ') }}
+            </span>
+        </div>
+        <ul class="space-y-1">
+            {% for a in cluster %}
+            <li class="text-sm flex gap-2">
+                <span class="text-xs text-gray-400 dark:text-noir-mute shrink-0 w-20">
+                    {{ a.published_at.strftime('%Y-%m-%d') if a.published_at else '—' }}
+                </span>
+                <a href="{{ a.url | safe_url }}" target="_blank" rel="noopener noreferrer"
+                   class="text-accent hover:underline">{{ a.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-8 text-center shadow-sm">
+    <p class="text-sm text-gray-500 dark:text-noir-mute">
+        No multi-article campaigns found among {{ total_articles }} articles.
+        Every report currently stands alone.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

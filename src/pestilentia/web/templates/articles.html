@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Articles — Elementary CTI{% endblock %}
+{% block header %}
+<div class="flex items-center gap-4">
+    <span>Articles</span>
+    <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">{{ total }} ingested · {{ full_text_count }} with full text</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
+    Corpus grezzo ingerito dai feed CTI curati, deduplicato per URL canonico e per near-duplicate (simhash).
+    Questa pagina mostra <strong>solo</strong> ciò che il fetcher ha salvato: nessuna estrazione, nessun output di modello linguistico.
+    L'analisi (IOC, TTP, Diamond Model) arriva nelle fasi successive della pipeline ADR-006.
+</p>
+
+<!-- Filters: one row above the list -->
+<form method="get" class="flex flex-wrap gap-2 mb-4">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search title…"
+           class="px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded focus:outline-none focus:border-accent">
+    <select name="source" class="px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded">
+        <option value="">All sources</option>
+        {% for s in sources %}
+        <option value="{{ s }}" {% if s == source %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+    <select name="tlp" class="px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded">
+        <option value="">All TLP</option>
+        {% for t in tlps %}
+        <option value="{{ t }}" {% if t == tlp %}selected{% endif %}>TLP:{{ t | upper }}</option>
+        {% endfor %}
+    </select>
+    {# Priority Intelligence Requirements = the active watchlist. Without a
+       statement of what the analyst cares about, a feed pipeline accumulates
+       noise by definition. #}
+    {% if pir_terms %}
+    <label class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded cursor-pointer"
+           title="Only articles mentioning something on your watchlist: {{ pir_terms | join(', ') }}">
+        <input type="checkbox" name="pir_only" value="true" {% if pir_only %}checked{% endif %} class="accent-accent">
+        <span class="text-gray-600 dark:text-noir-text">Priority only</span>
+    </label>
+    {% endif %}
+    <button type="submit" class="px-3 py-1.5 text-sm bg-accent hover:bg-accent-dim text-white rounded transition-colors">Filter</button>
+    {% if q or source or tlp or pir_only %}
+    <a href="/ai/articles" class="px-3 py-1.5 text-sm text-gray-500 dark:text-noir-mute hover:text-accent">Clear</a>
+    {% endif %}
+</form>
+
+{% if articles %}
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-400 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border">
+                    <th class="text-left py-2 px-4">Title</th>
+                    <th class="text-left py-2 px-4">Source</th>
+                    <th class="text-left py-2 px-4">Published</th>
+                    <th class="text-left py-2 px-4">TLP</th>
+                    <th class="text-left py-2 px-4">Body</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for a in articles %}
+                <tr class="border-b border-gray-100 dark:border-noir-line hover:bg-gray-50 dark:hover:bg-noir-raised">
+                    <td class="py-2 px-4">
+                        <a href="{{ a.url | safe_url }}" target="_blank" rel="noopener noreferrer"
+                           class="text-accent hover:underline">{{ a.title }}</a>
+                        {% set hits = pir_hits.get(a.id) %}
+                        {% if hits %}
+                        <span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-status-warn-bg dark:bg-status-warn-dot/10 border border-status-warn-border dark:border-status-warn-dot/30 text-status-warn dark:text-status-warn-dot align-middle"
+                              title="Matches your watchlist: {{ hits | join(', ') }}">&#9733; priority</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-4 text-gray-600 dark:text-noir-text">{{ a.source.name if a.source else "—" }}</td>
+                    <td class="py-2 px-4 text-gray-400 dark:text-noir-mute whitespace-nowrap">
+                        {{ a.published_at.strftime('%Y-%m-%d') if a.published_at else "—" }}
+                    </td>
+                    <td class="py-2 px-4">
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-status-ok-bg dark:bg-status-ok-dot/10 border border-status-ok-border dark:border-status-ok-dot/30 text-status-ok dark:text-status-ok-dot">
+                            TLP:{{ a.tlp | upper }}
+                        </span>
+                    </td>
+                    {# "Summary only" is a state of the pipeline, not a defect —
+                       full text arrives in batches on later cycles. #}
+                    <td class="py-2 px-4 text-xs">
+                        {% if a.truncated %}
+                        <span class="text-gray-400 dark:text-noir-mute italic" title="feed summary only — full text not fetched yet">Summary only</span>
+                        {% else %}
+                        <span class="text-gray-600 dark:text-noir-text">Full text</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pages > 1 %}
+<div class="flex gap-2 mt-4 justify-center">
+    {% if page > 1 %}
+    <a href="?page={{ page - 1 }}&q={{ q|urlencode }}&source={{ source|urlencode }}&tlp={{ tlp|urlencode }}&pir_only={{ "true" if pir_only else "" }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">&laquo; Prev</a>
+    {% endif %}
+    <span class="px-3 py-1 text-sm text-gray-500 dark:text-noir-mute">{{ page }} / {{ pages }}</span>
+    {% if page < pages %}
+    <a href="?page={{ page + 1 }}&q={{ q|urlencode }}&source={{ source|urlencode }}&tlp={{ tlp|urlencode }}&pir_only={{ "true" if pir_only else "" }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">Next &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-8 text-center shadow-sm">
+    <p class="text-sm text-gray-500 dark:text-noir-mute">
+        {% if pir_only %}
+        No articles mention anything on your watchlist yet. Uncheck "Priority only" to see the whole corpus.
+        {% elif q or source or tlp %}
+        No articles match these filters.
+        {% else %}
+        No articles ingested yet. The scheduler polls the curated feeds on its regular cycle;
+        check the <a href="/pipeline" class="text-accent hover:underline">Pipeline</a> page for source health.
+        {% endif %}
+    </p>
+</div>
+{% endif %}
+{% endblock %}
