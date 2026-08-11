@@ -105,3 +105,14 @@ def test_changelog_page_follows_language(env, authenticate):
     client.get("/lang/it", follow_redirects=False)
     it = client.get("/changelog").text
     assert "pipeline degli articoli" in it or "Dark mode" in it  # curated Italian notes
+
+
+def test_guide_is_fully_bilingual(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
+    en = client.get("/guide").text
+    assert "Pannello" not in en and "vittime" not in en
+    assert "available in Italian only" not in en  # note gone: the guide IS English now
+    client.get("/lang/it", follow_redirects=False)
+    it = client.get("/guide").text
+    assert "Guida" in it or "vittime" in it

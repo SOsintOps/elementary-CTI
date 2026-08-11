@@ -2185,9 +2185,10 @@ def _render_changelog() -> str:
 
 @app.get("/guide")
 def guide(request: Request):
-    return _render(
-        request, "guide.html", {"active": "guide", "changelog_html": _render_changelog()}
-    )
+    # Full 1:1 translation (2026-08-11): guide_en.html for the English UI,
+    # the original Italian guide for lang=it.
+    name = "guide.html" if request.cookies.get(_LANG_COOKIE, "") == "it" else "guide_en.html"
+    return _render(request, name, {"active": "guide", "changelog_html": _render_changelog()})
 
 
 @app.get("/changelog")
