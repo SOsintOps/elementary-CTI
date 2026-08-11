@@ -74,8 +74,8 @@ Elementary CTI collects victim and cyberattack data from ransomware tracking sou
         └──────────────────────┘            └──────────────────────┘
 ```
 
-Embeddings and the TLP gate run today. The router is written and tested but not
-yet making calls — see Project Status.
+Embeddings, the TLP gate and the LLM router all run today — the router makes
+real calls on NVIDIA NIM's free tier. See Project Status.
 
 ## Project Status
 
@@ -89,20 +89,26 @@ yet making calls — see Project Status.
 > Priority Intelligence Requirements derived from the watchlist, a decision-impact flag on
 > alerts, and STIX 2.1 export per adversary. Schema at Alembic revision 0013.
 >
-> Since the tag, on `0.9.0.dev0`:
+> Since the tag, on `0.9.0.dev0` (509 tests passing, schema at Alembic revision 0016):
+> - **The AI pipeline made its first real LLM calls.** ADR-006 Phase 3 (provider registry,
+>   `Router` facade, fail-closed TLP gate, `BudgetGuard` over `LlmCallLog`) was live-accepted
+>   on 2026-08-09 on NVIDIA NIM's free tier — real triage call, cost rows verified at $0,
+>   prompt-prefix cache observed. No module imports a vendor SDK.
+> - **Multi-user authentication replaced HTTP Basic Auth** (2026-08-11): server-side accounts
+>   with argon2id hashing, three roles (`user` / `analyst` / `admin`), signed rotating session
+>   cookies with expiry, CSRF on every form, sign-in backoff, and enforcement on every route.
+> - **A public TLP:CLEAR storefront**: anonymous visitors get a 30-day overview from
+>   public-source data with a sidebar sign-in; a public [`/faq`](docs/FAQ.md) explains the
+>   platform. Every authenticated action and failed access attempt lands in an activity log
+>   with configurable retention.
 > - **Campaign clustering runs on local embeddings** (model2vec, 256 dim, ~30 MB, no torch,
 >   no network at request time), chosen over the TF-IDF baseline by measurement on the live
->   corpus rather than on recommendation. A recurring-series guard stops a publisher's weekly
->   column collapsing into one "campaign".
-> - **ADR-006 Phase 3 (LLM router) is written and tested at zero LLM spend** — provider
->   registry, `Router` facade, fail-closed TLP gate, and a `BudgetGuard` over `LlmCallLog`.
->   No module imports a vendor SDK. Live acceptance waits on an API key with credit.
+>   corpus. A recurring-series guard stops a publisher's weekly column collapsing into one
+>   "campaign".
 > - **Restricted content can be released deliberately, and every release is audited.**
 >   TLP:AMBER and TLP:RED are blocked by default; an analyst may override per decision,
->   naming themselves and a reason. A source's own never-share flag takes a second,
->   separate acknowledgement. Each crossing writes an `ai_enrichment_audit` row recording
->   who, why, and which provider received the content.
->
+>   naming themselves and a reason. Each crossing writes an `ai_enrichment_audit` row
+>   recording who, why, and which provider received the content.
 > Runs as a Docker + PostgreSQL stack — see [`DEPLOY.md`](DEPLOY.md). Remaining open:
 > US-NOTIFY-002 (Telegram bot channel).
 >
