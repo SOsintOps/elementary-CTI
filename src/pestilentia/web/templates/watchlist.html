@@ -8,28 +8,32 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-1 space-y-4">
         <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
-            <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider mb-3">Add Target</h3>
+            <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_add_target') }}</h3>
             <form action="/watchlist/add" method="post" class="space-y-3">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div>
-                    <label class="text-xs text-slate-500 dark:text-noir-mute">Company Name *</label>
+                    <label class="text-xs text-slate-500 dark:text-noir-mute">{{ t('label_company_name') }} *</label>
                     <input type="text" name="name" required class="w-full mt-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 shadow-sm">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-500 dark:text-noir-mute">Domain</label>
+                    <label class="text-xs text-slate-500 dark:text-noir-mute">{{ t('hdr_domain') }}</label>
                     <input type="text" name="domain" placeholder="example.com" class="w-full mt-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 shadow-sm">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-500 dark:text-noir-mute">Keywords (comma-separated)</label>
+                    <label class="text-xs text-slate-500 dark:text-noir-mute">{{ t('label_keywords') }}</label>
                     <input type="text" name="keywords" placeholder="brand, subsidiary" class="w-full mt-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 shadow-sm">
                 </div>
-                <button type="submit" class="w-full text-xs bg-accent hover:bg-accent-dim text-white px-3 py-2 rounded">Add to Watchlist</button>
+                <button type="submit" class="w-full text-xs bg-accent hover:bg-accent-dim text-white px-3 py-2 rounded">{{ t('btn_add_watchlist') }}</button>
             </form>
         </div>
 
         <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
-            <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider mb-3">Active Targets ({{ targets|length }})</h3>
+            <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_active_targets') }} ({{ targets|length }})</h3>
             {% if targets %}
+            {# The loop variable shadows t(); resolve the strings first. #}
+            {% set rm_pre = t('watch_remove_pre') %}
+            {% set rm_post = t('watch_remove_post') %}
+            {% set rm_title_post = t('watch_remove_title_post') %}
             <ul class="space-y-2">
             {% for t in targets %}
                 <li class="flex items-center justify-between text-sm">
@@ -40,18 +44,18 @@
                         {% endif %}
                     </div>
                     <form action="/watchlist/{{ t.id }}/delete" method="post" class="inline"
-                          onsubmit="return confirm('Remove {{ t.name }} from the watchlist?');">
+                          onsubmit="return confirm('{{ rm_pre }} {{ t.name }} {{ rm_post }}');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit"
                                 class="text-xs text-red-500 hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-300 rounded px-1"
-                                aria-label="Remove {{ t.name }} from watchlist"
-                                title="Remove {{ t.name }} from watchlist">&times;</button>
+                                aria-label="{{ rm_pre }} {{ t.name }} {{ rm_title_post }}"
+                                title="{{ rm_pre }} {{ t.name }} {{ rm_title_post }}">&times;</button>
                     </form>
                 </li>
             {% endfor %}
             </ul>
             {% else %}
-            <p class="text-sm text-slate-500 dark:text-noir-mute">No targets configured.</p>
+            <p class="text-sm text-slate-500 dark:text-noir-mute">{{ t('no_targets') }}</p>
             {% endif %}
         </div>
     </div>
@@ -60,13 +64,13 @@
         <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider">
-                    Alerts
+                    {{ t('card_alerts') }}
                     {% if unread %}<span class="ml-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">{{ unread }}</span>{% endif %}
                 </h3>
                 {% if unread %}
                 <form action="/alerts/mark-read" method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="text-xs text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text">Mark all read</button>
+                    <button type="submit" class="text-xs text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text">{{ t('btn_mark_all_read') }}</button>
                 </form>
                 {% endif %}
             </div>
@@ -83,11 +87,11 @@
                     <td class="py-1.5 text-xs">
                         {# Match strength carries an icon and a word, never colour alone. #}
                         {% if a.match_field == 'domain' %}
-                        <span class="text-status-down dark:text-status-down-dot font-medium" title="exact domain match — documentary">&#9679; domain</span>
+                        <span class="text-status-down dark:text-status-down-dot font-medium" title="{{ t('title_match_domain') }}">&#9679; {{ t('match_domain') }}</span>
                         {% elif a.match_field == 'name' %}
-                        <span class="text-status-warn dark:text-status-warn-dot" title="name match">&#9673; name</span>
+                        <span class="text-status-warn dark:text-status-warn-dot" title="{{ t('title_match_name') }}">&#9673; {{ t('match_name') }}</span>
                         {% else %}
-                        <span class="text-slate-500 dark:text-noir-mute" title="fuzzy keyword match — may be coincidental">&#9675; {{ a.match_field }}</span>
+                        <span class="text-slate-500 dark:text-noir-mute" title="{{ t('title_match_fuzzy') }}">&#9675; {{ a.match_field }}</span>
                         {% endif %}
                     </td>
                     <td class="py-1.5 text-slate-500 dark:text-noir-mute">{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
@@ -98,11 +102,11 @@
             {% if triage.unread %}
             <div class="mb-4 rounded-lg border border-status-down-border dark:border-status-down-dot/30 bg-status-down-bg dark:bg-status-down-dot/5 p-3">
                 <h4 class="text-xs font-semibold text-status-down dark:text-status-down-dot uppercase tracking-wider mb-2">
-                    Needs attention — {{ triage.unread | length }} unread
+                    {{ t('watch_needs_attention') }} — {{ triage.unread | length }} {{ t('word_unread') }}
                 </h4>
                 <table class="w-full text-sm">
                     <thead><tr class="text-gray-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
-                        <th class="text-left py-1">Target</th><th class="text-left py-1">Victim</th><th class="text-left py-1">Match</th><th class="text-left py-1">Date</th>
+                        <th class="text-left py-1">{{ t('hdr_target') }}</th><th class="text-left py-1">{{ t('hdr_victim') }}</th><th class="text-left py-1">{{ t('hdr_match') }}</th><th class="text-left py-1">{{ t('hdr_date') }}</th>
                     </tr></thead>
                     <tbody>{{ alert_rows(triage.unread) }}</tbody>
                 </table>
@@ -112,7 +116,7 @@
             {% if triage.recent %}
             <details open class="mb-3">
                 <summary class="cursor-pointer text-xs font-semibold text-gray-500 dark:text-noir-mute uppercase tracking-wider py-1">
-                    Reviewed, last {{ triage.recent_days }} days ({{ triage.recent | length }})
+                    {{ t('watch_reviewed') }} {{ triage.recent_days }} {{ t('word_days') }} ({{ triage.recent | length }})
                 </summary>
                 <table class="w-full text-sm mt-1">
                     <tbody>{{ alert_rows(triage.recent) }}</tbody>
@@ -123,7 +127,7 @@
             {% if triage.older %}
             <details class="mb-1">
                 <summary class="cursor-pointer text-xs text-slate-400 dark:text-noir-mute uppercase tracking-wider py-1">
-                    Older ({{ triage.older | length }})
+                    {{ t('word_older') }} ({{ triage.older | length }})
                 </summary>
                 <table class="w-full text-sm mt-1">
                     <tbody>{{ alert_rows(triage.older, muted=true) }}</tbody>
@@ -131,7 +135,7 @@
             </details>
             {% endif %}
             {% else %}
-            <p class="text-sm text-slate-500 dark:text-noir-mute py-4 text-center">No alerts yet. Add targets and run a refresh to check for matches.</p>
+            <p class="text-sm text-slate-500 dark:text-noir-mute py-4 text-center">{{ t('watch_no_alerts') }}</p>
             {% endif %}
         </div>
     </div>

@@ -12,16 +12,16 @@
 
 <!-- Filters: one row above the list -->
 <form method="get" class="flex flex-wrap gap-2 mb-4">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search title…"
+    <input type="text" name="q" value="{{ q }}" placeholder="{{ t('ph_search_title') }}"
            class="px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded focus:outline-none focus:border-accent">
     <select name="source" class="px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded">
-        <option value="">All sources</option>
+        <option value="">{{ t('opt_all_sources') }}</option>
         {% for s in sources %}
         <option value="{{ s }}" {% if s == source %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
     </select>
     <select name="tlp" class="px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded">
-        <option value="">All TLP</option>
+        <option value="">{{ t('opt_all_tlp') }}</option>
         {% for t in tlps %}
         <option value="{{ t }}" {% if t == tlp %}selected{% endif %}>TLP:{{ t | upper }}</option>
         {% endfor %}
@@ -31,14 +31,14 @@
        noise by definition. #}
     {% if pir_terms %}
     <label class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded cursor-pointer"
-           title="Only articles mentioning something on your watchlist: {{ pir_terms | join(', ') }}">
+           title="{{ t('title_pir_only') }} {{ pir_terms | join(', ') }}">
         <input type="checkbox" name="pir_only" value="true" {% if pir_only %}checked{% endif %} class="accent-accent">
-        <span class="text-gray-600 dark:text-noir-text">Priority only</span>
+        <span class="text-gray-600 dark:text-noir-text">{{ t('label_priority_only') }}</span>
     </label>
     {% endif %}
-    <button type="submit" class="px-3 py-1.5 text-sm bg-accent hover:bg-accent-dim text-white rounded transition-colors">Filter</button>
+    <button type="submit" class="px-3 py-1.5 text-sm bg-accent hover:bg-accent-dim text-white rounded transition-colors">{{ t('btn_filter') }}</button>
     {% if q or source or tlp or pir_only %}
-    <a href="/ai/articles" class="px-3 py-1.5 text-sm text-gray-500 dark:text-noir-mute hover:text-accent">Clear</a>
+    <a href="/ai/articles" class="px-3 py-1.5 text-sm text-gray-500 dark:text-noir-mute hover:text-accent">{{ t('btn_clear') }}</a>
     {% endif %}
 </form>
 
@@ -48,11 +48,11 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-gray-400 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border">
-                    <th class="text-left py-2 px-4">Title</th>
-                    <th class="text-left py-2 px-4">Source</th>
-                    <th class="text-left py-2 px-4">Published</th>
+                    <th class="text-left py-2 px-4">{{ t('hdr_title') }}</th>
+                    <th class="text-left py-2 px-4">{{ t('hdr_source') }}</th>
+                    <th class="text-left py-2 px-4">{{ t('hdr_published') }}</th>
                     <th class="text-left py-2 px-4">TLP</th>
-                    <th class="text-left py-2 px-4">Body</th>
+                    <th class="text-left py-2 px-4">{{ t('hdr_body') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,7 +64,7 @@
                         {% set hits = pir_hits.get(a.id) %}
                         {% if hits %}
                         <span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-status-warn-bg dark:bg-status-warn-dot/10 border border-status-warn-border dark:border-status-warn-dot/30 text-status-warn dark:text-status-warn-dot align-middle"
-                              title="Matches your watchlist: {{ hits | join(', ') }}">&#9733; priority</span>
+                              title="{{ t('title_matches_watchlist') }} {{ hits | join(', ') }}">&#9733; {{ t('word_priority') }}</span>
                         {% endif %}
                     </td>
                     <td class="py-2 px-4 text-gray-600 dark:text-noir-text">{{ a.source.name if a.source else "—" }}</td>
@@ -80,9 +80,9 @@
                        full text arrives in batches on later cycles. #}
                     <td class="py-2 px-4 text-xs">
                         {% if a.truncated %}
-                        <span class="text-gray-400 dark:text-noir-mute italic" title="feed summary only — full text not fetched yet">Summary only</span>
+                        <span class="text-gray-400 dark:text-noir-mute italic" title="{{ t('title_summary_only') }}">{{ t('label_summary_only') }}</span>
                         {% else %}
-                        <span class="text-gray-600 dark:text-noir-text">Full text</span>
+                        <span class="text-gray-600 dark:text-noir-text">{{ t('label_full_text') }}</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -95,11 +95,11 @@
 {% if pages > 1 %}
 <div class="flex gap-2 mt-4 justify-center">
     {% if page > 1 %}
-    <a href="?page={{ page - 1 }}&q={{ q|urlencode }}&source={{ source|urlencode }}&tlp={{ tlp|urlencode }}&pir_only={{ "true" if pir_only else "" }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">&laquo; Prev</a>
+    <a href="?page={{ page - 1 }}&q={{ q|urlencode }}&source={{ source|urlencode }}&tlp={{ tlp|urlencode }}&pir_only={{ "true" if pir_only else "" }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">&laquo; {{ t('pg_prev') }}</a>
     {% endif %}
     <span class="px-3 py-1 text-sm text-gray-500 dark:text-noir-mute">{{ page }} / {{ pages }}</span>
     {% if page < pages %}
-    <a href="?page={{ page + 1 }}&q={{ q|urlencode }}&source={{ source|urlencode }}&tlp={{ tlp|urlencode }}&pir_only={{ "true" if pir_only else "" }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">Next &raquo;</a>
+    <a href="?page={{ page + 1 }}&q={{ q|urlencode }}&source={{ source|urlencode }}&tlp={{ tlp|urlencode }}&pir_only={{ "true" if pir_only else "" }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">{{ t('pg_next') }} &raquo;</a>
     {% endif %}
 </div>
 {% endif %}
@@ -108,12 +108,11 @@
 <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-8 text-center shadow-sm">
     <p class="text-sm text-gray-500 dark:text-noir-mute">
         {% if pir_only %}
-        No articles mention anything on your watchlist yet. Uncheck "Priority only" to see the whole corpus.
+        {{ t('articles_empty_pir') }}
         {% elif q or source or tlp %}
-        No articles match these filters.
+        {{ t('articles_empty_filtered') }}
         {% else %}
-        No articles ingested yet. The scheduler polls the curated feeds on its regular cycle;
-        check the <a href="/pipeline" class="text-accent hover:underline">Pipeline</a> page for source health.
+        {{ t('articles_empty_pre') }} <a href="/pipeline" class="text-accent hover:underline">Pipeline</a>{{ t('articles_empty_post') }}
         {% endif %}
     </p>
 </div>

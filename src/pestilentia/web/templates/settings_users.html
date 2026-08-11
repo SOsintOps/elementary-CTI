@@ -6,13 +6,13 @@
 {% include "_settings_tabs.html" %}
 
 {% set err_messages = {
-    "bad_username": "Username must be 3-64 characters: lowercase letters, digits, dot, dash, underscore.",
-    "short_password": "Password must be at least 10 characters.",
-    "bad_role": "Role must be user, analyst or admin.",
-    "exists": "That username already exists.",
-    "not_found": "User not found.",
-    "self": "You cannot disable or delete your own account.",
-    "last_admin": "Refused: that is the last active admin account."
+    "bad_username": t('err_users_bad_username'),
+    "short_password": t('err_users_short_password'),
+    "bad_role": t('err_users_bad_role'),
+    "exists": t('err_users_exists'),
+    "not_found": t('err_users_not_found'),
+    "self": t('err_users_self'),
+    "last_admin": t('err_users_last_admin')
 } %}
 {% if err and err in err_messages %}
 <div class="mb-4 px-3 py-2 rounded text-xs bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900" role="alert">{{ err_messages[err] }}</div>
@@ -20,41 +20,41 @@
 
 <!-- Create user -->
 <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm mb-6 max-w-4xl">
-    <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-3">Create user</h3>
+    <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-3">{{ t('card_create_user') }}</h3>
     <form method="post" action="/settings/users/create" class="flex flex-wrap items-end gap-3">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
-            <label for="nu-username" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Username</label>
+            <label for="nu-username" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('username_ph') }}</label>
             <input id="nu-username" name="username" type="text" required pattern="[a-z0-9_.\-]{3,64}"
                    class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none">
         </div>
         <div>
-            <label for="nu-password" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Initial password</label>
+            <label for="nu-password" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('label_initial_password') }}</label>
             <input id="nu-password" name="password" type="password" required minlength="10" autocomplete="new-password"
                    class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none">
         </div>
         <div>
-            <label for="nu-role" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Role</label>
+            <label for="nu-role" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('label_role') }}</label>
             <select id="nu-role" name="role" class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
                 <option value="user">user</option>
                 <option value="analyst">analyst</option>
                 <option value="admin">admin</option>
             </select>
         </div>
-        <button type="submit" class="bg-accent text-white rounded px-3 py-1.5 text-sm font-medium hover:opacity-90">Create</button>
+        <button type="submit" class="bg-accent text-white rounded px-3 py-1.5 text-sm font-medium hover:opacity-90">{{ t('btn_create') }}</button>
     </form>
 </div>
 
 <!-- Users table -->
 <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm max-w-6xl overflow-x-auto">
-    <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-3">Accounts</h3>
+    <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-3">{{ t('card_accounts') }}</h3>
     <table class="w-full text-sm">
         <thead><tr class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider border-b border-gray-200 dark:border-noir-border">
-            <th class="text-left py-2 pr-4">Username</th>
-            <th class="text-left py-2 pr-4">Role</th>
-            <th class="text-left py-2 pr-4">Status</th>
-            <th class="text-left py-2 pr-4">Last sign-in</th>
-            <th class="text-left py-2">Actions</th>
+            <th class="text-left py-2 pr-4">{{ t('username_ph') }}</th>
+            <th class="text-left py-2 pr-4">{{ t('label_role') }}</th>
+            <th class="text-left py-2 pr-4">{{ t('hdr_status') }}</th>
+            <th class="text-left py-2 pr-4">{{ t('hdr_last_signin') }}</th>
+            <th class="text-left py-2">{{ t('hdr_actions') }}</th>
         </tr></thead>
         <tbody>
         {% for u in users %}
@@ -68,33 +68,33 @@
                         <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>{{ r }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent" title="Change role">Set</button>
+                    <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent" title="{{ t('title_change_role') }}">{{ t('btn_set') }}</button>
                 </form>
             </td>
             <td class="py-2 pr-4">
                 {% if u.disabled %}
-                <span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">disabled</span>
+                <span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">{{ t('badge_user_disabled') }}</span>
                 {% else %}
-                <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">active</span>
+                <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">{{ t('badge_user_active') }}</span>
                 {% endif %}
             </td>
-            <td class="py-2 pr-4 text-xs text-gray-400 dark:text-noir-mute">{{ u.last_login_at.strftime('%Y-%m-%d %H:%M') if u.last_login_at else "never" }}</td>
+            <td class="py-2 pr-4 text-xs text-gray-400 dark:text-noir-mute">{{ u.last_login_at.strftime('%Y-%m-%d %H:%M') if u.last_login_at else t('word_never') }}</td>
             <td class="py-2">
                 <div class="flex items-center gap-2">
                     <form method="post" action="/settings/users/{{ u.id }}/toggle">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">{{ "Enable" if u.disabled else "Disable" }}</button>
+                        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">{{ t('btn_enable') if u.disabled else t('btn_disable') }}</button>
                     </form>
                     <form method="post" action="/settings/users/{{ u.id }}/reset-password" class="flex items-center gap-1">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input name="new_password" type="password" minlength="10" required placeholder="new password" autocomplete="new-password"
+                        <input name="new_password" type="password" minlength="10" required placeholder="{{ t('ph_new_password') }}" autocomplete="new-password"
                                class="w-28 bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-1.5 py-1 text-xs text-gray-700 dark:text-noir-text">
-                        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">Reset</button>
+                        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">{{ t('btn_reset') }}</button>
                     </form>
                     <form method="post" action="/settings/users/{{ u.id }}/delete"
-                          onsubmit="return confirm('Delete user {{ u.username }}? This cannot be undone.');">
+                          onsubmit="return confirm('{{ t('confirm_delete_user') }} {{ u.username }}? {{ t('confirm_no_undo') }}');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="text-xs text-red-400 hover:text-red-600">Delete</button>
+                        <button type="submit" class="text-xs text-red-400 hover:text-red-600">{{ t('btn_delete') }}</button>
                     </form>
                 </div>
             </td>
@@ -102,6 +102,6 @@
         {% endfor %}
         </tbody>
     </table>
-    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">Audit: every action on this page writes an <code>admin_audit</code> row. The last active admin cannot be disabled, deleted or demoted.</p>
+    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">{{ t('audit_users_pre') }} <code>admin_audit</code> {{ t('audit_users_post') }}</p>
 </div>
 {% endblock %}

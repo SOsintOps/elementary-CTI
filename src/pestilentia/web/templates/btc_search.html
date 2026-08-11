@@ -7,9 +7,9 @@
 <p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_btc') }}</p>
 <div class="mb-6">
     <form method="get" action="/btc" class="flex gap-2">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search BTC address (full or partial)…"
+        <input type="text" name="q" value="{{ q }}" placeholder="{{ t('ph_search_btc') }}"
                class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
-        <button type="submit" class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-dim transition-colors">Search</button>
+        <button type="submit" class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-dim transition-colors">{{ t('btn_search') }}</button>
     </form>
 </div>
 
@@ -17,37 +17,37 @@
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
     <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
         <p class="text-xl font-bold text-amber-700 dark:text-amber-300">${{ "{:,.0f}".format(summary.total_usd) }}</p>
-        <p class="text-xs text-amber-600 dark:text-amber-300">Total USD</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_total_usd') }}</p>
     </div>
     <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
         <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ "%.4f"|format(summary.total_btc) }}</p>
-        <p class="text-xs text-amber-600 dark:text-amber-300">Total BTC</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_total_btc') }}</p>
     </div>
     <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
         <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ summary.total_txs }}</p>
-        <p class="text-xs text-amber-600 dark:text-amber-300">Transactions</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_transactions') }}</p>
     </div>
     <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg p-3 text-center">
         <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ summary.addresses }}</p>
-        <p class="text-xs text-amber-600 dark:text-amber-300">Addresses</p>
+        <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_addresses') }}</p>
     </div>
 </div>
 {% endif %}
 
 {% if q and results %}
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">
-    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Results for "{{ q }}" ({{ results | length }})</h3>
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('btc_results_for') }} "{{ q }}" ({{ results | length }})</h3>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-gray-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
-                    <th class="text-left py-2">Address</th>
-                    <th class="text-left py-2">Group</th>
+                    <th class="text-left py-2">{{ t('hdr_address') }}</th>
+                    <th class="text-left py-2">{{ t('word_group') }}</th>
                     <th class="text-right py-2">Txs</th>
                     <th class="text-right py-2">BTC</th>
                     <th class="text-right py-2">USD</th>
-                    <th class="text-left py-2">First Seen</th>
-                    <th class="text-left py-2">Last Seen</th>
+                    <th class="text-left py-2">{{ t('hdr_first_seen') }}</th>
+                    <th class="text-left py-2">{{ t('hdr_last_seen') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -75,20 +75,20 @@
 </div>
 {% elif q %}
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 text-center mb-6">
-    <p class="text-gray-400 dark:text-noir-mute">No addresses matching "{{ q }}"</p>
+    <p class="text-gray-400 dark:text-noir-mute">{{ t('btc_no_match') }} "{{ q }}"</p>
 </div>
 {% endif %}
 
 {% if not q and top_addresses %}
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
-    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Top 20 Addresses by Volume</h3>
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('btc_top20') }}</h3>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-gray-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
                     <th class="text-left py-2">#</th>
-                    <th class="text-left py-2">Address</th>
-                    <th class="text-left py-2">Group</th>
+                    <th class="text-left py-2">{{ t('hdr_address') }}</th>
+                    <th class="text-left py-2">{{ t('word_group') }}</th>
                     <th class="text-right py-2">Txs</th>
                     <th class="text-right py-2">USD</th>
                 </tr>
@@ -112,7 +112,7 @@
             </tbody>
         </table>
     </div>
-    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">Source: <a href="https://ransomwhe.re" target="_blank" class="text-accent hover:underline">Ransomwhere</a> — 265 addresses across 28 groups</p>
+    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">{{ t('word_source_label') }} <a href="https://ransomwhe.re" target="_blank" class="text-accent hover:underline">Ransomwhere</a> — {{ t('btc_footer_tail') }}</p>
 </div>
 {% endif %}
 {% endblock %}

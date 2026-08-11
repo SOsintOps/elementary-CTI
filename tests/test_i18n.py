@@ -15,7 +15,7 @@ import pestilentia.web.app as web
 from pestilentia.config import Settings
 from pestilentia.models.base import Base
 from pestilentia.web.app import app
-from pestilentia.web.i18n import STRINGS
+from pestilentia.web.i18n import _CATALOGS, DEFAULT_LANG, SUPPORTED_LANGS
 
 
 @pytest.fixture
@@ -34,10 +34,17 @@ def env(monkeypatch):
     config._settings = None
 
 
-def test_catalog_is_complete():
-    for key, entry in STRINGS.items():
-        assert entry.get("en"), f"{key} missing en"
-        assert "it" in entry, f"{key} missing it"
+def test_catalogs_are_complete():
+    """Every locale carries a value for every English key (English is the
+    reference catalog); every locale declares its _meta label."""
+    reference = set(_CATALOGS[DEFAULT_LANG]) - {"_meta"}
+    for lang in SUPPORTED_LANGS:
+        catalog = _CATALOGS[lang]
+        assert (catalog.get("_meta") or {}).get("label"), f"{lang}: missing _meta.label"
+        missing = reference - set(catalog)
+        assert not missing, f"{lang}: missing keys {sorted(missing)[:5]}"
+        for key in reference:
+            assert catalog[key], f"{lang}:{key} empty"
 
 
 def test_default_language_is_english(env, authenticate):

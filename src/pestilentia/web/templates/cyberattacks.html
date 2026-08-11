@@ -6,27 +6,27 @@
 {% block content %}
 <p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_cyberattacks') }}</p>
 <form method="get" class="flex flex-wrap gap-3 mb-4">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search victim or title..."
+    <input type="text" name="q" value="{{ q }}" placeholder="{{ t('ph_search_victim_title') }}"
            class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-1.5 text-sm text-gray-700 dark:text-noir-text placeholder-gray-400 flex-1 min-w-[200px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 shadow-sm">
     <select name="country" class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none shadow-sm">
-        <option value="">All countries</option>
+        <option value="">{{ t('opt_all_countries') }}</option>
         {% for c in countries %}
         <option value="{{ c }}" {% if c == country %}selected{% endif %}>{{ c }}</option>
         {% endfor %}
     </select>
-    <button type="submit" class="bg-accent hover:bg-accent-dim text-white px-4 py-1.5 rounded text-sm">Filter</button>
+    <button type="submit" class="bg-accent hover:bg-accent-dim text-white px-4 py-1.5 rounded text-sm">{{ t('btn_filter') }}</button>
     {% if q or country %}
-    <a href="/cyberattacks" class="text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text text-sm py-1.5">Clear</a>
+    <a href="/cyberattacks" class="text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text text-sm py-1.5">{{ t('btn_clear') }}</a>
     {% endif %}
 </form>
 
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg overflow-x-auto">
     <table class="w-full text-sm">
         <thead><tr class="text-gray-500 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
-            <th class="text-left px-4 py-2">Victim</th>
-            <th class="text-left px-4 py-2">Title</th>
-            <th class="text-left px-4 py-2">Country</th>
-            <th class="text-left px-4 py-2">Date</th>
+            <th class="text-left px-4 py-2">{{ t('hdr_victim') }}</th>
+            <th class="text-left px-4 py-2">{{ t('hdr_title') }}</th>
+            <th class="text-left px-4 py-2">{{ t('word_country') }}</th>
+            <th class="text-left px-4 py-2">{{ t('hdr_date') }}</th>
         </tr></thead>
         <tbody>
         {% for a in attacks %}
@@ -38,7 +38,7 @@
         </tr>
         {% endfor %}
         {% if not attacks %}
-        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 dark:text-noir-mute">No cyberattacks found.</td></tr>
+        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 dark:text-noir-mute">{{ t('no_cyberattacks_found') }}</td></tr>
         {% endif %}
         </tbody>
     </table>
@@ -47,11 +47,11 @@
 {% if pages > 1 %}
 <div class="flex gap-2 mt-4 justify-center">
     {% if page > 1 %}
-    <a href="?page={{ page - 1 }}&q={{ q|urlencode }}&country={{ country|urlencode }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">&laquo; Prev</a>
+    <a href="?page={{ page - 1 }}&q={{ q|urlencode }}&country={{ country|urlencode }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">&laquo; {{ t('pg_prev') }}</a>
     {% endif %}
     <span class="px-3 py-1 text-sm text-gray-500 dark:text-noir-mute">{{ page }} / {{ pages }}</span>
     {% if page < pages %}
-    <a href="?page={{ page + 1 }}&q={{ q|urlencode }}&country={{ country|urlencode }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">Next &raquo;</a>
+    <a href="?page={{ page + 1 }}&q={{ q|urlencode }}&country={{ country|urlencode }}" class="px-3 py-1 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded text-sm hover:border-gray-400 shadow-sm">{{ t('pg_next') }} &raquo;</a>
     {% endif %}
 </div>
 {% endif %}

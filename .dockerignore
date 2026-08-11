@@ -24,6 +24,7 @@ tests/
 # and *.md exclusions above.
 !CHANGELOG.md
 !docs/FAQ.md
+!docs/FAQ.it.md
 !pyproject.toml
 
 # Local embedding vector cache: rebuilt at runtime, never shipped.
