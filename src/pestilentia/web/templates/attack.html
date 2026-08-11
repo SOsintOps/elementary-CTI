@@ -2,10 +2,10 @@
 {% block title %}ATT&CK Coverage — Elementary CTI{% endblock %}
 {% block header %}
 <div class="flex items-center gap-4">
-    <span>ATT&amp;CK Coverage</span>
+    <span>{{ t('hdr_attack') }}</span>
     <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">
-        {% if scoped_group %}{{ scoped_group.group_name }} · {{ technique_count }} techniques
-        {% else %}{{ technique_count }} techniques across {{ total_groups }} adversaries{% endif %}
+        {% if scoped_group %}{{ scoped_group.group_name }} · {{ technique_count }} {{ t('word_techniques') }}
+        {% else %}{{ technique_count }} {{ t('word_techniques') }} across {{ total_groups }} adversaries{% endif %}
     </span>
 </div>
 {% endblock %}

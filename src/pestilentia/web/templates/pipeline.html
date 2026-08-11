@@ -1,7 +1,7 @@
 <!-- "My mind rebels at stagnation." — Sherlock Holmes, Elementary -->
 {% extends "base.html" %}
 {% block title %}Pipeline — Elementary CTI{% endblock %}
-{% block header %}Pipeline Status{% endblock %}
+{% block header %}{{ t('hdr_pipeline') }}{% endblock %}
 
 {% block content %}
 <p class="text-xs text-status-off dark:text-status-off-dot mb-4">{{ t('intro_pipeline') }}</p>

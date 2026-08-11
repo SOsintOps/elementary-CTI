@@ -1,7 +1,7 @@
 <!-- "There is nothing more deceptive than an obvious fact." — Sherlock Holmes, Elementary -->
 {% extends "base.html" %}
 {% block title %}Victims — Elementary CTI{% endblock %}
-{% block header %}Victims ({{ total }}){% endblock %}
+{% block header %}{{ t('hdr_victims') }} ({{ total }}){% endblock %}
 
 {% block content %}
 <p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_victims') }}</p>

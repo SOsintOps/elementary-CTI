@@ -2,8 +2,8 @@
 {% block title %}Articles — Elementary CTI{% endblock %}
 {% block header %}
 <div class="flex items-center gap-4">
-    <span>Articles</span>
-    <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">{{ total }} ingested · {{ full_text_count }} with full text</span>
+    <span>{{ t('hdr_articles') }}</span>
+    <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">{{ total }} {{ t('word_ingested') }} · {{ full_text_count }} {{ t('with_full_text') }}</span>
 </div>
 {% endblock %}
 

@@ -132,3 +132,17 @@ def test_dashboard_titles_follow_language(env, authenticate):
     client.get("/lang/en", follow_redirects=False)
     body = client.get("/").text
     assert "Victims per Month" in body and "Most Active Adversaries" in body
+
+
+def test_sidebar_nav_follows_language(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
+    client.get("/lang/it", follow_redirects=False)
+    body = client.get("/map").text
+    words = ("Vittime", "Avversari", "Mappa", "Impostazioni", "Esci", "Distribuzione geografica")
+    for word in words:
+        assert word in body, word
+    client.get("/lang/en", follow_redirects=False)
+    body = client.get("/map").text
+    for word in ("Victims", "Adversaries", "Settings", "Sign out", "Geographic Distribution"):
+        assert word in body, word

@@ -2,9 +2,9 @@
 {% block title %}Campaigns — Elementary CTI{% endblock %}
 {% block header %}
 <div class="flex items-center gap-4">
-    <span>Campaigns</span>
+    <span>{{ t('hdr_campaigns') }}</span>
     <span class="text-xs text-gray-400 dark:text-noir-mute font-normal">
-        {{ clusters | length }} multi-article groups · {{ singletons }} standalone · {{ total_articles }} articles examined
+        {{ clusters | length }} {{ t('multi_article_groups') }} · {{ singletons }} {{ t('word_standalone') }} · {{ total_articles }} {{ t('articles_examined') }}
     </span>
 </div>
 {% endblock %}
