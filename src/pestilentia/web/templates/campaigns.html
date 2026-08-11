@@ -11,26 +11,16 @@
 
 {% block content %}
 <p class="text-xs text-slate-400 dark:text-noir-mute mb-2">
-    Articoli raggruppati per <strong>campagna</strong>: report diversi che descrivono lo stesso incidente.
-    Diverso dal dedup — il simhash risponde "è lo stesso articolo?", questo risponde
-    "sono articoli diversi sullo stesso fatto?". Similarità coseno
-    {% if backend == "embedding" %}su <strong>embedding locali</strong> (model2vec, 256 dim){% else %}su <strong>TF-IDF</strong>{% endif %},
-    soglia {{ threshold }}.
+    {{ t('intro_campaigns_head') }}
+    {% if backend == "embedding" %}{{ t('campaigns_on_embeddings') }}{% else %}{{ t('campaigns_on_tfidf') }}{% endif %}
+    {{ t('campaigns_threshold') }} {{ threshold }}.
 </p>
 {# Stating the limitation on the page, not only in the code: an analyst
    reading a cluster needs to know what can end up in one. #}
 <div class="mb-4 rounded-lg border border-status-warn-border dark:border-status-warn-dot/30 bg-status-warn-bg dark:bg-status-warn-dot/5 p-3">
-    <p class="text-xs text-status-warn dark:text-status-warn-dot">
-        <strong>Limite noto.</strong> La similarità raggruppa anche report che condividono un
-        <em>template</em> pur riguardando incidenti diversi. Le <em>rubriche ricorrenti</em> di una stessa
-        testata (almeno tre uscite con lo stesso titolo-tipo) sono ora escluse automaticamente, ma articoli
-        dello stesso genere restano accorpabili. Un gruppo va letto come "candidati alla stessa campagna",
-        non come un fatto accertato.
-    </p>
+    <p class="text-xs text-status-warn dark:text-status-warn-dot">{{ t('campaigns_known_limit') }}</p>
 </div>
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
-    Calcolato al volo: nulla è persistito, quindi la soglia resta regolabile senza riscrivere dati.
-</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('campaigns_on_the_fly') }}</p>
 
 {% if clusters %}
 <div class="space-y-3">

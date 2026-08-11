@@ -8,12 +8,12 @@
 {% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
-    Public overview built from open ransomware tracking sources. The numbers and names below
-    cover the last 30 days only. Sign in to access the full dataset: complete history,
-    adversary profiles, MITRE ATT&amp;CK coverage, BTC payment intelligence, maps, watchlists,
-    and the AI article pipeline.
-</p>
+{% if cookie_lost %}
+<div class="mb-4 px-4 py-3 rounded text-sm bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900" role="alert">
+    <strong>{{ t('cookie_lost_title') }}</strong> {{ t('cookie_lost_body') }}
+</div>
+{% endif %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_dashboard_public') }}</p>
 
 <!-- 30-day KPI cards -->
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

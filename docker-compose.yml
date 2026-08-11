@@ -33,6 +33,9 @@ services:
       PEST_SECRET_KEY: ${PEST_SECRET_KEY:?set PEST_SECRET_KEY in .env}
       PEST_AUTH_USER: ${PEST_AUTH_USER:-}
       PEST_AUTH_PASS: ${PEST_AUTH_PASS:-}
+      # Secure flag on the session cookie: true behind TLS (production),
+      # false only for plain-HTTP LAN use (set in .env until Caddy lands).
+      PEST_COOKIE_SECURE: ${PEST_COOKIE_SECURE:-true}
     ports:
       - "${PEST_WEB_BIND:-127.0.0.1}:8000:8000"
 

@@ -8,11 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
-    Corpus grezzo ingerito dai feed CTI curati, deduplicato per URL canonico e per near-duplicate (simhash).
-    Questa pagina mostra <strong>solo</strong> ciò che il fetcher ha salvato: nessuna estrazione, nessun output di modello linguistico.
-    L'analisi (IOC, TTP, Diamond Model) arriva nelle fasi successive della pipeline ADR-006.
-</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_articles') }}</p>
 
 <!-- Filters: one row above the list -->
 <form method="get" class="flex flex-wrap gap-2 mb-4">

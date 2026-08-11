@@ -1,6 +1,6 @@
 <!-- "Sometimes, Watson, the inadequacy of our abilities drives us to seek solutions elsewhere." — Sherlock Holmes, Elementary -->
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ lang | default('en') }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -152,7 +152,7 @@
             <a href="/watchlist" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'watchlist' %}active{% endif %}">Watchlist</a>
             <hr class="border-gray-200 dark:border-noir-border my-2">
             <a href="/pipeline" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'pipeline' %}active{% endif %}">Pipeline</a>
-            <a href="/guide" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'guide' %}active{% endif %}">Guida</a>
+            <a href="/guide" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'guide' %}active{% endif %}">{{ t('nav_guide') if t is defined else 'Guide' }}</a>
             <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">FAQ</a>
             <a href="/settings" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'settings' %}active{% endif %}">Settings</a>
         </nav>
@@ -186,11 +186,13 @@
         {% endif %}
         <!-- "There is no branch of detective science so important as the art of tracing footsteps." — Sherlock Holmes, Elementary -->
         <div class="p-3 border-t border-gray-200 dark:border-noir-border text-[11px] text-gray-400 dark:text-noir-mute flex items-center justify-between">
-            <span>v0.9.0.dev0</span>
+            <span>v0.9.0.dev0
+                <a href="/lang/en?next={{ request.url.path }}" class="{{ 'text-accent font-semibold' if lang == 'en' else 'hover:text-accent' }}" title="English">EN</a><span class="mx-0.5">|</span><a href="/lang/it?next={{ request.url.path }}" class="{{ 'text-accent font-semibold' if lang == 'it' else 'hover:text-accent' }}" title="Italiano">IT</a>
+            </span>
             <span class="flex items-center gap-2.5">
-                <button onclick="adjustFont(-12.5)" aria-label="Riduci dimensione caratteri" title="Riduci caratteri" class="leading-none hover:text-accent transition-colors">A−</button>
-                <button onclick="adjustFont(12.5)" aria-label="Aumenta dimensione caratteri" title="Aumenta caratteri" class="text-[13px] leading-none hover:text-accent transition-colors">A+</button>
-                <button onclick="toggleTheme()" aria-label="Toggle dark mode" title="Tema chiaro/scuro" class="text-sm leading-none hover:text-accent transition-colors">◐</button>
+                <button onclick="adjustFont(-12.5)" aria-label="{{ t('aria_font_smaller') if t is defined else 'Decrease font size' }}" title="A−" class="leading-none hover:text-accent transition-colors">A−</button>
+                <button onclick="adjustFont(12.5)" aria-label="{{ t('aria_font_larger') if t is defined else 'Increase font size' }}" title="A+" class="text-[13px] leading-none hover:text-accent transition-colors">A+</button>
+                <button onclick="toggleTheme()" aria-label="{{ t('aria_theme_toggle') if t is defined else 'Light/dark theme' }}" title="◐" class="text-sm leading-none hover:text-accent transition-colors">◐</button>
             </span>
         </div>
     </aside>

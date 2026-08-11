@@ -4,7 +4,7 @@
 {% block header %}Search{% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Ricerca globale su tutte le entità della piattaforma. La query viene confrontata simultaneamente con: nomi e domini delle vittime, nomi e alias dei gruppi avversari, titoli e nomi nei cyberattacchi. La ricerca è case-insensitive e supporta corrispondenze parziali. I risultati sono raggruppati per categoria (max 20 per tipo). Questa ricerca è accessibile anche dalla casella in alto a destra nella barra di navigazione.</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_search') }}</p>
 <form method="get" class="mb-6">
     <input type="text" name="q" value="{{ q }}" placeholder="Search victims, groups, domains..."
            class="w-full bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg px-4 py-2.5 text-sm text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 shadow-sm" autofocus>

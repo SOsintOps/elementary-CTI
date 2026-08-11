@@ -4,7 +4,7 @@
 {% block header %}BTC Address Explorer{% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Esplora gli indirizzi Bitcoin associati ai gruppi ransomware. I dati provengono da Ransomwhere e tracciano i pagamenti delle vittime verso wallet controllati dagli avversari. Cerca un indirizzo (anche parziale) per trovare il gruppo associato, il volume delle transazioni e il controvalore in USD. Senza ricerca attiva, vengono mostrati i 20 indirizzi con il maggior volume BTC. Gli indirizzi sono collegati a blockchain.com per la verifica on-chain.</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_btc') }}</p>
 <div class="mb-6">
     <form method="get" action="/btc" class="flex gap-2">
         <input type="text" name="q" value="{{ q }}" placeholder="Search BTC address (full or partial)…"

@@ -4,6 +4,9 @@
 {% block header %}{% endblock %}
 
 {% block content %}
+{% if lang == 'en' %}
+<div class="mb-4 px-3 py-2 rounded text-xs bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900" role="note">{{ t('guide_lang_note') }}</div>
+{% endif %}
 <div class="max-w-4xl">
 
 {# ── Tab Navigation ── #}

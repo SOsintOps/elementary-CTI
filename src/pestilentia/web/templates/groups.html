@@ -5,7 +5,7 @@
 
 {% from "_sparkline.html" import sparkline %}
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Catalogo dei gruppi ransomware e hacktivisti monitorati. Ogni scheda mostra l'avatar generato, il paese di origine (bandiera), il conteggio vittime e una breve descrizione. Clicca su un gruppo per accedere al profilo completo: panoramica (Diamond Model, Pyramid of Pain), infrastruttura (siti .onion, wallet BTC, canali comunicazione), arsenale (strumenti software), TTPs (tecniche MITRE ATT&CK), lista vittime e riferimenti (report, alert CISA).</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_groups') }}</p>
 <div class="mb-4">
     <input id="group-search" type="text" placeholder="Search adversaries…"
         class="w-full sm:w-80 bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-2 text-sm text-gray-700 dark:text-noir-text placeholder-gray-400 focus:outline-none focus:border-accent/50 shadow-sm transition-colors">

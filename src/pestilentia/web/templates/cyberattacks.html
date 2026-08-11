@@ -4,7 +4,7 @@
 {% block header %}Cyberattacks ({{ total }}){% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Elenco degli eventi di attacco registrati dai feed di threat intelligence. Un cyberattacco rappresenta una singola azione offensiva: la stessa vittima può comparire in attacchi multipli se colpita ripetutamente o da gruppi diversi. Filtra per nome vittima, titolo del comunicato o paese. Ogni riga è collegata al dettaglio della vittima corrispondente.</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_cyberattacks') }}</p>
 <form method="get" class="flex flex-wrap gap-3 mb-4">
     <input type="text" name="q" value="{{ q }}" placeholder="Search victim or title..."
            class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded px-3 py-1.5 text-sm text-gray-700 dark:text-noir-text placeholder-gray-400 flex-1 min-w-[200px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 shadow-sm">

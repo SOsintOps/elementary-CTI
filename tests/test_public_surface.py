@@ -19,7 +19,7 @@ import pestilentia.config as config
 import pestilentia.web.app as web
 from pestilentia.config import Settings
 from pestilentia.models.base import Base
-from pestilentia.models.tables import Article, ArticleSource, Country, Group, Victim
+from pestilentia.models.tables import Article, ArticleSource, Country, Group, User, Victim
 from pestilentia.web.app import app
 
 NOW = datetime.now(UTC)
@@ -168,3 +168,38 @@ def test_faq_file_ships_and_dockerfile_copies_it():
     root = web.FAQ_PATH.parent.parent
     assert "docs/FAQ.md" in (root / "Dockerfile").read_text(encoding="utf-8")
     assert "!docs/FAQ.md" in (root / ".dockerignore").read_text(encoding="utf-8")
+
+
+# --- silent cookie loss (the PEST_COOKIE_SECURE trap) ---
+
+
+def test_login_that_loses_the_cookie_shows_an_error_banner(env):
+    """Login succeeds server-side but the browser drops the Secure cookie on
+    plain HTTP: the landing page must say so instead of failing silently."""
+    client, factory = env
+    with factory() as s:
+        from pestilentia.security import hash_password
+
+        s.add(User(username="alice", password_hash=hash_password("pw-secret-long")))
+        s.commit()
+    r = client.post(
+        "/login",
+        data={
+            "username": "alice",
+            "password": "pw-secret-long",
+            "csrf_token": web._generate_csrf_token(),
+        },
+        follow_redirects=False,
+    )
+    assert r.status_code == 303
+    assert r.headers["location"] == "/?in=1"
+    # simulate the browser refusing the cookie: follow the redirect without it
+    client.cookies.clear()
+    body = client.get("/?in=1").text
+    assert "Sign-in did not stick" in body
+    assert "PEST_COOKIE_SECURE" in body
+
+
+def test_normal_anonymous_visit_has_no_cookie_banner(env):
+    client, _factory = env
+    assert "Sign-in did not stick" not in client.get("/").text
