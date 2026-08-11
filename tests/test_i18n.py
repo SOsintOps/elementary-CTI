@@ -87,3 +87,21 @@ def test_html_lang_attribute_follows(env):
     assert '<html lang="en">' in client.get("/").text
     client.get("/lang/it", follow_redirects=False)
     assert '<html lang="it">' in client.get("/").text
+
+
+def test_pipeline_intro_is_bilingual(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
+    assert "Control panel for the collection" in client.get("/pipeline").text
+    client.get("/lang/it", follow_redirects=False)
+    assert "Pannello di controllo della pipeline" in client.get("/pipeline").text
+
+
+def test_changelog_page_follows_language(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
+    en = client.get("/changelog").text
+    assert "Keep a Changelog" in en or "Unreleased" in en  # canonical CHANGELOG.md
+    client.get("/lang/it", follow_redirects=False)
+    it = client.get("/changelog").text
+    assert "pipeline degli articoli" in it or "Dark mode" in it  # curated Italian notes

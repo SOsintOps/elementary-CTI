@@ -4,7 +4,7 @@
 {% block header %}Pipeline Status{% endblock %}
 
 {% block content %}
-<p class="text-xs text-status-off dark:text-status-off-dot mb-4">Pannello di controllo della pipeline di raccolta e arricchimento dati. Ogni fonte può essere attivata o disattivata individualmente tramite il toggle: le fonti disabilitate vengono saltate sia dallo scheduler automatico (ciclo ogni 2 ore) sia dal refresh manuale. Le schede mostrano lo stato corrente (Active, Backfilling, Disabled) e un indicatore di salute (verde/giallo/rosso) basato sull'ultimo health check. La tabella "Enrichment Sources" riporta le metriche chiave per ogni arricchimento, mentre "Source Health" verifica la raggiungibilità e l'integrità dei dati delle fonti esterne.</p>
+<p class="text-xs text-status-off dark:text-status-off-dot mb-4">{{ t('intro_pipeline') }}</p>
 {# Five cards now (one per data source + MITRE, Ransomwhere, deepdarkCTI,
    Articles): xl fits them in a single row, lg falls back to 3+2. #}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
