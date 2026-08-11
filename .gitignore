@@ -55,3 +55,7 @@ data/enterprise-attack.json
 
 # Hailo runtime log — artefact, never tracked
 hailort.log
+
+# Runtime artefact: the app creates an empty SQLite DB on first boot; never ship it.
+elementaryctiDB.db
+*.db
