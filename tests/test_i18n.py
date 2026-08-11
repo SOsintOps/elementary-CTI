@@ -116,3 +116,19 @@ def test_guide_is_fully_bilingual(env, authenticate):
     client.get("/lang/it", follow_redirects=False)
     it = client.get("/guide").text
     assert "Guida" in it or "vittime" in it
+
+
+def test_dashboard_titles_follow_language(env, authenticate):
+    client, factory = env
+    # public variant
+    assert "Ransomware activity" in client.get("/").text
+    client.get("/lang/it", follow_redirects=False)
+    body = client.get("/").text
+    assert "Attività ransomware" in body and "Vittime al giorno" in body
+    # authenticated variant
+    authenticate(client, factory)
+    body = client.get("/").text
+    assert "Vittime al mese" in body and "Avversari più attivi" in body
+    client.get("/lang/en", follow_redirects=False)
+    body = client.get("/").text
+    assert "Victims per Month" in body and "Most Active Adversaries" in body
