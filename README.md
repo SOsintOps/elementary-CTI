@@ -17,29 +17,58 @@ Elementary CTI collects victim and cyberattack data from ransomware tracking sou
 
 ## Features
 
+Grouped by the release that introduced them — see [`CHANGELOG.md`](CHANGELOG.md) for the full history.
+
+### Core platform (v0.6.0 — June 2026, first tagged release)
+
 - **Multi-source ingestion** — ransomware.live as primary source, extensible to additional ransomware feeds
 - **MITRE ATT&CK enrichment** — automatic alias matching, TTP import, software-to-technique mapping, country attribution
 - **Ransomwhere BTC enrichment** — Bitcoin payment transactions linked to ransomware families
 - **deepdarkCTI operational enrichment** — onion URLs, communication channels (Tox, Telegram, email) for tracked gangs
-- **Source health monitoring** — automated HTTP and format checks with status dots on the Pipeline page
-- **Weekly API contract sentinel** — a host timer fingerprints the shape of every upstream (19 contracts) against committed baselines; on drift, a headless Claude session writes an impact analysis naming the affected code and the minimum fix, never auto-applied
-- **Web UI** — dashboard, victims, adversaries (tabbed detail pages), cyberattacks, geographic map, BTC explorer, watchlist, pipeline status, multi-tab guide
-- **Multi-user authentication** — server-side accounts with argon2id hashing and three roles (`user` read-only, `analyst` adds the analysis surfaces, `admin` adds management); signed session cookies with rotation, expiry, CSRF protection and sign-in backoff
-- **Public TLP:CLEAR storefront** — anonymous visitors get a 30-day overview built only from public-source data (aggregates, recent victims, active groups) with a sidebar sign-in; everything deeper requires an account
-- **Activity audit log** — every authenticated action and every failed access attempt recorded with client address, retained for a configurable window
+- **Web UI** — dashboard, victims, adversaries, cyberattacks, geographic map, BTC explorer, watchlist, pipeline status, multi-tab guide
 - **Watchlist fuzzy matching** — compare new victims against an internal asset list and dispatch alerts
-- **Notifications** — log channel and webhook channel (Telegram bot channel planned)
+- **Notifications** — log channel and webhook channel (SSRF-guarded; Telegram bot channel planned)
 - **REST API** — read-only `/api/v1/*` endpoints for third-party tools
-- **Relational storage** — SQLAlchemy 2.0 ORM with SQLite (dev) and PostgreSQL (prod) support
-- **Scheduled collection** — configurable polling per source with exponential backoff
-- **Structured logging** — JSON-formatted logs for every fetch cycle
-- **CTI article pipeline** — 12 curated vendor and government feeds polled on the scheduler, canonical-URL and near-duplicate dedup, full-text extraction, and a read-only article view with source/TLP filters
-- **Campaign clustering** — groups articles describing the *same incident* across outlets, using local CPU embeddings with a recurring-series guard so a publisher's weekly column is not mistaken for a campaign
+- **Relational storage** — SQLAlchemy 2.0 ORM with SQLite (dev) and PostgreSQL (prod) support, Alembic migrations
+- **Scheduled collection** — configurable polling per source with exponential backoff and structured JSON logging
+- **Source health monitoring** — automated HTTP and format checks with status dots on the Pipeline page
+- **Production deployment** — Docker + PostgreSQL stack with a hardening pass (XSS-safe feed URLs, constant-time auth, loopback-bound database)
+
+### v0.7.0 — June 2026
+
+- **Noir dark mode and design system** — elementary OS palette, theme toggle, font-size controls
+- **Multi-source adversary profiles** — ransomware.live description plus the full MITRE ATT&CK profile, with version history and evidence preservation
+- **Fully self-hosted front end** — every library and font vendored; no remote request at runtime
+- **Accessibility pass** — ARIA tabs with keyboard navigation, visible focus, corrected contrast
+- **Schema hardening** — timezone-aware datetimes, unique cyberattack constraint, CASCADE on alerts
+
+### v0.8.0 — August 2026
+
+- **CTI article pipeline** — 12 curated vendor and government feeds polled on the scheduler, canonical-URL and near-duplicate dedup, full-text extraction, read-only article view with source/TLP filters
 - **Priority Intelligence Requirements** — the active watchlist doubles as the PIR set; articles matching it are flagged and filterable
+- **Campaign grouping** — articles describing the same incident across outlets read as one story
 - **ATT&CK coverage matrix** — techniques by tactic in kill-chain order, intensity by how many tracked adversaries use each
 - **STIX 2.1 export** — per-adversary bundles (intrusion-set, attack-pattern, tool, `uses`) pushable into MISP or OpenCTI
+- **Triaged alerts** — three severity levels plus an "actioned" flag to measure decision impact
+- **First time series** — victims per month with range selector and per-adversary sparklines
+- **Conditional feed caching** — etag / last-modified handling and a versioned User-Agent
+
+### Since v0.8.0 (0.9.0.dev0 — August 2026)
+
+- **Campaign clustering on local embeddings** — model2vec (256 dim, ~30 MB, no torch, no network at request time), with a recurring-series guard so a publisher's weekly column is not mistaken for a campaign
+- **LLM router, live** — provider-agnostic routing behind a fail-closed TLP gate and hard budget ceilings; first real calls run on NVIDIA NIM's free tier, every call logged with cost and token counts
 - **TLP handling with an audited override** — content above the configured cloud ceiling never reaches a third-party LLM; an analyst can release it deliberately, and every crossing records who, why, and where it went
-- **Company enrichment (planned)** — DB schema in place for GLEIF, Wikidata, OpenCorporates and country registries; client integrations not yet implemented
+- **Weekly API contract sentinel** — fingerprints the shape of every upstream contract against committed baselines and reports drift before it breaks ingestion
+- **Multi-user authentication** — server-side accounts with argon2id hashing and three roles (`user` read-only, `analyst` adds the analysis surfaces, `admin` adds management); signed session cookies with rotation, expiry, CSRF protection and sign-in backoff
+- **Public TLP:CLEAR storefront** — anonymous visitors get a 30-day overview built only from public-source data, with a sidebar sign-in and a public [FAQ](docs/FAQ.md); everything deeper requires an account
+- **Activity audit log** — every authenticated action and every failed access attempt recorded with client address, retained for a configurable window
+- **Security response headers** — CSP, frame denial, referrer policy, permissions policy on every response
+- **Runtime on Python 3.14** — Docker image and CI aligned
+
+### Planned
+
+- **Company enrichment** — DB schema in place for GLEIF, Wikidata, OpenCorporates and country registries; client integrations not yet implemented
+- **Telegram notification channel**
 
 ## Architecture
 
@@ -75,48 +104,7 @@ Elementary CTI collects victim and cyberattack data from ransomware tracking sou
 ```
 
 Embeddings, the TLP gate and the LLM router all run today — the router makes
-real calls on NVIDIA NIM's free tier. See Project Status.
-
-## Project Status
-
-> **v0.8.0 (2026-08-08) — released & deployed.** 33/34 user stories done. 387 tests passing.
-> Development reopened at `0.9.0.dev0`.
->
-> v0.8.0 made the AI article pipeline real: **ADR-006 Phase 2 is complete and live** — 12
-> curated feeds polling on the scheduler, canonical-URL and near-duplicate dedup, full text
-> via trafilatura, and a read-only [`/ai/articles`](src/pestilentia/web/templates/articles.html)
-> view. It also brought the application's first time-series, an ATT&CK coverage matrix,
-> Priority Intelligence Requirements derived from the watchlist, a decision-impact flag on
-> alerts, and STIX 2.1 export per adversary. Schema at Alembic revision 0013.
->
-> Since the tag, on `0.9.0.dev0` (509 tests passing, schema at Alembic revision 0016):
-> - **The AI pipeline made its first real LLM calls.** ADR-006 Phase 3 (provider registry,
->   `Router` facade, fail-closed TLP gate, `BudgetGuard` over `LlmCallLog`) was live-accepted
->   on 2026-08-09 on NVIDIA NIM's free tier — real triage call, cost rows verified at $0,
->   prompt-prefix cache observed. No module imports a vendor SDK.
-> - **Multi-user authentication replaced HTTP Basic Auth** (2026-08-11): server-side accounts
->   with argon2id hashing, three roles (`user` / `analyst` / `admin`), signed rotating session
->   cookies with expiry, CSRF on every form, sign-in backoff, and enforcement on every route.
-> - **A public TLP:CLEAR storefront**: anonymous visitors get a 30-day overview from
->   public-source data with a sidebar sign-in; a public [`/faq`](docs/FAQ.md) explains the
->   platform. Every authenticated action and failed access attempt lands in an activity log
->   with configurable retention.
-> - **Campaign clustering runs on local embeddings** (model2vec, 256 dim, ~30 MB, no torch,
->   no network at request time), chosen over the TF-IDF baseline by measurement on the live
->   corpus. A recurring-series guard stops a publisher's weekly column collapsing into one
->   "campaign".
-> - **Restricted content can be released deliberately, and every release is audited.**
->   TLP:AMBER and TLP:RED are blocked by default; an analyst may override per decision,
->   naming themselves and a reason. Each crossing writes an `ai_enrichment_audit` row
->   recording who, why, and which provider received the content.
-> Runs as a Docker + PostgreSQL stack — see [`DEPLOY.md`](DEPLOY.md). Remaining open:
-> US-NOTIFY-002 (Telegram bot channel).
->
-> Note: the upstream Ransomwhere service returned in August 2026 after its domain lapsed;
-> BTC data is flowing again.
-
-The design records, ADRs, backlog and planning history live in the private
-working repository; this is the distributable package.
+real calls on NVIDIA NIM's free tier. See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
 ## Documentation
 
