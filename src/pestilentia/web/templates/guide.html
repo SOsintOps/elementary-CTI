@@ -506,8 +506,10 @@
                 <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_RANSOMWHERE_ENRICHMENT_HOURS</td><td class="py-1.5 pr-4">168</td><td class="py-1.5">Intervallo arricchimento Ransomwhere BTC (ore, default 1 settimana)</td></tr>
                 <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_DEEPDARKCTI_ENRICHMENT_HOURS</td><td class="py-1.5 pr-4">168</td><td class="py-1.5">Intervallo arricchimento deepdarkCTI (ore, default 1 settimana)</td></tr>
                 <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_FUZZY_THRESHOLD</td><td class="py-1.5 pr-4">85</td><td class="py-1.5">Soglia minima per il matching fuzzy della watchlist (0-100%)</td></tr>
-                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_AUTH_USER</td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Username per HTTP Basic Auth opzionale (da impostare insieme a PEST_AUTH_PASS)</td></tr>
-                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_AUTH_PASS</td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Password per HTTP Basic Auth opzionale; se assenti, UI e API restano aperte</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_AUTH_USER</td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Seed del primo account admin al primo avvio (login a sessioni; ignorato quando esistono account)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_AUTH_PASS</td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Password del primo admin (da impostare insieme a PEST_AUTH_USER)</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_COOKIE_SECURE</td><td class="py-1.5 pr-4">true</td><td class="py-1.5">Flag Secure sul cookie di sessione; false solo per uso LAN in HTTP puro, true dietro TLS</td></tr>
+                <tr class="border-b border-gray-100 dark:border-noir-line"><td class="py-1.5 pr-4 font-mono">PEST_ACTIVITY_RETENTION_DAYS</td><td class="py-1.5 pr-4">90</td><td class="py-1.5">Retention del log attività utenti (righe più vecchie eliminate a ogni ciclo scheduler)</td></tr>
             </tbody>
         </table>
     </section>

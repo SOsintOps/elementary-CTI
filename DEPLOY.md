@@ -71,9 +71,13 @@ Edit `.env` and set at least:
 ```ini
 POSTGRES_PASSWORD=<a strong random password>
 PEST_SECRET_KEY=<python -c "import secrets; print(secrets.token_hex(32))">
-# Recommended — protect the UI/API even on a trusted LAN:
+# Required — this pair seeds the FIRST ADMIN account at first startup
+# (session login; the pair is ignored once accounts exist):
 PEST_AUTH_USER=<your username>
 PEST_AUTH_PASS=<a strong password>
+# Plain-HTTP LAN deployments must disable the Secure cookie flag until a
+# TLS proxy fronts the app (keep the default true behind HTTPS):
+PEST_COOKIE_SECURE=false
 # Expose the web UI on the LAN (default is loopback only):
 PEST_WEB_BIND=0.0.0.0
 ```
@@ -120,7 +124,10 @@ docker compose up -d
 docker compose ps              # web + scheduler + db, all healthy
 ```
 
-Open `http://<host>:8000/` (Basic Auth prompt if you set the auth vars).
+Open `http://<host>:8000/`. Anonymous visitors see the public 30-day
+dashboard; sign in from the sidebar with the bootstrap admin credentials
+(`PEST_AUTH_USER`/`PEST_AUTH_PASS`) to unlock the full UI. Then create the
+accounts you need.
 `http://<host>:8000/healthz` is always public and is what Docker probes.
 
 ## 5. Operate & observe (multi-day trial)

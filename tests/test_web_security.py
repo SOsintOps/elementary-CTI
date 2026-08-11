@@ -1,33 +1,39 @@
-"""Security regression tests: safe_url filter, optional Basic Auth, avatar bounds."""
+"""Security regression tests: safe_url filter, session enforcement, avatar bounds.
 
-import base64
+The Basic-Auth tests that used to live here died with Basic Auth itself
+(v0.7 auth plan step 4): enforcement is now the session middleware, pinned
+end-to-end in test_auth_web.py and test_auth_roles.py. What remains here is
+the surface this file always owned — the safe_url filter, the fact that a
+representative route obeys the baseline, and the avatar parameter bounds —
+now exercised through an authenticated client.
+"""
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 import pestilentia.config as config
+import pestilentia.web.app as web
 from pestilentia.config import Settings
+from pestilentia.models.base import Base
 from pestilentia.web.app import _safe_url, app
 
 
 @pytest.fixture
-def client():
-    return TestClient(app)
-
-
-@pytest.fixture
-def auth_settings(monkeypatch):
-    monkeypatch.setattr(
-        config, "_settings", Settings(secret_key="x" * 64, auth_user="holmes", auth_pass="221b")
+def env(monkeypatch):
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
-    yield
-    config._settings = None
-
-
-@pytest.fixture
-def open_settings(monkeypatch):
-    monkeypatch.setattr(config, "_settings", Settings(secret_key="x" * 64))
-    yield
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine)
+    monkeypatch.setattr(config, "_settings", Settings(secret_key="x" * 64, cookie_secure=False))
+    monkeypatch.setattr(web, "_session_factory", factory)
+    yield TestClient(app), factory
+    web._session_factory = None
     config._settings = None
 
 
@@ -54,48 +60,34 @@ def test_safe_url_handles_empty_and_relative():
     assert _safe_url("ftp://example.com") == "#"
 
 
-# --- optional HTTP Basic Auth ---
+# --- session enforcement on a representative route ---
 
 
-def _basic(user: str, password: str) -> dict:
-    token = base64.b64encode(f"{user}:{password}".encode()).decode()
-    return {"Authorization": f"Basic {token}"}
+def test_avatar_requires_login(env):
+    client, _factory = env
+    r = client.get("/avatar/test?size=16", follow_redirects=False)
+    assert r.status_code == 303
+    assert r.headers["location"] == "/login"
 
 
-def test_auth_disabled_by_default(client, open_settings):
+def test_avatar_serves_when_authenticated(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
     r = client.get("/avatar/test?size=16")
     assert r.status_code == 200
 
 
-def test_auth_required_when_configured(client, auth_settings):
-    r = client.get("/avatar/test?size=16")
-    assert r.status_code == 401
-    assert r.headers["WWW-Authenticate"].startswith("Basic")
-
-
-def test_healthz_is_public_even_with_auth(client, auth_settings):
+def test_healthz_is_public(env):
+    client, _factory = env
     r = client.get("/healthz")
     assert r.status_code == 200
     assert r.json() == {"status": "ok"}
 
 
-def test_auth_rejects_wrong_credentials(client, auth_settings):
-    r = client.get("/avatar/test?size=16", headers=_basic("holmes", "wrong"))
-    assert r.status_code == 401
-
-
-def test_auth_accepts_valid_credentials(client, auth_settings):
-    r = client.get("/avatar/test?size=16", headers=_basic("holmes", "221b"))
-    assert r.status_code == 200
-
-
-def test_auth_rejects_malformed_header(client, auth_settings):
-    r = client.get("/avatar/test?size=16", headers={"Authorization": "Basic !!!not-base64!!!"})
-    assert r.status_code == 401
-
-
 def test_auth_config_rejects_partial_pair(monkeypatch):
-    # set PASS empty (not just absent) so a present .env file can't repopulate it
+    # The PEST_AUTH_* pair still seeds the bootstrap admin, so the
+    # both-or-neither validation stays. Set PASS empty (not just absent) so a
+    # present .env file can't repopulate it.
     monkeypatch.setenv("PEST_AUTH_USER", "holmes")
     monkeypatch.setenv("PEST_AUTH_PASS", "")
     with pytest.raises(SystemExit):
@@ -105,11 +97,15 @@ def test_auth_config_rejects_partial_pair(monkeypatch):
 # --- avatar size bounds ---
 
 
-def test_api_avatar_rejects_zero_size(client, open_settings):
+def test_api_avatar_rejects_zero_size(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
     r = client.get("/api/v1/groups/test/avatar?size=0")
     assert r.status_code == 422
 
 
-def test_api_avatar_rejects_oversize(client, open_settings):
+def test_api_avatar_rejects_oversize(env, authenticate):
+    client, factory = env
+    authenticate(client, factory)
     r = client.get("/api/v1/groups/test/avatar?size=100000")
     assert r.status_code == 422

@@ -187,7 +187,7 @@ def test_group_sparks_empty_input_is_a_no_op():
 # --- W6: range selector endpoint contract ---
 
 
-def test_timeline_endpoint_honours_the_requested_window():
+def test_timeline_endpoint_honours_the_requested_window(authenticate):
     """The selector re-queries the server, so the window must be real."""
     engine = create_engine(
         "sqlite:///:memory:",
@@ -196,9 +196,11 @@ def test_timeline_endpoint_honours_the_requested_window():
     )
     Base.metadata.create_all(engine)
     config._settings = Settings(secret_key="x" * 64)
-    web._session_factory = sessionmaker(bind=engine)
+    factory = sessionmaker(bind=engine)
+    web._session_factory = factory
     try:
         client = TestClient(app)
+        authenticate(client, factory)
         for months in (3, 12, 24, 60):
             payload = client.get(f"/api/v1/stats/timeline?months={months}").json()
             assert payload["months"] == months

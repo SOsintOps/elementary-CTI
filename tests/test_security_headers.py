@@ -53,21 +53,18 @@ def test_the_server_version_banner_is_not_leaked(client):
     assert client.get("/healthz").headers.get("Server") == "Elementary CTI"
 
 
-def test_headers_are_present_on_a_404_too(client):
-    """A response Starlette generates itself (not a route handler) must still
-    pass through the middleware."""
-    response = client.get("/no-such-page")
-    assert response.status_code == 404
+def test_headers_are_present_on_the_login_redirect_too(client):
+    """A response the session middleware generates itself (not a route
+    handler) must still pass through the header middleware."""
+    response = client.get("/no-such-page", follow_redirects=False)
+    assert response.status_code == 303  # anonymous → bounced to /login
     assert response.headers["X-Content-Type-Options"] == "nosniff"
 
 
-def test_headers_are_present_on_a_401(client, monkeypatch):
+def test_headers_are_present_on_a_401(client):
     """The auth rejection is built inside middleware; the header middleware
     wraps it, so the guarantee has to hold on the reject path."""
-    monkeypatch.setattr(
-        config, "_settings", Settings(secret_key="x" * 64, auth_user="a", auth_pass="b")
-    )
-    response = client.get("/")
+    response = client.get("/api/v1/stats")
     assert response.status_code == 401
     assert response.headers["X-Frame-Options"] == "DENY"
 

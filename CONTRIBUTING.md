@@ -26,12 +26,13 @@ The Docker build needs no manual steps: it fetches the embedding model itself.
   clean and the release notes are cut from it.
 - **Tests accompany code.** A behaviour change without a test pinning it will
   be asked for one.
-- **Every user-visible change updates `CHANGELOG.md` `[Unreleased]`.**
-  This project treats documentation drift as a defect, not a chore.
+- **Every user-visible change updates `CHANGELOG.md` `[Unreleased]`**, and
+  every session updates `PROJECT_STATUS.md`. This repo treats documentation
+  drift as a defect, not a chore.
 - **No remote front-end assets.** Everything under `static/` is vendored;
   never reference a CDN in a template (`UI-SPEC.md` §6).
 - **Protected paths** need explicit maintainer approval before changes:
-  `docker-compose.yml`, and anything holding credentials.
+  `docs/prd/00-prd.md`, `docs/adr/`, `docker-compose.yml`.
 - **Schema changes are migrations.** Model edits without an Alembic revision
   break the deployed PostgreSQL — `create_all` does not alter existing tables.
 
@@ -41,9 +42,9 @@ The Docker build needs no manual steps: it fetches the embedding model itself.
 |---|---|
 | Schema source of truth | `src/pestilentia/models/tables.py` + `alembic/` |
 | API reference | FastAPI's `/docs` and `/redoc` on a running instance |
-| Release history | `CHANGELOG.md` |
-| Design system | `UI-SPEC.md` |
-| Design decisions (ADRs), backlog, planning | in the upstream working repository |
+| Current state & history | `PROJECT_STATUS.md`, `CHANGELOG.md` |
+| Design decisions | `docs/adr/` |
+| Development playbook | `docs/codex-machinae.md` |
 
 ## Licence
 

@@ -1,0 +1,108 @@
+<!-- Public landing (v0.7 step 5): TLP:CLEAR, last 30 days, no drill-down. -->
+{% extends "base.html" %}
+{% block title %}Elementary CTI — Ransomware Threat Intelligence{% endblock %}
+{% block header %}Ransomware activity — last 30 days{% endblock %}
+
+{% block head %}
+<script src="/static/vendor/plotly-2.35.2.min.js?v={{ app_version }}"></script>
+{% endblock %}
+
+{% block content %}
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
+    Public overview built from open ransomware tracking sources. The numbers and names below
+    cover the last 30 days only. Sign in to access the full dataset: complete history,
+    adversary profiles, MITRE ATT&amp;CK coverage, BTC payment intelligence, maps, watchlists,
+    and the AI article pipeline.
+</p>
+
+<!-- 30-day KPI cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Victims</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.victims_30d }}</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">last 30 days</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Active groups</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.groups_30d }}</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">last 30 days</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Cyberattacks</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.cyberattacks_30d }}</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">last 30 days</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Countries hit</div>
+        <div class="text-2xl font-bold text-gray-800 dark:text-noir-hi mt-1">{{ stats.countries_30d }}</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">last 30 days</div>
+    </div>
+</div>
+
+<!-- 30-day daily timeline -->
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 mb-6 shadow-sm">
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Victims per day</h3>
+    <div id="public-timeline" style="height: 200px;"></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent victims (names only, no links) -->
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Recent victims</h3>
+        {% if recent_victims %}
+        <ul class="divide-y divide-gray-100 dark:divide-noir-border">
+            {% for v in recent_victims %}
+            <li class="py-1.5 flex items-center justify-between gap-2 text-sm">
+                <span class="text-gray-700 dark:text-noir-text truncate">
+                    {% if v.country %}{{ v.country.iso_code | flag }}{% endif %}
+                    {{ v.victim_name }}
+                </span>
+                {% if v.group %}
+                <span class="text-xs text-gray-400 dark:text-noir-mute whitespace-nowrap">{{ v.group.group_name }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-gray-400 dark:text-noir-mute">No victims recorded in the last 30 days.</p>
+        {% endif %}
+    </div>
+
+    <!-- Most active groups (names only, no links) -->
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Most active groups</h3>
+        {% if top_groups %}
+        <ul class="divide-y divide-gray-100 dark:divide-noir-border">
+            {% for name, cnt in top_groups %}
+            <li class="py-1.5 flex items-center justify-between text-sm">
+                <span class="text-gray-700 dark:text-noir-text">{{ name }}</span>
+                <span class="text-xs text-gray-400 dark:text-noir-mute">{{ cnt }} victim{{ 's' if cnt != 1 }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-gray-400 dark:text-noir-mute">No group activity recorded in the last 30 days.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-6 bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm text-sm text-gray-600 dark:text-noir-text">
+    <p><strong>Want more?</strong> Sign in from the left sidebar to unlock the full platform.
+    Read the <a href="/faq" class="text-accent hover:underline">FAQ</a> to learn what
+    Elementary CTI is, where the data comes from, and how to get an account.</p>
+</div>
+
+<script>
+(function () {
+    var series = {{ timeline | tojson }};
+    if (!series || !series.length || typeof Plotly === "undefined") { return; }
+    Plotly.newPlot("public-timeline", [{
+        x: series.map(function (p) { return p.day; }),
+        y: series.map(function (p) { return p.count; }),
+        type: "bar",
+        marker: { color: "#3689e6" },
+        hovertemplate: "%{x}: %{y} victims<extra></extra>"
+    }], PEST.timeSeriesLayout(), PEST.plotlyConfig);
+})();
+</script>
+{% endblock %}

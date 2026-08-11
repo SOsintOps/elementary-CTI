@@ -24,6 +24,9 @@ Elementary CTI collects victim and cyberattack data from ransomware tracking sou
 - **Source health monitoring** — automated HTTP and format checks with status dots on the Pipeline page
 - **Weekly API contract sentinel** — a host timer fingerprints the shape of every upstream (19 contracts) against committed baselines; on drift, a headless Claude session writes an impact analysis naming the affected code and the minimum fix, never auto-applied
 - **Web UI** — dashboard, victims, adversaries (tabbed detail pages), cyberattacks, geographic map, BTC explorer, watchlist, pipeline status, multi-tab guide
+- **Multi-user authentication** — server-side accounts with argon2id hashing and three roles (`user` read-only, `analyst` adds the analysis surfaces, `admin` adds management); signed session cookies with rotation, expiry, CSRF protection and sign-in backoff
+- **Public TLP:CLEAR storefront** — anonymous visitors get a 30-day overview built only from public-source data (aggregates, recent victims, active groups) with a sidebar sign-in; everything deeper requires an account
+- **Activity audit log** — every authenticated action and every failed access attempt recorded with client address, retained for a configurable window
 - **Watchlist fuzzy matching** — compare new victims against an internal asset list and dispatch alerts
 - **Notifications** — log channel and webhook channel (Telegram bot channel planned)
 - **REST API** — read-only `/api/v1/*` endpoints for third-party tools
@@ -113,6 +116,7 @@ working repository; this is the distributable package.
 
 | Document | Description |
 |----------|-------------|
+| [`docs/FAQ.md`](docs/FAQ.md) | Frequently asked questions (also rendered live at `/faq`) |
 | [`DEPLOY.md`](DEPLOY.md) | Single-host Docker + Postgres deployment runbook (incl. SQLite→Postgres migration and the weekly API sentinel) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Clone-to-green setup, the gates a change must pass, and conventions |
 | [`DEPENDENCIES.md`](DEPENDENCIES.md) | Every dependency with version, contract and rationale |
