@@ -4,8 +4,8 @@
 {% block content %}
 <div class="max-w-sm mx-auto mt-12">
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-6">
-        <h3 class="text-base font-semibold text-gray-800 dark:text-noir-hi mb-1">&#x1F510; Sign in</h3>
-        <p class="text-xs text-gray-400 dark:text-noir-mute mb-4">Authenticate to unlock your workspace.</p>
+        <h3 class="text-base font-semibold text-gray-800 dark:text-noir-hi mb-1">&#x1F510; {{ t('sign_in') }}</h3>
+        <p class="text-xs text-gray-400 dark:text-noir-mute mb-4">{{ t('login_subtitle') }}</p>
         {% if error %}
         <div class="mb-4 px-3 py-2 rounded text-xs bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900" role="alert">
             {{ error }}
@@ -14,18 +14,18 @@
         <form method="post" action="/login" class="space-y-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
-                <label for="username" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Username</label>
+                <label for="username" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('username_ph') }}</label>
                 <input id="username" name="username" type="text" required autofocus autocomplete="username"
                        class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
             </div>
             <div>
-                <label for="password" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Password</label>
+                <label for="password" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('password_ph') }}</label>
                 <input id="password" name="password" type="password" required autocomplete="current-password"
                        class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
             </div>
             <button type="submit"
                     class="w-full bg-accent text-white rounded px-3 py-2 text-sm font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent/50">
-                Sign in
+                {{ t('sign_in') }}
             </button>
         </form>
     </div>

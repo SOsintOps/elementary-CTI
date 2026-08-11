@@ -63,7 +63,7 @@ from pestilentia.pipeline.backfill import BACKFILL_CATEGORY, BACKFILL_FIRST_YEAR
 from pestilentia.pipeline.ingest import ingest_source
 from pestilentia.security import hash_password, role_at_least, verify_password
 from pestilentia.web import sessions as _sessions
-from pestilentia.web.i18n import DEFAULT_LANG, SUPPORTED_LANGS, translate
+from pestilentia.web.i18n import DEFAULT_LANG, LANG_LABELS, SUPPORTED_LANGS, translate
 from pestilentia.web.mugshot import generate_mugshot
 
 BASE_DIR = Path(__file__).parent
@@ -326,6 +326,7 @@ templates.env.globals["csrf_token"] = _generate_csrf_token
 from pestilentia import __version__ as _app_version  # noqa: E402
 
 templates.env.globals["app_version"] = _app_version
+templates.env.globals["ui_langs"] = [(code, LANG_LABELS[code]) for code in SUPPORTED_LANGS]
 
 
 def _require_csrf_header(x_csrf_token: str | None = Header(default=None)) -> None:
@@ -395,7 +396,7 @@ def login_submit(
             return _render(
                 request,
                 "login.html",
-                {"error": f"Too many attempts — locked for {locked} seconds."},
+                {"error": _t_req(request, "err_locked", n=locked)},
                 status_code=429,
             )
 
@@ -411,7 +412,10 @@ def login_submit(
                 session, KIND_LOGIN_FAIL, actor_name=username or None, client_ip=ip, user_agent=ua
             )
             return _render(
-                request, "login.html", {"error": "Invalid credentials."}, status_code=401
+                request,
+                "login.html",
+                {"error": _t_req(request, "err_invalid_credentials")},
+                status_code=401,
             )
 
         _login_backoff.record_success(username, ip)
@@ -460,8 +464,18 @@ def logout(request: Request, csrf_token: str = Form(default="")):
     return response
 
 
-# --- UI language toggle (EN/IT) ---
+# --- UI language toggle (multi-language) ---
 _LANG_COOKIE = "pest_lang"
+
+
+def _t_req(request: Request, key: str, **fmt) -> str:
+    """Translate a catalog key in the requester's language (route-side use,
+    e.g. error messages rendered into templates)."""
+    lang = request.cookies.get(_LANG_COOKIE, "")
+    if lang not in SUPPORTED_LANGS:
+        lang = DEFAULT_LANG
+    text = translate(key, lang)
+    return text.format(**fmt) if fmt else text
 
 
 @app.get("/lang/{code}", include_in_schema=False)
@@ -520,15 +534,15 @@ def settings_change_password(
         )
 
     if len(new_password) < _MIN_PASSWORD_LEN:
-        return _err(f"New password must be at least {_MIN_PASSWORD_LEN} characters.")
+        return _err(_t_req(request, "err_pw_short", n=_MIN_PASSWORD_LEN))
     if new_password != confirm_password:
-        return _err("New password and confirmation do not match.")
+        return _err(_t_req(request, "err_pw_mismatch"))
 
     session = get_db()
     try:
         row = session.get(User, request.state.user["id"])
         if row is None or not verify_password(row.password_hash, current_password):
-            return _err("Current password is incorrect.", code=403)
+            return _err(_t_req(request, "err_pw_current"), code=403)
         row.password_hash = hash_password(new_password)
         session.commit()
         record_activity(
@@ -1492,9 +1506,19 @@ def faq(request: Request):
     the file must be copied by the Dockerfile, pinned by test)."""
     import markdown as _md
 
-    try:
-        source = FAQ_PATH.read_text(encoding="utf-8")
-    except OSError:
+    # Per-language document resolution: docs/FAQ.<lang>.md, falling back to
+    # the English docs/FAQ.md. Same convention for any future language.
+    lang = request.cookies.get(_LANG_COOKIE, "")
+    candidates = [FAQ_PATH.with_name(f"FAQ.{lang}.md")] if lang and lang != DEFAULT_LANG else []
+    candidates.append(FAQ_PATH)
+    source = None
+    for path in candidates:
+        try:
+            source = path.read_text(encoding="utf-8")
+            break
+        except OSError:
+            continue
+    if source is None:
         source = "# FAQ\n\nThe FAQ file is missing from this deployment."
     html = _md.markdown(source, extensions=["tables", "fenced_code", "toc"])
     return _render(request, "faq.html", {"active": "faq", "faq_html": html})

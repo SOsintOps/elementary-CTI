@@ -8,15 +8,15 @@
 <!-- Failed-attempt counters -->
 <div class="grid grid-cols-3 gap-4 mb-6 max-w-2xl">
     <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Failed sign-ins</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ t('counter_failed_signins') }}</div>
         <div class="text-2xl font-bold {{ 'text-red-600 dark:text-red-400' if counters.get('login_fail') else 'text-gray-800 dark:text-noir-hi' }} mt-1">{{ counters.get('login_fail', 0) }}</div>
     </div>
     <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Lockouts</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ t('counter_lockouts') }}</div>
         <div class="text-2xl font-bold {{ 'text-red-600 dark:text-red-400' if counters.get('lockout') else 'text-gray-800 dark:text-noir-hi' }} mt-1">{{ counters.get('lockout', 0) }}</div>
     </div>
     <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Denied requests</div>
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ t('counter_denied') }}</div>
         <div class="text-2xl font-bold {{ 'text-red-600 dark:text-red-400' if counters.get('access_denied') else 'text-gray-800 dark:text-noir-hi' }} mt-1">{{ counters.get('access_denied', 0) }}</div>
     </div>
 </div>
@@ -24,26 +24,26 @@
 <!-- Filters -->
 <form method="get" action="/settings/activity" class="flex flex-wrap items-end gap-3 mb-4">
     <div>
-        <label for="f-kind" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Event</label>
+        <label for="f-kind" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('label_event') }}</label>
         <select id="f-kind" name="kind" class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
-            <option value="">all</option>
+            <option value="">{{ t('word_all') }}</option>
             {% for k in kinds %}<option value="{{ k }}" {% if kind == k %}selected{% endif %}>{{ k }}</option>{% endfor %}
         </select>
     </div>
     <div>
-        <label for="f-user" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Username contains</label>
+        <label for="f-user" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('label_username_contains') }}</label>
         <input id="f-user" name="user" type="text" value="{{ user_filter }}"
                class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
     </div>
     <div>
-        <label for="f-window" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Window</label>
+        <label for="f-window" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">{{ t('label_window') }}</label>
         <select id="f-window" name="window" class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
-            {% for w, label in [("24h", "last 24 hours"), ("7d", "last 7 days"), ("30d", "last 30 days")] %}
+            {% for w, label in [("24h", t('opt_last_24h')), ("7d", t('opt_last_7d')), ("30d", t('last_30_days'))] %}
             <option value="{{ w }}" {% if window == w %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
     </div>
-    <button type="submit" class="bg-accent text-white rounded px-3 py-1.5 text-sm font-medium hover:opacity-90">Filter</button>
+    <button type="submit" class="bg-accent text-white rounded px-3 py-1.5 text-sm font-medium hover:opacity-90">{{ t('btn_filter') }}</button>
 </form>
 
 <!-- Rows -->
@@ -51,12 +51,12 @@
     {% if rows %}
     <table class="w-full text-xs">
         <thead><tr class="text-gray-400 dark:text-noir-mute uppercase tracking-wider border-b border-gray-200 dark:border-noir-border">
-            <th class="text-left py-2 pr-3">Time (UTC)</th>
-            <th class="text-left py-2 pr-3">Event</th>
-            <th class="text-left py-2 pr-3">User</th>
-            <th class="text-left py-2 pr-3">Route</th>
-            <th class="text-left py-2 pr-3">Status</th>
-            <th class="text-left py-2">Client</th>
+            <th class="text-left py-2 pr-3">{{ t('hdr_time_utc') }}</th>
+            <th class="text-left py-2 pr-3">{{ t('label_event') }}</th>
+            <th class="text-left py-2 pr-3">{{ t('hdr_user') }}</th>
+            <th class="text-left py-2 pr-3">{{ t('hdr_route') }}</th>
+            <th class="text-left py-2 pr-3">{{ t('hdr_status') }}</th>
+            <th class="text-left py-2">{{ t('hdr_client') }}</th>
         </tr></thead>
         <tbody>
         {% for r in rows %}
@@ -71,9 +71,9 @@
         {% endfor %}
         </tbody>
     </table>
-    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">Showing the most recent {{ rows | length }} events (max 200) in the selected window. Retention: rows older than the configured period are purged automatically.</p>
+    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">{{ t('activity_footnote_pre') }} {{ rows | length }} {{ t('activity_footnote_post') }}</p>
     {% else %}
-    <p class="text-sm text-gray-400 dark:text-noir-mute">No activity in the selected window.</p>
+    <p class="text-sm text-gray-400 dark:text-noir-mute">{{ t('activity_empty') }}</p>
     {% endif %}
 </div>
 {% endblock %}

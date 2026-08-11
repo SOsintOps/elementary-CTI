@@ -6,22 +6,20 @@
 {% include "_settings_tabs.html" %}
 
 {% if err == 'empty' %}
-<div class="mb-4 px-3 py-2 rounded text-xs bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900" role="alert">Key value cannot be empty.</div>
+<div class="mb-4 px-3 py-2 rounded text-xs bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900" role="alert">{{ t('err_keys_empty') }}</div>
 {% endif %}
 
 <p class="text-xs text-gray-400 dark:text-noir-mute mb-4 max-w-3xl">
-    Keys are write-only: this page shows whether a key exists, never its value.
-    An environment variable on the host always overrides the stored key.
-    Every change writes an <code>admin_audit</code> row (service name only).
+    {{ t('intro_keys_pre') }} <code>admin_audit</code> {{ t('intro_keys_post') }}
 </p>
 
 <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm max-w-4xl overflow-x-auto">
     <table class="w-full text-sm">
         <thead><tr class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider border-b border-gray-200 dark:border-noir-border">
-            <th class="text-left py-2 pr-4">Service</th>
-            <th class="text-left py-2 pr-4">Status</th>
-            <th class="text-left py-2 pr-4">Last set</th>
-            <th class="text-left py-2">Actions</th>
+            <th class="text-left py-2 pr-4">{{ t('hdr_service') }}</th>
+            <th class="text-left py-2 pr-4">{{ t('hdr_status') }}</th>
+            <th class="text-left py-2 pr-4">{{ t('hdr_last_set') }}</th>
+            <th class="text-left py-2">{{ t('hdr_actions') }}</th>
         </tr></thead>
         <tbody>
         {% for st in statuses %}
@@ -29,29 +27,29 @@
             <td class="py-2 pr-4 text-gray-700 dark:text-noir-text font-mono">{{ st.service }}</td>
             <td class="py-2 pr-4">
                 {% if st.env_override %}
-                <span class="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300" title="Set via environment variable — overrides any stored key">env override</span>
+                <span class="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300" title="{{ t('title_env_override') }}">{{ t('badge_env_override') }}</span>
                 {% elif st.stored %}
-                <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">stored</span>
+                <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">{{ t('badge_stored') }}</span>
                 {% else %}
-                <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 dark:bg-noir-raised dark:text-noir-mute">not set</span>
+                <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 dark:bg-noir-raised dark:text-noir-mute">{{ t('badge_not_set') }}</span>
                 {% endif %}
             </td>
             <td class="py-2 pr-4 text-xs text-gray-400 dark:text-noir-mute">
-                {% if st.stored %}{{ st.updated_at.strftime('%Y-%m-%d %H:%M') }} by {{ st.updated_by or "?" }}{% else %}—{% endif %}
+                {% if st.stored %}{{ st.updated_at.strftime('%Y-%m-%d %H:%M') }} {{ t('word_by') }} {{ st.updated_by or "?" }}{% else %}—{% endif %}
             </td>
             <td class="py-2">
                 <div class="flex items-center gap-2">
                     <form method="post" action="/settings/keys/{{ st.service }}" class="flex items-center gap-1">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input name="key_value" type="password" required placeholder="paste key" autocomplete="off"
+                        <input name="key_value" type="password" required placeholder="{{ t('ph_paste_key') }}" autocomplete="off"
                                class="w-44 bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-1.5 py-1 text-xs text-gray-700 dark:text-noir-text">
-                        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">{{ "Replace" if st.stored else "Set" }}</button>
+                        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">{{ t('btn_replace') if st.stored else t('btn_set') }}</button>
                     </form>
                     {% if st.stored %}
                     <form method="post" action="/settings/keys/{{ st.service }}/delete"
-                          onsubmit="return confirm('Delete the stored {{ st.service }} key?');">
+                          onsubmit="return confirm('{{ t('confirm_delete_key') }} {{ st.service }}?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="text-xs text-red-400 hover:text-red-600">Delete</button>
+                        <button type="submit" class="text-xs text-red-400 hover:text-red-600">{{ t('btn_delete') }}</button>
                     </form>
                     {% endif %}
                 </div>

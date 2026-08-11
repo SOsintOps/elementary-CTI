@@ -41,7 +41,7 @@ RUN uv run --no-sync python scripts/fetch_embedding_model.py
 # invalidate that layer. (.dockerignore excludes *.md — each file the app
 # reads must be copied explicitly, or its page ships blank.)
 COPY --chown=appuser:appuser CHANGELOG.md ./
-COPY --chown=appuser:appuser docs/FAQ.md docs/FAQ.md
+COPY --chown=appuser:appuser docs/FAQ.md docs/FAQ.it.md docs/
 
 EXPOSE 8000
 

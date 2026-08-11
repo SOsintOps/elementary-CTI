@@ -187,7 +187,7 @@
         <!-- "There is no branch of detective science so important as the art of tracing footsteps." — Sherlock Holmes, Elementary -->
         <div class="p-3 border-t border-gray-200 dark:border-noir-border text-[11px] text-gray-400 dark:text-noir-mute flex items-center justify-between">
             <span>v0.9.0.dev0
-                <a href="/lang/en?next={{ request.url.path }}" class="{{ 'text-accent font-semibold' if lang == 'en' else 'hover:text-accent' }}" title="English">EN</a><span class="mx-0.5">|</span><a href="/lang/it?next={{ request.url.path }}" class="{{ 'text-accent font-semibold' if lang == 'it' else 'hover:text-accent' }}" title="Italiano">IT</a>
+                {% for code, label in ui_langs %}{% if not loop.first %}<span class="mx-0.5">|</span>{% endif %}<a href="/lang/{{ code }}?next={{ request.url.path }}" class="{{ 'text-accent font-semibold' if lang == code else 'hover:text-accent' }}">{{ label }}</a>{% endfor %}
             </span>
             <span class="flex items-center gap-2.5">
                 <button onclick="adjustFont(-12.5)" aria-label="{{ t('aria_font_smaller') if t is defined else 'Decrease font size' }}" title="A−" class="leading-none hover:text-accent transition-colors">A−</button>

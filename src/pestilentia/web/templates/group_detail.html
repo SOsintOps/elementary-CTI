@@ -15,52 +15,52 @@
         <h2 class="text-2xl font-bold text-gray-800 dark:text-noir-hi">{{ group.country_of_origin | flag }} {{ group.group_name }}</h2>
         {% set aliases = group.aliases | parse_aliases %}
         {% if aliases %}
-        <p class="text-sm mt-0.5"><span class="font-semibold text-gray-800 dark:text-noir-hi">Known Aliases</span> <span class="text-gray-400 dark:text-noir-mute">{{ aliases | join(", ") }}</span></p>
+        <p class="text-sm mt-0.5"><span class="font-semibold text-gray-800 dark:text-noir-hi">{{ t('label_known_aliases') }}</span> <span class="text-gray-400 dark:text-noir-mute">{{ aliases | join(", ") }}</span></p>
         {% endif %}
         {% if last_update %}
-        <p class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">Data as of {{ last_update.strftime('%Y-%m-%d %H:%M') }} UTC</p>
+        <p class="text-xs text-gray-400 dark:text-noir-mute mt-0.5">{{ t('label_data_as_of') }} {{ last_update.strftime('%Y-%m-%d %H:%M') }} UTC</p>
         {% endif %}
         {% if spark %}
         <div class="flex items-center gap-2 mt-1">
-            {{ sparkline(spark, width=140, height=26, label=group.group_name ~ " activity, last 12 months") }}
-            <span class="text-xs text-gray-400 dark:text-noir-mute">victims, last 12 months</span>
+            {{ sparkline(spark, width=140, height=26, label=group.group_name ~ " " ~ t('spark_aria_tail')) }}
+            <span class="text-xs text-gray-400 dark:text-noir-mute">{{ t('spark_caption') }}</span>
         </div>
         {% endif %}
         {% if is_hacktivist %}
-        <span class="inline-block text-xs bg-orange-100 dark:bg-noir-raised text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full font-medium">Hacktivist / Non-ransomware</span>
-        <p class="text-sm text-orange-500">{{ victim_count }} claims</p>
+        <span class="inline-block text-xs bg-orange-100 dark:bg-noir-raised text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full font-medium">{{ t('badge_hacktivist') }}</span>
+        <p class="text-sm text-orange-500">{{ victim_count }} {{ t('word_claims') }}</p>
         {% else %}
-        <p class="text-sm text-red-500">{{ victim_count }} victims</p>
+        <p class="text-sm text-red-500">{{ victim_count }} {{ t('word_victims') }}</p>
         {% endif %}
     </div>
-    <button id="refresh-btn" onclick="doRefresh()" class="ml-auto text-xs bg-accent hover:bg-accent-dim text-white px-3 py-1 rounded transition-colors">Refresh Now</button>
+    <button id="refresh-btn" onclick="doRefresh()" class="ml-auto text-xs bg-accent hover:bg-accent-dim text-white px-3 py-1 rounded transition-colors">{{ t('refresh_now') }}</button>
 </div>
 
 {# ── Map (always visible) ── #}
 {% if country_data %}
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
     <div class="flex items-center justify-between mb-3">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ "Claims" if is_hacktivist else "Victims" }} Geographic Distribution</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ t('geo_dist_claims') if is_hacktivist else t('geo_dist_victims') }}</h3>
         <div class="flex gap-1" id="map-period-btns">
             <button data-period="7d" class="px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors">7d</button>
             <button data-period="1m" class="px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors">1m</button>
             <button data-period="1y" class="px-2.5 py-1 text-xs rounded border border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent transition-colors">1y</button>
-            <button data-period="all" class="px-2.5 py-1 text-xs rounded border border-accent text-accent font-semibold transition-colors">All</button>
+            <button data-period="all" class="px-2.5 py-1 text-xs rounded border border-accent text-accent font-semibold transition-colors">{{ t('word_all_cap') }}</button>
         </div>
     </div>
-    <div id="group-map" style="height: 280px;"><span class="text-xs text-gray-400 dark:text-noir-mute italic">Loading map…</span></div>
+    <div id="group-map" style="height: 280px;"><span class="text-xs text-gray-400 dark:text-noir-mute italic">{{ t('js_loading_map') }}</span></div>
 </div>
 {% endif %}
 
 {# ── Tab Navigation ── #}
 <div class="border-b border-gray-200 dark:border-noir-border mb-4">
     <nav class="flex gap-6" id="tab-nav" role="tablist">
-        <button data-tab="overview" role="tab" aria-selected="true" aria-controls="tab-overview" class="tab-btn pb-2 text-sm font-medium border-b-2 border-accent text-accent">Overview</button>
-        <button data-tab="infrastructure" role="tab" aria-selected="false" aria-controls="tab-infrastructure" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Infrastructure</button>
-        <button data-tab="arsenal" role="tab" aria-selected="false" aria-controls="tab-arsenal" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">Arsenal</button>
+        <button data-tab="overview" role="tab" aria-selected="true" aria-controls="tab-overview" class="tab-btn pb-2 text-sm font-medium border-b-2 border-accent text-accent">{{ t('tab_overview') }}</button>
+        <button data-tab="infrastructure" role="tab" aria-selected="false" aria-controls="tab-infrastructure" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">{{ t('tab_infrastructure') }}</button>
+        <button data-tab="arsenal" role="tab" aria-selected="false" aria-controls="tab-arsenal" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">{{ t('tab_arsenal') }}</button>
         <button data-tab="ttps" role="tab" aria-selected="false" aria-controls="tab-ttps" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">TTPs</button>
-        <button data-tab="victims" role="tab" aria-selected="false" aria-controls="tab-victims" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">{{ "Claims" if is_hacktivist else "Victims" }}</button>
-        <button data-tab="references" role="tab" aria-selected="false" aria-controls="tab-references" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">References</button>
+        <button data-tab="victims" role="tab" aria-selected="false" aria-controls="tab-victims" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">{{ t('word_claims_cap') if is_hacktivist else t('kpi_victims') }}</button>
+        <button data-tab="references" role="tab" aria-selected="false" aria-controls="tab-references" class="tab-btn pb-2 text-sm font-medium border-b-2 border-transparent text-gray-400 dark:text-noir-mute hover:text-gray-600 dark:hover:text-noir-text transition-colors">{{ t('tab_references') }}</button>
     </nav>
 </div>
 
@@ -69,12 +69,12 @@
 {# ══════════════════════════════════════════════ #}
 <div id="tab-overview" role="tabpanel" class="tab-panel">
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Profile</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('tab_profile') }}</h3>
         <dl class="space-y-4 text-sm">
             {% set aliases = group.aliases | parse_aliases %}
             {% if aliases %}
             <div>
-                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Aliases</dt>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">{{ t('label_aliases') }}</dt>
                 <dd class="flex flex-wrap gap-1">
                     {% for alias in aliases %}
                     <span class="text-xs bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border">{{ alias }}</span>
@@ -84,46 +84,46 @@
             {% endif %}
             {% if group.description %}
             <div>
-                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Description <span class="normal-case tracking-normal">— ransomware.live</span></dt>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">{{ t('label_description') }} <span class="normal-case tracking-normal">— ransomware.live</span></dt>
                 <dd class="text-gray-600 dark:text-noir-text text-sm leading-relaxed">{{ group.description | clean_desc }}</dd>
             </div>
             {% endif %}
             {% if mitre_profile and mitre_profile.description %}
             <div>
                 <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">
-                    Profile — MITRE ATT&CK{% if mitre_profile.mitre_id %} ({{ mitre_profile.mitre_id }}){% endif %}
-                    {% if mitre_fetched %}<span class="normal-case tracking-normal">· updated {{ mitre_fetched.strftime('%Y-%m-%d') }}</span>{% endif %}
+                    {{ t('tab_profile') }} — MITRE ATT&CK{% if mitre_profile.mitre_id %} ({{ mitre_profile.mitre_id }}){% endif %}
+                    {% if mitre_fetched %}<span class="normal-case tracking-normal">· {{ t('word_updated') }} {{ mitre_fetched.strftime('%Y-%m-%d') }}</span>{% endif %}
                 </dt>
                 <dd class="text-gray-600 dark:text-noir-text text-sm leading-relaxed">
                     {{ mitre_profile.description | clean_desc }}
                     {% if mitre_profile.mitre_url %}
-                    <a href="{{ mitre_profile.mitre_url | safe_url }}" target="_blank" rel="noopener" class="text-accent hover:underline text-xs">View on attack.mitre.org →</a>
+                    <a href="{{ mitre_profile.mitre_url | safe_url }}" target="_blank" rel="noopener" class="text-accent hover:underline text-xs">{{ t('link_view_mitre') }}</a>
                     {% endif %}
                 </dd>
             </div>
             {% endif %}
             {% if group.country_of_origin %}
             <div>
-                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Origin</dt>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">{{ t('label_origin') }}</dt>
                 <dd class="text-gray-600 dark:text-noir-text">{{ group.country_of_origin | flag }} {{ group.country_of_origin }}</dd>
             </div>
             {% endif %}
             {% set gtype = group.group_type | parse_group_type %}
             {% if gtype %}
             <div>
-                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Type</dt>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">{{ t('label_type') }}</dt>
                 <dd><span class="inline-block bg-indigo-50 dark:bg-noir-raised text-indigo-700 dark:text-indigo-300 text-xs px-2 py-0.5 rounded font-medium">{{ gtype }}</span></dd>
             </div>
             {% endif %}
             {% if group.lineage %}
             <div>
-                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Lineage</dt>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">{{ t('label_lineage') }}</dt>
                 <dd class="text-gray-600 dark:text-noir-text text-sm">{{ group.lineage }}</dd>
             </div>
             {% endif %}
             {% if group.extensions %}
             <div>
-                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">Extensions</dt>
+                <dt class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-1">{{ t('label_extensions') }}</dt>
                 <dd class="flex flex-wrap gap-1">
                     {% for ext in group.extensions.split(',') %}
                     <span class="font-mono text-xs bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text px-2 py-0.5 rounded border border-gray-200 dark:border-noir-border">{{ ext.strip() }}</span>
@@ -252,32 +252,32 @@
 
     {# Diamond detail panels #}
     <div id="diamond-adversary" class="hidden mt-4 p-3 bg-blue-50 dark:bg-noir-raised border border-blue-200 dark:border-noir-border rounded-lg text-sm">
-        <h4 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">Adversary — {{ group.group_name }}</h4>
+        <h4 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">{{ t('word_adversary_cap') }} — {{ group.group_name }}</h4>
         {% set aliases = group.aliases | parse_aliases %}
         {% if aliases %}
-        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Aliases:</span> {{ aliases | join(', ') }}</p>
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">{{ t('label_aliases') }}:</span> {{ aliases | join(', ') }}</p>
         {% endif %}
         {% if group.country_of_origin %}
-        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Origin:</span> {{ group.country_of_origin | flag }} {{ group.country_of_origin }}</p>
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">{{ t('label_origin') }}:</span> {{ group.country_of_origin | flag }} {{ group.country_of_origin }}</p>
         {% endif %}
         {% if group.description %}
         <div class="text-gray-600 dark:text-noir-text text-sm leading-relaxed">{{ group.description | clean_desc }}</div>
         {% endif %}
     </div>
     <div id="diamond-capability" class="hidden mt-4 p-3 bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded-lg text-sm">
-        <h4 class="font-semibold text-amber-700 dark:text-amber-300 mb-2">Capability</h4>
+        <h4 class="font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ t('word_capability_cap') }}</h4>
         {% if ttp_count %}
-        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">TTPs:</span> {{ ttp_count }} techniques across {{ ttps_by_tactic | length }} tactics</p>
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">TTPs:</span> {{ ttp_count }} {{ t('word_techniques') }} {{ t('word_across') }} {{ ttps_by_tactic | length }} {{ t('word_tactics') }}</p>
         {% endif %}
         {% if tool_count %}
-        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Tools:</span> {{ tool_count }} across {{ tools_by_cat | length }} categories</p>
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">{{ t('label_tools') }}:</span> {{ tool_count }} {{ t('word_across') }} {{ tools_by_cat | length }} {{ t('word_categories') }}</p>
         {% endif %}
         {% if not ttp_count and not tool_count %}
-        <p class="text-gray-400 dark:text-noir-mute italic">No capability data available.</p>
+        <p class="text-gray-400 dark:text-noir-mute italic">{{ t('empty_capability') }}</p>
         {% endif %}
     </div>
     <div id="diamond-infrastructure" class="hidden mt-4 p-3 {{ 'bg-gray-50 dark:bg-noir-raised border border-gray-200 dark:border-noir-border' if not group.locations else 'bg-violet-50 dark:bg-noir-raised border border-violet-200 dark:border-noir-border' }} rounded-lg text-sm">
-        <h4 class="font-semibold {{ 'text-gray-700 dark:text-noir-text' if not group.locations else 'text-violet-700 dark:text-violet-300' }} mb-2">Infrastructure</h4>
+        <h4 class="font-semibold {{ 'text-gray-700 dark:text-noir-text' if not group.locations else 'text-violet-700 dark:text-violet-300' }} mb-2">{{ t('tab_infrastructure') }}</h4>
         {% if group.locations %}
         <ul class="space-y-1">
         {% for loc in group.locations[:10] %}
@@ -288,21 +288,21 @@
         {% endfor %}
         </ul>
         {% if group.locations | length > 10 %}
-        <p class="text-gray-400 dark:text-noir-mute text-xs mt-1">… and {{ group.locations | length - 10 }} more</p>
+        <p class="text-gray-400 dark:text-noir-mute text-xs mt-1">… {{ t('word_and') }} {{ group.locations | length - 10 }} {{ t('word_more') }}</p>
         {% endif %}
         {% else %}
-        <p class="text-gray-400 dark:text-noir-mute italic">No infrastructure data available.</p>
+        <p class="text-gray-400 dark:text-noir-mute italic">{{ t('empty_infrastructure') }}</p>
         {% endif %}
     </div>
     <div id="diamond-victim" class="hidden mt-4 p-3 bg-red-50 dark:bg-noir-raised border border-red-200 dark:border-noir-border rounded-lg text-sm">
-        <h4 class="font-semibold text-red-700 dark:text-red-300 mb-2">Victim — {{ victim_count }} total</h4>
+        <h4 class="font-semibold text-red-700 dark:text-red-300 mb-2">{{ t('hdr_victim') }} — {{ victim_count }} {{ t('word_total') }}</h4>
         {% if top_countries %}
-        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">Top countries:</span>
+        <p class="text-gray-600 dark:text-noir-text mb-1"><span class="text-gray-400 dark:text-noir-mute">{{ t('label_top_countries') }}:</span>
             {% for c in top_countries %}{{ c.code }} ({{ c.count }}){% if not loop.last %}, {% endif %}{% endfor %}
         </p>
         {% endif %}
         {% if victims %}
-        <p class="text-gray-600 dark:text-noir-text"><span class="text-gray-400 dark:text-noir-mute">Latest:</span> {{ victims[0].victim_name or victims[0].domain or "—" }} ({{ victims[0].attackdate.strftime('%Y-%m-%d') if victims[0].attackdate else "—" }})</p>
+        <p class="text-gray-600 dark:text-noir-text"><span class="text-gray-400 dark:text-noir-mute">{{ t('label_latest') }}:</span> {{ victims[0].victim_name or victims[0].domain or "—" }} ({{ victims[0].attackdate.strftime('%Y-%m-%d') if victims[0].attackdate else "—" }})</p>
         {% endif %}
     </div>
 </div>
@@ -315,7 +315,7 @@
     {% set online = group.locations | selectattr('available') | list %}
     {% set offline = group.locations | rejectattr('available') | list %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Locations ({{ group.locations | length }})</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_locations') }} ({{ group.locations | length }})</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <p class="text-xs font-medium text-status-ok dark:text-status-ok-dot mb-2">Online ({{ online | length }})</p>
@@ -327,7 +327,7 @@
                     </li>
                 {% endfor %}
                 {% if not online %}
-                    <li class="text-xs text-gray-400 dark:text-noir-mute italic">None</li>
+                    <li class="text-xs text-gray-400 dark:text-noir-mute italic">{{ t('word_none') }}</li>
                 {% endif %}
                 </ul>
             </div>
@@ -341,7 +341,7 @@
                     </li>
                 {% endfor %}
                 {% if not offline %}
-                    <li class="text-xs text-gray-400 dark:text-noir-mute italic">None</li>
+                    <li class="text-xs text-gray-400 dark:text-noir-mute italic">{{ t('word_none') }}</li>
                 {% endif %}
                 </ul>
             </div>
@@ -349,33 +349,33 @@
     </div>
     {% else %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
-        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No infrastructure data available.</p>
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">{{ t('empty_infrastructure') }}</p>
     </div>
     {% endif %}
 
     {# ── Financial Intelligence (Ransomwhere) ── #}
     {% if btc_tx_count > 0 %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Financial Intelligence</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_financial_intel') }}</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
             <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
                 <p class="text-lg font-bold text-amber-700 dark:text-amber-300">${{ "{:,.0f}".format(btc_total_usd) }}</p>
-                <p class="text-xs text-amber-600 dark:text-amber-300">Total USD</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_total_usd') }}</p>
             </div>
             <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
                 <p class="text-lg font-bold text-amber-700 dark:text-amber-300">{{ "%.4f"|format(btc_total_btc) }}</p>
-                <p class="text-xs text-amber-600 dark:text-amber-300">Total BTC</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_total_btc') }}</p>
             </div>
             <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
                 <p class="text-lg font-bold text-amber-700 dark:text-amber-300">{{ btc_tx_count }}</p>
-                <p class="text-xs text-amber-600 dark:text-amber-300">Transactions</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_transactions') }}</p>
             </div>
             <div class="bg-amber-50 dark:bg-noir-raised border border-amber-200 dark:border-noir-border rounded p-2 text-center">
                 <p class="text-lg font-bold text-amber-700 dark:text-amber-300">{{ btc_addr_count }}</p>
-                <p class="text-xs text-amber-600 dark:text-amber-300">Addresses</p>
+                <p class="text-xs text-amber-600 dark:text-amber-300">{{ t('kpi_addresses') }}</p>
             </div>
         </div>
-        <p class="text-xs text-gray-400 dark:text-noir-mute">Source: <a href="https://ransomwhe.re" target="_blank" class="text-accent hover:underline">Ransomwhere</a></p>
+        <p class="text-xs text-gray-400 dark:text-noir-mute">{{ t('word_source_label') }} <a href="https://ransomwhe.re" target="_blank" class="text-accent hover:underline">Ransomwhere</a></p>
     </div>
     {% endif %}
 
@@ -383,7 +383,7 @@
     {% set btc_list = group.btc_addresses | parse_json_list %}
     {% if btc_list %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm mb-4">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">BTC Addresses ({{ btc_list | length }})</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_btc_addresses') }} ({{ btc_list | length }})</h3>
         <ul class="space-y-0.5 max-h-48 overflow-y-auto">
         {% for addr in btc_list %}
             <li class="font-mono text-xs text-gray-500 dark:text-noir-mute break-all">
@@ -397,7 +397,7 @@
     {# ── Communication Channels (deepdarkCTI) ── #}
     {% if group.comms %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Communication Channels ({{ group.comms | length }})</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_comm_channels') }} ({{ group.comms | length }})</h3>
         <ul class="space-y-1">
         {% for comm in group.comms %}
             <li class="flex items-center gap-2">
@@ -410,7 +410,7 @@
             </li>
         {% endfor %}
         </ul>
-        <p class="text-xs text-gray-400 dark:text-noir-mute mt-2">Source: <a href="https://github.com/fastfire/deepdarkCTI" target="_blank" class="text-accent hover:underline">deepdarkCTI</a></p>
+        <p class="text-xs text-gray-400 dark:text-noir-mute mt-2">{{ t('word_source_label') }} <a href="https://github.com/fastfire/deepdarkCTI" target="_blank" class="text-accent hover:underline">deepdarkCTI</a></p>
     </div>
     {% endif %}
 </div>
@@ -421,7 +421,7 @@
 <div id="tab-arsenal" role="tabpanel" class="tab-panel hidden">
     {% if tools_by_cat %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Tools ({{ tool_count }})</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('label_tools') }} ({{ tool_count }})</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {% for cat, tool_list in tools_by_cat.items() %}
             <div>
@@ -437,7 +437,7 @@
     </div>
     {% else %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No tools data available.</p>
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">{{ t('empty_tools') }}</p>
     </div>
     {% endif %}
 </div>
@@ -451,8 +451,8 @@
         <div class="flex items-center justify-between mb-3">
             <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">MITRE ATT&CK TTPs ({{ ttp_count }})</h3>
             <span class="flex gap-3">
-                {% if ttp_count %}<a href="/attack?group_id={{ group.id }}" class="text-xs text-accent hover:underline">View as matrix →</a>{% endif %}
-                <a href="/api/v1/groups/{{ group.id }}/stix" class="text-xs text-accent hover:underline" title="STIX 2.1 bundle — pushable into MISP or OpenCTI">Export STIX ↓</a>
+                {% if ttp_count %}<a href="/attack?group_id={{ group.id }}" class="text-xs text-accent hover:underline">{{ t('link_view_matrix') }}</a>{% endif %}
+                <a href="/api/v1/groups/{{ group.id }}/stix" class="text-xs text-accent hover:underline" title="{{ t('title_stix') }}">{{ t('link_export_stix') }}</a>
             </span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -474,7 +474,7 @@
     </div>
     {% else %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No TTP data available.</p>
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">{{ t('empty_ttps') }}</p>
     </div>
     {% endif %}
 </div>
@@ -484,16 +484,16 @@
 {# ══════════════════════════════════════════════ #}
 <div id="tab-victims" role="tabpanel" class="tab-panel hidden">
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">Recent {{ "Claims" if is_hacktivist else "Victims" }} ({{ victim_count }})</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('recent_claims') if is_hacktivist else t('recent_victims') }} ({{ victim_count }})</h3>
         {% if is_hacktivist %}
-        <p class="text-xs text-orange-600 dark:text-orange-300 bg-orange-50 dark:bg-noir-raised border border-orange-200 dark:border-noir-border rounded px-3 py-1.5 mb-3">This group is classified as hacktivist / non-ransomware. Entries below are claims or posts, not confirmed victims.</p>
+        <p class="text-xs text-orange-600 dark:text-orange-300 bg-orange-50 dark:bg-noir-raised border border-orange-200 dark:border-noir-border rounded px-3 py-1.5 mb-3">{{ t('hacktivist_note') }}</p>
         {% endif %}
         <table class="w-full text-sm">
             <thead><tr class="text-gray-400 dark:text-noir-mute border-b border-gray-200 dark:border-noir-border text-xs uppercase tracking-wider">
-                <th class="text-left py-2">{{ "Title" if is_hacktivist else "Name" }}</th>
-                {% if not is_hacktivist %}<th class="text-left py-2">Domain</th>{% endif %}
-                <th class="text-left py-2">Country</th>
-                <th class="text-left py-2">Date</th>
+                <th class="text-left py-2">{{ t('hdr_title') if is_hacktivist else t('word_name') }}</th>
+                {% if not is_hacktivist %}<th class="text-left py-2">{{ t('hdr_domain') }}</th>{% endif %}
+                <th class="text-left py-2">{{ t('word_country') }}</th>
+                <th class="text-left py-2">{{ t('hdr_date') }}</th>
             </tr></thead>
             <tbody>
             {% for v in victims %}
@@ -505,7 +505,7 @@
             </tr>
             {% endfor %}
             {% if not victims %}
-            <tr><td colspan="{{ 3 if is_hacktivist else 4 }}" class="py-4 text-center text-gray-400 dark:text-noir-mute">No {{ "claims" if is_hacktivist else "victims" }} recorded.</td></tr>
+            <tr><td colspan="{{ 3 if is_hacktivist else 4 }}" class="py-4 text-center text-gray-400 dark:text-noir-mute">{{ t('no_claims_recorded') if is_hacktivist else t('no_victims_recorded') }}</td></tr>
             {% endif %}
             </tbody>
         </table>
@@ -519,7 +519,7 @@
     {% set src_urls = group.description | extract_sources %}
     {% if group.references or group.source or src_urls or group.url %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">References</h3>
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('tab_references') }}</h3>
         <div class="flex flex-wrap gap-2 mb-3">
             {% if group.source %}
             <span class="inline-flex items-center bg-gray-100 dark:bg-noir-raised text-gray-600 dark:text-noir-text text-xs px-2.5 py-1 rounded-full font-medium">{{ group.source.source_name }}</span>
@@ -541,13 +541,13 @@
     </div>
     {% else %}
     <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
-        <p class="text-sm text-gray-400 dark:text-noir-mute italic">No references available.</p>
+        <p class="text-sm text-gray-400 dark:text-noir-mute italic">{{ t('empty_references') }}</p>
     </div>
     {% endif %}
 </div>
 
 <div class="mt-4">
-    <a href="/groups" class="text-sm text-gray-400 dark:text-noir-mute hover:text-accent">&larr; Back to adversaries</a>
+    <a href="/groups" class="text-sm text-gray-400 dark:text-noir-mute hover:text-accent">&larr; {{ t('back_to_adversaries') }}</a>
 </div>
 
 {# ══════════════════════════════════════════════ #}
@@ -669,11 +669,11 @@ document.querySelectorAll('#map-period-btns button').forEach(function(btn) {
 function doRefresh() {
     var btn = document.getElementById('refresh-btn');
     btn.disabled = true;
-    btn.textContent = 'Refreshing…';
+    btn.textContent = '{{ t("js_refreshing") }}';
     csrfFetch('/api/v1/refresh', { method: 'POST' })
         .then(function(r) { return r.json(); })
         .then(function() { location.reload(); })
-        .catch(function() { btn.textContent = 'Error'; setTimeout(function() { btn.textContent = 'Refresh Now'; btn.disabled = false; }, 3000); });
+        .catch(function() { btn.textContent = '{{ t("js_error") }}'; setTimeout(function() { btn.textContent = '{{ t("refresh_now") }}'; btn.disabled = false; }, 3000); });
 }
 </script>
 {% endblock %}
