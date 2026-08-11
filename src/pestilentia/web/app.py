@@ -2192,7 +2192,15 @@ def guide(request: Request):
 
 @app.get("/changelog")
 def changelog(request: Request):
-    return _render(request, "changelog.html", {"active": "changelog"})
+    # The curated Italian release notes live in changelog.html; for the
+    # English UI the canonical CHANGELOG.md is rendered instead.
+    if request.cookies.get(_LANG_COOKIE, "") == "it":
+        return _render(request, "changelog.html", {"active": "changelog"})
+    return _render(
+        request,
+        "changelog_en.html",
+        {"active": "changelog", "changelog_html": _render_changelog()},
+    )
 
 
 # ---------------------------------------------------------------------------

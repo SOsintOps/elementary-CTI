@@ -1,0 +1,24 @@
+<!-- English changelog: renders the canonical CHANGELOG.md at request time. -->
+{% extends "base.html" %}
+{% block title %}Changelog — Elementary CTI{% endblock %}
+{% block header %}Changelog{% endblock %}
+
+{% block head %}
+<style>
+    #chl-body h2 { font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.5rem; color: #333; }
+    #chl-body h3 { font-size: 0.92rem; font-weight: 600; margin: 1.25rem 0 0.35rem; color: #444; }
+    #chl-body p, #chl-body li { font-size: 0.85rem; line-height: 1.55; color: #555; }
+    #chl-body ul { margin: 0.35rem 0 0.75rem 1.25rem; list-style: disc; }
+    #chl-body code { font-size: 0.78rem; background: rgba(54,137,230,0.08); padding: 0.1rem 0.3rem; border-radius: 3px; }
+    #chl-body a { color: #3689e6; }
+    .dark #chl-body h2 { color: #d4d4d4; }
+    .dark #chl-body h3 { color: #c0c8cd; }
+    .dark #chl-body p, .dark #chl-body li { color: #95a3ab; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 max-w-3xl">
+    <article id="chl-body">{{ changelog_html | safe }}</article>
+</div>
+{% endblock %}

@@ -263,6 +263,27 @@ STRINGS: dict[str, dict[str, str]] = {
             'tecnica significa "non osservata nei nostri dati", non "non usata".'
         ),
     },
+    "intro_pipeline": {
+        "en": (
+            "Control panel for the collection and enrichment pipeline. Each source can "
+            "be enabled or disabled individually with its toggle: disabled sources are "
+            "skipped both by the automatic scheduler cycle and by manual refresh. The "
+            "cards show the current state (Active, Backfilling, Disabled) and a health "
+            'indicator (green/yellow/red) from the latest health check. The "Enrichment '
+            'Sources" table reports the key metrics for each enrichment, while "Source '
+            'Health" verifies reachability and data integrity of the external sources.'
+        ),
+        "it": (
+            "Pannello di controllo della pipeline di raccolta e arricchimento dati. Ogni "
+            "fonte può essere attivata o disattivata individualmente tramite il toggle: "
+            "le fonti disabilitate vengono saltate sia dallo scheduler automatico sia "
+            "dal refresh manuale. Le schede mostrano lo stato corrente (Active, "
+            "Backfilling, Disabled) e un indicatore di salute (verde/giallo/rosso) "
+            'basato sull\'ultimo health check. La tabella "Enrichment Sources" riporta '
+            'le metriche chiave per ogni arricchimento, mentre "Source Health" verifica '
+            "la raggiungibilità e l'integrità dei dati delle fonti esterne."
+        ),
+    },
     "nav_guide": {"en": "Guide", "it": "Guida"},
     "guide_lang_note": {
         "en": "This guide is currently available in Italian only. An English version is planned.",
