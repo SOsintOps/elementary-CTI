@@ -36,9 +36,12 @@ RUN uv sync --frozen --no-dev
 COPY --chown=appuser:appuser scripts/fetch_embedding_model.py scripts/
 RUN uv run --no-sync python scripts/fetch_embedding_model.py
 
-# The /guide Changelog tab renders this file at request time. Copied after the
-# dependency sync so editing it does not invalidate that layer.
+# The /guide Changelog tab and the public /faq page render these files at
+# request time. Copied after the dependency sync so editing them does not
+# invalidate that layer. (.dockerignore excludes *.md — each file the app
+# reads must be copied explicitly, or its page ships blank.)
 COPY --chown=appuser:appuser CHANGELOG.md ./
+COPY --chown=appuser:appuser docs/FAQ.md docs/FAQ.md
 
 EXPOSE 8000
 

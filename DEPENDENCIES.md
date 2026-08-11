@@ -81,7 +81,7 @@
 - **Version:** 0.8.2
 - **Contract:** vectorises articles for campaign clustering (`ai/embeddings.py`); model `minishlab/potion-base-8M` (256 dim, ~30 MB) fetched at image build by `scripts/fetch_embedding_model.py`, never at request time
 - **Licence:** MIT (model weights: MIT)
-- **Why chosen:** static lookup-and-pool embeddings run on the Pi's CPU at ~1,400 docs/s with no torch and no ONNX runtime; chosen over an ONNX transformer **by measurement on the live corpus**, not by recommendation — method and numbers recorded in the upstream working repository (local-AI plan, step A3)
+- **Why chosen:** static lookup-and-pool embeddings run on the Pi's CPU at ~1,400 docs/s with no torch and no ONNX runtime; chosen over an ONNX transformer **by measurement on the live corpus**, not by recommendation — method and numbers in `.planning/PLAN-LOCAL-AI-2026-08.md` (A3)
 - **Alternatives considered:** fastembed/onnxruntime (16 transitive packages vs 11, heavier per-document cost), sentence-transformers (pulls torch — ruled out on a Pi), TF-IDF (kept as the fallback backend and the baseline any future model is measured against)
 - **Transitive weight (the real cost):** numpy 2.5.1 (BSD-3), tokenizers 0.23.1 (Apache-2.0), safetensors 0.8.0 (Apache-2.0), huggingface-hub 1.27.0 + hf-xet 1.6.0 (Apache-2.0, build-time fetch only), joblib 1.5.3 (BSD-3) — ~60 MB installed, the largest single addition since Plotly
 - **Last verified:** 2026-08-08

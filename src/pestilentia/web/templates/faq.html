@@ -1,0 +1,33 @@
+<!-- Public FAQ page: renders docs/FAQ.md (source of truth) at request time. -->
+{% extends "base.html" %}
+{% block title %}FAQ — Elementary CTI{% endblock %}
+{% block header %}Frequently asked questions{% endblock %}
+
+{% block head %}
+<style>
+    /* Markdown prose styling scoped to the FAQ article, both themes. */
+    #faq-body h2 { font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.5rem; color: #333; }
+    #faq-body h3 { font-size: 0.92rem; font-weight: 600; margin: 1.25rem 0 0.35rem; color: #444; }
+    #faq-body p, #faq-body li { font-size: 0.85rem; line-height: 1.55; color: #555; }
+    #faq-body ul, #faq-body ol { margin: 0.35rem 0 0.75rem 1.25rem; list-style: disc; }
+    #faq-body ol { list-style: decimal; }
+    #faq-body code { font-size: 0.78rem; background: rgba(54,137,230,0.08); padding: 0.1rem 0.3rem; border-radius: 3px; }
+    #faq-body pre { background: rgba(0,0,0,0.05); padding: 0.6rem; border-radius: 6px; overflow-x: auto; margin: 0.5rem 0 0.9rem; }
+    #faq-body pre code { background: none; padding: 0; }
+    #faq-body a { color: #3689e6; }
+    #faq-body a:hover { text-decoration: underline; }
+    #faq-body table { border-collapse: collapse; margin: 0.5rem 0 1rem; font-size: 0.8rem; }
+    #faq-body th, #faq-body td { border: 1px solid #ddd; padding: 0.3rem 0.6rem; text-align: left; }
+    .dark #faq-body h2 { color: #d4d4d4; }
+    .dark #faq-body h3 { color: #c0c8cd; }
+    .dark #faq-body p, .dark #faq-body li { color: #95a3ab; }
+    .dark #faq-body th, .dark #faq-body td { border-color: #333; }
+    .dark #faq-body pre { background: rgba(255,255,255,0.05); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-6 max-w-3xl">
+    <article id="faq-body">{{ faq_html | safe }}</article>
+</div>
+{% endblock %}

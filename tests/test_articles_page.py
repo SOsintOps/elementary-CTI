@@ -22,7 +22,7 @@ from pestilentia.web.app import app
 
 
 @pytest.fixture
-def seeded(monkeypatch):
+def seeded(monkeypatch, authenticate):
     # StaticPool + check_same_thread: TestClient serves from another thread,
     # and a fresh connection to ":memory:" would be a fresh, empty database.
     engine = create_engine(
@@ -64,7 +64,9 @@ def seeded(monkeypatch):
     monkeypatch.setattr(config, "_settings", Settings(secret_key="x" * 64))
     # get_db() memoises a module-level factory; point it at our in-memory DB.
     monkeypatch.setattr(web, "_session_factory", factory)
-    yield TestClient(app)
+    client = TestClient(app)
+    authenticate(client, factory)
+    yield client
     web._session_factory = None
     config._settings = None
 

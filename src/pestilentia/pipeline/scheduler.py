@@ -276,6 +276,18 @@ async def _scheduler_loop(
             except Exception:
                 logger.exception("Health check failed")
 
+        # Activity-log retention (v0.7 auth plan): bounded growth for
+        # user_activity, once per cycle.
+        if not stop_event.is_set():
+            try:
+                from pestilentia.activity import purge_user_activity
+                from pestilentia.config import get_settings
+
+                with session_factory() as session:
+                    purge_user_activity(session, get_settings().activity_retention_days)
+            except Exception:
+                logger.exception("user_activity purge failed")
+
         if not stop_event.is_set():
             logger.info("Next cycle in %d seconds", interval_seconds)
             with contextlib.suppress(TimeoutError):

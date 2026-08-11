@@ -63,6 +63,13 @@ class Settings:
     secret_key: str = _PLACEHOLDER_SECRET
     auth_user: str = ""
     auth_pass: str = ""
+    # --- v0.7 multi-user auth -------------------------------------------
+    # Secure flag on the session cookie. True is the exposed-deployment
+    # setting (behind the Caddy TLS proxy); set PEST_COOKIE_SECURE=false
+    # only for plain-HTTP LAN use until step 10 of the auth plan lands.
+    cookie_secure: bool = True
+    # user_activity rows older than this are purged on the scheduler cycle.
+    activity_retention_days: int = 90
 
 
 _settings: Settings | None = None
@@ -103,7 +110,25 @@ def _load() -> Settings:
         "secret_key": os.getenv("PEST_SECRET_KEY"),
         "auth_user": os.getenv("PEST_AUTH_USER"),
         "auth_pass": os.getenv("PEST_AUTH_PASS"),
+        "activity_retention_days": os.getenv("PEST_ACTIVITY_RETENTION_DAYS"),
     }
+
+    # bool("false") is True — booleans need explicit parsing, not the
+    # generic target_type(val) cast below.
+    raw_cookie_secure = os.getenv("PEST_COOKIE_SECURE")
+    cookie_secure: bool | None = None
+    if raw_cookie_secure is not None:
+        lowered = raw_cookie_secure.strip().lower()
+        if lowered in {"1", "true", "yes", "on"}:
+            cookie_secure = True
+        elif lowered in {"0", "false", "no", "off"}:
+            cookie_secure = False
+        else:
+            print(
+                f"ERROR: PEST_COOKIE_SECURE must be a boolean (got {raw_cookie_secure!r}).",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
     defaults = Settings()
     kwargs: dict = {}
@@ -153,6 +178,9 @@ def _load() -> Settings:
             file=sys.stderr,
         )
         sys.exit(1)
+
+    if cookie_secure is not None:
+        kwargs["cookie_secure"] = cookie_secure
 
     if "secret_key" not in kwargs:
         kwargs["secret_key"] = secrets.token_hex(32)

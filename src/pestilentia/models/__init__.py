@@ -1,6 +1,7 @@
 # "The balance of probability." — Sherlock Holmes, Elementary
 from pestilentia.models.base import Base, create_all, get_engine, get_session_factory
 from pestilentia.models.tables import (
+    AdminAudit,
     AiEnrichmentAudit,
     Alert,
     Article,
@@ -28,6 +29,8 @@ from pestilentia.models.tables import (
     Organization,
     OrganizationIdentifier,
     SourceHealth,
+    User,
+    UserActivity,
     Victim,
     VictimDuplicate,
     VictimInfostealer,
@@ -38,6 +41,7 @@ from pestilentia.models.tables import (
 )
 
 __all__ = [
+    "AdminAudit",
     "AiEnrichmentAudit",
     "Alert",
     "Article",
@@ -66,6 +70,8 @@ __all__ = [
     "Organization",
     "OrganizationIdentifier",
     "SourceHealth",
+    "User",
+    "UserActivity",
     "Victim",
     "VictimDuplicate",
     "VictimInfostealer",

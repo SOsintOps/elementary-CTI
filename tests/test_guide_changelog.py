@@ -12,19 +12,34 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 import pestilentia.config as config
 import pestilentia.web.app as web
 from pestilentia.config import Settings
+from pestilentia.models.base import Base
 from pestilentia.web.app import app
 
 
 @pytest.fixture
-def client(monkeypatch):
-    # Default settings carry no PEST_AUTH_USER, so Basic Auth stays off; the
-    # developer .env on a real machine would otherwise answer 401.
+def client(monkeypatch, authenticate):
+    # Session auth (v0.7): the guide pages sit behind login like everything
+    # else, so the fixture seeds a user in an in-memory DB and signs in.
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine)
     monkeypatch.setattr(config, "_settings", Settings(secret_key="x" * 64))
-    yield TestClient(app)
+    monkeypatch.setattr(web, "_session_factory", factory)
+    c = TestClient(app)
+    authenticate(c, factory)
+    yield c
+    web._session_factory = None
     config._settings = None
 
 

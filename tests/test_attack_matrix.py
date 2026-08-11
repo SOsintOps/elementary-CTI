@@ -15,7 +15,7 @@ from pestilentia.web.app import ATTACK_TACTIC_ORDER, app
 
 
 @pytest.fixture
-def seeded(monkeypatch):
+def seeded(monkeypatch, authenticate):
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -61,6 +61,7 @@ def seeded(monkeypatch):
     monkeypatch.setattr(config, "_settings", Settings(secret_key="x" * 64))
     monkeypatch.setattr(web, "_session_factory", factory)
     client = TestClient(app)
+    authenticate(client, factory)
     client.ids = ids
     yield client
     web._session_factory = None
@@ -91,17 +92,20 @@ def test_unknown_group_is_404(seeded):
     assert seeded.get("/attack?group_id=99999").status_code == 404
 
 
-def test_empty_matrix_explains_itself(monkeypatch):
+def test_empty_matrix_explains_itself(monkeypatch, authenticate):
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
     Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine)
     monkeypatch.setattr(config, "_settings", Settings(secret_key="x" * 64))
-    monkeypatch.setattr(web, "_session_factory", sessionmaker(bind=engine))
+    monkeypatch.setattr(web, "_session_factory", factory)
     try:
-        body = TestClient(app).get("/attack").text
+        client = TestClient(app)
+        authenticate(client, factory)
+        body = client.get("/attack").text
         assert "No ATT&amp;CK techniques recorded" in body  # entity-escaped in HTML
     finally:
         web._session_factory = None

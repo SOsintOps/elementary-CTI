@@ -689,3 +689,65 @@ class GroupAliasProposal(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(UTC)
     )
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String(256), nullable=False)
+    role: Mapped[str] = mapped_column(String(16), nullable=False, default="user")
+    theme: Mapped[str] = mapped_column(String(16), nullable=False, default="light")
+    disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AdminAudit(Base):
+    __tablename__ = "admin_audit"
+    __table_args__ = (
+        Index("ix_admaud_ts", "ts"),
+        Index("ix_admaud_action", "action", "ts"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ts: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    # actor_name is a snapshot: audit rows must survive the deletion of the actor.
+    actor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    actor_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    action: Mapped[str] = mapped_column(String(32), nullable=False)
+    target: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    detail: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+
+
+class UserActivity(Base):
+    __tablename__ = "user_activity"
+    __table_args__ = (
+        Index("ix_useract_ts", "ts"),
+        Index("ix_useract_actor", "actor_id", "ts"),
+        Index("ix_useract_kind", "kind", "ts"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ts: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    # NULL actor_id + NULL actor_name = anonymous request (e.g. denied attempt).
+    actor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    actor_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    kind: Mapped[str] = mapped_column(String(24), nullable=False)
+    method: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    route: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    target: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    client_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(256), nullable=True)

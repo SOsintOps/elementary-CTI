@@ -125,6 +125,7 @@
             <h1 class="text-lg font-semibold text-accent tracking-tight">&#x1F50D; Elementary CTI</h1>
             <p class="text-[11px] text-gray-400 dark:text-noir-mute mt-0.5 tracking-wide">Cyber Threat Intelligence</p>
         </div>
+        {% if request.state.user %}
         <div class="px-2 pt-2 pb-1">
             <form action="/search" method="get" class="relative">
                 <input type="text" name="q" placeholder="Search..."
@@ -150,7 +151,36 @@
             <hr class="border-gray-200 dark:border-noir-border my-2">
             <a href="/pipeline" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'pipeline' %}active{% endif %}">Pipeline</a>
             <a href="/guide" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'guide' %}active{% endif %}">Guida</a>
+            <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">FAQ</a>
         </nav>
+        <div class="px-3 py-2 border-t border-gray-200 dark:border-noir-border flex items-center justify-between gap-2">
+            <span class="text-xs text-gray-600 dark:text-noir-text truncate" title="Signed in as {{ request.state.user.username }} ({{ request.state.user.role }})">
+                {{ request.state.user.username }}
+                <span class="text-[10px] text-gray-400 dark:text-noir-mute uppercase">{{ request.state.user.role }}</span>
+            </span>
+            <form method="post" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent" title="Sign out">Sign out</button>
+            </form>
+        </div>
+        {% else %}
+        <!-- Anonymous: sign-in box (v0.7 step 5) + reduced nav -->
+        <div class="p-3 border-b border-gray-200 dark:border-noir-border">
+            <form method="post" action="/login" class="space-y-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="username" placeholder="Username" required autocomplete="username"
+                       class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-xs text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
+                <input type="password" name="password" placeholder="Password" required autocomplete="current-password"
+                       class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-xs text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
+                <button type="submit" class="w-full bg-accent text-white rounded px-2.5 py-1.5 text-xs font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent/50">Sign in</button>
+            </form>
+            <p class="text-[10px] text-gray-400 dark:text-noir-mute mt-2">Sign in to unlock the full platform.</p>
+        </div>
+        <nav class="flex-1 p-2 space-y-0.5">
+            <a href="/" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">FAQ</a>
+        </nav>
+        {% endif %}
         <!-- "There is no branch of detective science so important as the art of tracing footsteps." — Sherlock Holmes, Elementary -->
         <div class="p-3 border-t border-gray-200 dark:border-noir-border text-[11px] text-gray-400 dark:text-noir-mute flex items-center justify-between">
             <span>v0.9.0.dev0</span>

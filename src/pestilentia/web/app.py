@@ -1,6 +1,5 @@
 # "My name is Sherlock Holmes. I am a consultant to the NYPD." — Sherlock Holmes, Elementary
 import asyncio
-import base64
 import hashlib
 import hmac
 import json
@@ -24,6 +23,16 @@ from sqlalchemy.orm import Session, joinedload
 
 import pestilentia.clients.ransomware_live  # register source
 import pestilentia.notifications.log_channel  # noqa: F401
+from pestilentia.activity import (
+    KIND_ACCESS_DENIED,
+    KIND_API_CALL,
+    KIND_LOCKOUT,
+    KIND_LOGIN_FAIL,
+    KIND_LOGIN_OK,
+    KIND_LOGOUT,
+    KIND_PAGE_VIEW,
+    record_activity,
+)
 from pestilentia.clients.registry import SOURCES
 from pestilentia.matching import fuzzy_match_watchlist
 from pestilentia.models import (
@@ -38,17 +47,22 @@ from pestilentia.models import (
     create_all,
     get_session_factory,
 )
-from pestilentia.models.tables import GroupBtcTransaction, GroupTool, GroupTTP
+from pestilentia.models.tables import GroupBtcTransaction, GroupTool, GroupTTP, User
 from pestilentia.notifications import dispatch_alerts
 from pestilentia.pipeline.backfill import BACKFILL_CATEGORY, BACKFILL_FIRST_YEAR
 from pestilentia.pipeline.ingest import ingest_source
+from pestilentia.security import hash_password, role_at_least, verify_password
+from pestilentia.web import sessions as _sessions
 from pestilentia.web.mugshot import generate_mugshot
 
 BASE_DIR = Path(__file__).parent
 PER_PAGE = 50
 
-# Paths reachable without authentication (container liveness probe + favicon).
-_PUBLIC_PATHS = frozenset({"/healthz", "/favicon.ico"})
+# Paths reachable without authentication: liveness probe, favicon, the login
+# flow, and the two anonymous surfaces (step 5) — the public dashboard on "/"
+# (the route renders the TLP:CLEAR 30-day variant for anonymous visitors)
+# and the FAQ. Anonymous views of public paths are not activity-logged.
+_PUBLIC_PATHS = frozenset({"/healthz", "/favicon.ico", "/login", "/", "/faq"})
 
 
 @asynccontextmanager
@@ -56,7 +70,30 @@ async def _lifespan(_app: FastAPI):
     from pestilentia.config import get_settings
     from pestilentia.logging import setup_logging
 
-    setup_logging(get_settings().log_level)
+    cfg = get_settings()
+    setup_logging(cfg.log_level)
+    # Bootstrap (v0.7 auth plan): with an empty users table, the legacy
+    # PEST_AUTH_USER/PEST_AUTH_PASS pair seeds the first admin account so a
+    # fresh deployment is never locked out and never open.
+    if cfg.auth_user and cfg.auth_pass:
+        session = get_db()
+        try:
+            if session.query(User).count() == 0:
+                session.add(
+                    User(
+                        username=cfg.auth_user.strip().lower(),
+                        password_hash=hash_password(cfg.auth_pass),
+                        role="admin",
+                    )
+                )
+                session.commit()
+                logging.getLogger(__name__).warning(
+                    "Bootstrap: created initial admin user %r from PEST_AUTH_USER "
+                    "(empty users table). Manage accounts in /settings from now on.",
+                    cfg.auth_user,
+                )
+        finally:
+            session.close()
     yield
 
 
@@ -76,31 +113,110 @@ def healthz() -> dict:
     return {"status": "ok"}
 
 
-# --- Optional HTTP Basic Auth (PEST_AUTH_USER + PEST_AUTH_PASS) ---
-@app.middleware("http")
-async def _basic_auth_middleware(request: Request, call_next):
+# --- Session auth + activity log (v0.7 auth plan, steps 3-4) ---
+# One middleware, three jobs: resolve the session cookie into
+# request.state.user (sliding the idle window), enforce the baseline
+# "everything requires at least a logged-in user" (pages redirect to /login,
+# APIs answer 401 JSON), and write the user_activity rows (every
+# authenticated request, every denial). Finer gates (analyst/admin) are the
+# require_role dependency on the routes that need them.
+_ACTIVITY_EXEMPT = frozenset({"/login", "/logout"})  # they log their own richer events
+
+
+def _set_session_cookie(response: Response, token: str) -> None:
     from pestilentia.config import get_settings
 
-    if request.url.path in _PUBLIC_PATHS:
-        return await call_next(request)
+    response.set_cookie(
+        _sessions.SESSION_COOKIE,
+        token,
+        max_age=_sessions.SESSION_ABSOLUTE_SECONDS,
+        httponly=True,
+        samesite="lax",
+        secure=get_settings().cookie_secure,
+        path="/",
+    )
+
+
+@app.middleware("http")
+async def _session_middleware(request: Request, call_next):
+    from pestilentia.config import get_settings
 
     cfg = get_settings()
-    if cfg.auth_user and cfg.auth_pass:
-        header = request.headers.get("Authorization", "")
-        authorized = False
-        if header.startswith("Basic "):
-            try:
-                user, _, password = base64.b64decode(header[6:]).decode().partition(":")
-                authorized = secrets.compare_digest(user, cfg.auth_user) and secrets.compare_digest(
-                    password, cfg.auth_pass
-                )
-            except (ValueError, UnicodeDecodeError):
-                authorized = False
-        if not authorized:
-            return Response(
-                status_code=401, headers={"WWW-Authenticate": 'Basic realm="Elementary CTI"'}
+    request.state.user = None
+    token = request.cookies.get(_sessions.SESSION_COOKIE)
+    sdata = _sessions.verify_session(cfg.secret_key, token)
+    fresh_token = None
+    if sdata is not None:
+        session = get_db()
+        try:
+            row = session.get(User, sdata.uid)
+            if row is not None and not row.disabled:
+                request.state.user = {
+                    "id": row.id,
+                    "username": row.username,
+                    "role": row.role,
+                    "theme": row.theme,
+                }
+                if int(time.time()) - sdata.ts > _sessions.SESSION_REFRESH_AFTER_SECONDS:
+                    fresh_token = _sessions.refresh_session(cfg.secret_key, sdata)
+            else:
+                sdata = None  # disabled or deleted: drop the cookie below
+        finally:
+            session.close()
+
+    path = request.url.path
+    public = path in _PUBLIC_PATHS or path.startswith("/static")
+    denied_anonymous = False
+    if not public and request.state.user is None:
+        # Baseline enforcement (step 4): no session, no content.
+        denied_anonymous = True
+        if path.startswith("/api/"):
+            response = JSONResponse({"detail": "Authentication required"}, status_code=401)
+        else:
+            response = RedirectResponse("/login", status_code=303)
+    else:
+        response = await call_next(request)
+
+    if fresh_token is not None:
+        _set_session_cookie(response, fresh_token)
+    elif token and sdata is None:
+        response.delete_cookie(_sessions.SESSION_COOKIE, path="/")
+
+    loggable = path not in _PUBLIC_PATHS and path not in _ACTIVITY_EXEMPT
+    if loggable and not path.startswith("/static"):
+        user = request.state.user
+        denied = denied_anonymous or response.status_code in (401, 403)
+        if user is not None or denied:
+            kind = (
+                KIND_ACCESS_DENIED
+                if denied
+                else (KIND_API_CALL if path.startswith("/api/") else KIND_PAGE_VIEW)
             )
-    return await call_next(request)
+            try:
+                session = get_db()
+                try:
+                    record_activity(
+                        session,
+                        kind,
+                        actor_id=user["id"] if user else None,
+                        actor_name=user["username"] if user else None,
+                        method=request.method,
+                        route=path,
+                        status=response.status_code,
+                        client_ip=request.client.host if request.client else None,
+                        user_agent=request.headers.get("user-agent"),
+                    )
+                finally:
+                    session.close()
+            except Exception:  # logging must never break the request
+                logger.warning("user_activity write failed", exc_info=True)
+    return response
+
+
+# HTTP Basic Auth was retired here in step 4 of the v0.7 auth plan: the
+# session middleware above now enforces login on everything outside
+# _PUBLIC_PATHS, and PEST_AUTH_USER/PEST_AUTH_PASS live on only as the
+# bootstrap seed for the first admin account (see _lifespan).
 
 
 # --- Security response headers ---
@@ -202,6 +318,125 @@ templates.env.globals["app_version"] = _app_version
 def _require_csrf_header(x_csrf_token: str | None = Header(default=None)) -> None:
     if not _validate_csrf_token(x_csrf_token):
         raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+
+
+# --- Role gate (v0.7 auth plan, step 4) ---
+# The middleware already guarantees a logged-in user on every non-public
+# route; this dependency adds the finer bar where a route needs more than
+# the baseline (analyst for the analysis surfaces, admin for settings).
+def require_role(minimum: str):
+    def _dep(request: Request) -> dict:
+        user = request.state.user
+        if user is None:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if not role_at_least(user["role"], minimum):
+            raise HTTPException(status_code=403, detail="Insufficient role")
+        return user
+
+    return _dep
+
+
+# --- Login / logout (v0.7 auth plan, step 3) ---
+_login_backoff = _sessions.LoginBackoff()
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+@app.get("/login", include_in_schema=False)
+def login_page(request: Request):
+    if request.state.user is not None:
+        return RedirectResponse("/", status_code=303)
+    return _render(request, "login.html", {"error": None})
+
+
+@app.post("/login", include_in_schema=False)
+def login_submit(
+    request: Request,
+    username: str = Form(default=""),
+    password: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+):
+    from pestilentia.config import get_settings
+
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+
+    ip = _client_ip(request)
+    ua = request.headers.get("user-agent")
+    username = username.strip().lower()
+
+    session = get_db()
+    try:
+        locked = _login_backoff.locked_for(username, ip)
+        if locked:
+            record_activity(
+                session, KIND_LOCKOUT, actor_name=username or None, client_ip=ip, user_agent=ua
+            )
+            return _render(
+                request,
+                "login.html",
+                {"error": f"Too many attempts — locked for {locked} seconds."},
+                status_code=429,
+            )
+
+        row = None
+        if username:
+            row = session.query(User).filter(User.username == username).one_or_none()
+        ok = row is not None and not row.disabled and verify_password(row.password_hash, password)
+        if not ok:
+            # One message for wrong user, wrong password and disabled account —
+            # no oracle for enumeration.
+            _login_backoff.record_failure(username, ip)
+            record_activity(
+                session, KIND_LOGIN_FAIL, actor_name=username or None, client_ip=ip, user_agent=ua
+            )
+            return _render(
+                request, "login.html", {"error": "Invalid credentials."}, status_code=401
+            )
+
+        _login_backoff.record_success(username, ip)
+        row.last_login_at = datetime.now(UTC)
+        session.commit()
+        record_activity(
+            session,
+            KIND_LOGIN_OK,
+            actor_id=row.id,
+            actor_name=row.username,
+            client_ip=ip,
+            user_agent=ua,
+        )
+        # A brand-new token on every login: fresh sid, so a pre-login cookie
+        # value can never name an authenticated session (fixation defence).
+        token = _sessions.issue_session(get_settings().secret_key, row.id)
+        response = RedirectResponse("/", status_code=303)
+        _set_session_cookie(response, token)
+        return response
+    finally:
+        session.close()
+
+
+@app.post("/logout", include_in_schema=False)
+def logout(request: Request, csrf_token: str = Form(default="")):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    user = request.state.user
+    if user is not None:
+        session = get_db()
+        try:
+            record_activity(
+                session,
+                KIND_LOGOUT,
+                actor_id=user["id"],
+                actor_name=user["username"],
+                client_ip=_client_ip(request),
+            )
+        finally:
+            session.close()
+    response = RedirectResponse("/login", status_code=303)
+    response.delete_cookie(_sessions.SESSION_COOKIE, path="/")
+    return response
 
 
 def _escape_like(val: str) -> str:
@@ -578,6 +813,8 @@ def _count_sources(session: Session) -> int:
 @app.get("/")
 def dashboard(request: Request):
     now = datetime.now(UTC)
+    if request.state.user is None:
+        return _public_dashboard(request, now)
     with get_db() as session:
         stats = {
             "victims": session.query(Victim).count(),
@@ -641,6 +878,88 @@ def dashboard(request: Request):
             "trends": trends,
         },
     )
+
+
+def _public_dashboard(request: Request, now: datetime):
+    """Anonymous landing (v0.7 auth plan, step 5): last-30-days aggregates
+    and recent names from public-source structured data only. TLP-marked
+    content (articles) is never queried here, so it cannot leak by
+    construction. No drill-down links — everything deeper requires login."""
+    cutoff = now - timedelta(days=30)
+    with get_db() as session:
+        stats = {
+            "victims_30d": session.query(Victim).filter(Victim.discovered >= cutoff).count(),
+            "groups_30d": (
+                session.query(Victim.group_id)
+                .filter(Victim.discovered >= cutoff, Victim.group_id.isnot(None))
+                .distinct()
+                .count()
+            ),
+            "cyberattacks_30d": (
+                session.query(Cyberattack).filter(Cyberattack.attack_date >= cutoff).count()
+            ),
+            "countries_30d": (
+                session.query(Victim.country_id)
+                .filter(Victim.discovered >= cutoff, Victim.country_id.isnot(None))
+                .distinct()
+                .count()
+            ),
+        }
+        recent_victims = (
+            session.query(Victim)
+            .options(joinedload(Victim.group), joinedload(Victim.country))
+            .filter(Victim.discovered >= cutoff)
+            .order_by(Victim.discovered.desc().nullslast())
+            .limit(20)
+            .all()
+        )
+        top_groups = (
+            session.query(Group.group_name, func.count(Victim.id).label("cnt"))
+            .join(Victim, Victim.group_id == Group.id)
+            .filter(Victim.discovered >= cutoff)
+            .group_by(Group.group_name)
+            .order_by(func.count(Victim.id).desc())
+            .limit(10)
+            .all()
+        )
+        # Daily buckets computed in Python: 30 days of rows is small, and it
+        # sidesteps SQLite/PG date-function differences.
+        by_day: dict[str, int] = {}
+        for (discovered,) in session.query(Victim.discovered).filter(Victim.discovered >= cutoff):
+            if discovered is not None:
+                by_day[discovered.strftime("%Y-%m-%d")] = (
+                    by_day.get(discovered.strftime("%Y-%m-%d"), 0) + 1
+                )
+        timeline = [
+            {"day": (cutoff + timedelta(days=i)).strftime("%Y-%m-%d")}
+            | {"count": by_day.get((cutoff + timedelta(days=i)).strftime("%Y-%m-%d"), 0)}
+            for i in range(1, 31)
+        ]
+    return _render(
+        request,
+        "dashboard_public.html",
+        {
+            "active": "dashboard",
+            "stats": stats,
+            "recent_victims": recent_victims,
+            "top_groups": top_groups,
+            "timeline": timeline,
+        },
+    )
+
+
+@app.get("/faq")
+def faq(request: Request):
+    """Public FAQ: renders docs/FAQ.md at request time (changelog pattern —
+    the file must be copied by the Dockerfile, pinned by test)."""
+    import markdown as _md
+
+    try:
+        source = FAQ_PATH.read_text(encoding="utf-8")
+    except OSError:
+        source = "# FAQ\n\nThe FAQ file is missing from this deployment."
+    html = _md.markdown(source, extensions=["tables", "fenced_code", "toc"])
+    return _render(request, "faq.html", {"active": "faq", "faq_html": html})
 
 
 @app.get("/victims")
@@ -1304,6 +1623,7 @@ def alerts_mark_read(csrf_token: str = Form("")):
 # Repo root from src/pestilentia/web/app.py — the same relative position inside
 # the container image, where the Dockerfile copies CHANGELOG.md next to src/.
 CHANGELOG_PATH = Path(__file__).resolve().parent.parent.parent.parent / "CHANGELOG.md"
+FAQ_PATH = CHANGELOG_PATH.parent / "docs" / "FAQ.md"
 
 
 def _render_changelog() -> str:

@@ -19,9 +19,11 @@ data/
 docs/
 tests/
 *.md
-# The /guide Changelog tab renders this at request time, so it has to be in
-# the build context despite the blanket *.md exclusion above.
+# The /guide Changelog tab and the public /faq page render these at request
+# time, so they have to be in the build context despite the blanket docs/
+# and *.md exclusions above.
 !CHANGELOG.md
+!docs/FAQ.md
 !pyproject.toml
 
 # Local embedding vector cache: rebuilt at runtime, never shipped.
