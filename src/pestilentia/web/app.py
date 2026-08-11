@@ -2,6 +2,7 @@
 import asyncio
 import hashlib
 import hmac
+import ipaddress as _ipaddress
 import json
 import logging
 import math
@@ -216,7 +217,7 @@ async def _session_middleware(request: Request, call_next):
                         method=request.method,
                         route=path,
                         status=response.status_code,
-                        client_ip=request.client.host if request.client else None,
+                        client_ip=_client_ip(request),
                         user_agent=request.headers.get("user-agent"),
                     )
                 finally:
@@ -359,8 +360,38 @@ REQUIRE_ANALYST = Depends(require_role("analyst"))
 _login_backoff = _sessions.LoginBackoff()
 
 
-def _client_ip(request: Request) -> str:
-    return request.client.host if request.client else "unknown"
+def _resolve_client_ip(
+    peer: str | None, forwarded_for: str | None, trusted_cidr: str
+) -> str | None:
+    """The IP to record for a request, honouring X-Forwarded-For only when the
+    peer is the reverse proxy (step 10 of the auth plan).
+
+    Only the rightmost header entry counts: it is the one the proxy appended
+    from the socket address it saw, while anything left of it arrived inside
+    the client's own header and is spoofable. Any parse failure falls back to
+    the peer address — never an exception, this runs on every request.
+    """
+    if not peer:
+        return None
+    if not trusted_cidr or not forwarded_for:
+        return peer
+    try:
+        if _ipaddress.ip_address(peer) not in _ipaddress.ip_network(trusted_cidr):
+            return peer
+        candidate = forwarded_for.rsplit(",", 1)[-1].strip()
+        return str(_ipaddress.ip_address(candidate))
+    except ValueError:
+        return peer
+
+
+def _client_ip(request: Request) -> str | None:
+    from pestilentia.config import get_settings
+
+    return _resolve_client_ip(
+        request.client.host if request.client else None,
+        request.headers.get("x-forwarded-for"),
+        get_settings().trusted_proxy_cidr,
+    )
 
 
 @app.get("/login", include_in_schema=False)
@@ -483,7 +514,7 @@ def set_language(code: str, next: str = "/"):
     if code not in SUPPORTED_LANGS:
         raise HTTPException(status_code=404, detail="Unsupported language")
     # local paths only — no open redirect
-    if not next.startswith("/") or next.startswith("//"):
+    if not next.startswith("/") or next[1:2] in ("/", "\\"):
         next = "/"
     response = RedirectResponse(next, status_code=303)
     response.set_cookie(_LANG_COOKIE, code, max_age=365 * 24 * 3600, samesite="lax", path="/")
@@ -2125,6 +2156,7 @@ def watchlist_page(request: Request):
 
 @app.post("/watchlist/add")
 def watchlist_add(
+    _analyst: dict = REQUIRE_ANALYST,
     name: str = Form(...),
     domain: str = Form(""),
     keywords: str = Form(""),
@@ -2140,7 +2172,7 @@ def watchlist_add(
 
 
 @app.post("/watchlist/{wid}/delete")
-def watchlist_delete(wid: int, csrf_token: str = Form("")):
+def watchlist_delete(wid: int, _analyst: dict = REQUIRE_ANALYST, csrf_token: str = Form("")):
     if not _validate_csrf_token(csrf_token):
         return JSONResponse({"error": "Invalid CSRF token"}, status_code=403)
     with get_db() as session:
@@ -2149,7 +2181,10 @@ def watchlist_delete(wid: int, csrf_token: str = Form("")):
     return RedirectResponse("/watchlist", status_code=303)
 
 
-@app.post("/api/v1/alerts/{alert_id}/actioned", dependencies=[Depends(_require_csrf_header)])
+@app.post(
+    "/api/v1/alerts/{alert_id}/actioned",
+    dependencies=[Depends(_require_csrf_header), Depends(require_role("analyst"))],
+)
 def api_mark_alert_actioned(alert_id: int):
     """Record that an alert led to a decision — or take that back.
 
@@ -2171,7 +2206,7 @@ def api_mark_alert_actioned(alert_id: int):
 
 
 @app.post("/alerts/mark-read")
-def alerts_mark_read(csrf_token: str = Form("")):
+def alerts_mark_read(_analyst: dict = REQUIRE_ANALYST, csrf_token: str = Form("")):
     if not _validate_csrf_token(csrf_token):
         return JSONResponse({"error": "Invalid CSRF token"}, status_code=403)
     with get_db() as session:
@@ -2820,7 +2855,10 @@ def api_pipeline_status():
     return result
 
 
-@app.post("/api/v1/health", dependencies=[Depends(_require_csrf_header)])
+@app.post(
+    "/api/v1/health",
+    dependencies=[Depends(_require_csrf_header), Depends(require_role("analyst"))],
+)
 async def api_health_check():
     from pestilentia.pipeline.health import run_health_checks
 

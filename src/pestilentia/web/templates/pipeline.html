@@ -193,7 +193,10 @@
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">
     <div class="flex items-center justify-between mb-3">
         <h3 class="text-xs font-semibold text-status-off dark:text-status-off-dot uppercase tracking-wider">Source Health</h3>
+        {# The endpoint is analyst-gated (OWASP audit A01) — no button for read-only users. #}
+        {% if request.state.user and request.state.user.role in ("analyst", "admin") %}
         <button id="btn-health-check" onclick="runHealthCheck()" class="px-3 py-1 text-xs bg-accent text-white rounded hover:bg-accent-dim transition">Run Check</button>
+        {% endif %}
     </div>
 
     {% set all_health_keys = ['mitre_attack', 'ransomwhere', 'deepdarkcti:ransomware_gang', 'deepdarkcti:telegram_threat_actors', 'deepdarkcti:twitter_threat_actors'] %}

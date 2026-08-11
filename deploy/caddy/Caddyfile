@@ -1,0 +1,28 @@
+# TLS terminator for Elementary CTI (auth plan v0.7, step 10).
+#
+# The site address and TLS mode come from the environment so the same file
+# serves every stage without edits:
+#   - default              → https://localhost with Caddy's internal CA
+#   - LAN                  → PEST_DOMAIN=<mDNS name or LAN IP>, still internal CA
+#                            (self-signed warning in the browser is expected)
+#   - production (step 12) → PEST_DOMAIN=<real domain>, PEST_TLS_MODE=<ACME email>
+#                            → automatic Let's Encrypt. Gated on the OWASP audit.
+#
+# Proxy-level rate limiting is deliberately absent: the plugin needs a custom
+# xcaddy build, and the in-app login backoff already covers the credential
+# surface (decision recorded in PLAN-AUTH-SETTINGS-2026-08). Revisit at audit.
+{
+	# Clients connecting by raw IP send no SNI (an IP is not a valid SNI
+	# value), so Caddy needs telling which certificate serves those
+	# handshakes. Point this at the LAN IP when it is a site address.
+	default_sni {$PEST_DEFAULT_SNI:localhost}
+}
+
+{$PEST_DOMAIN:localhost} {
+	tls {$PEST_TLS_MODE:internal}
+	encode zstd gzip
+	# HSTS belongs on the TLS terminator, not in the app (which speaks plain
+	# HTTP on the compose network only).
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	reverse_proxy web:8000
+}

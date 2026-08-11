@@ -140,3 +140,53 @@ def _probe_client(role: str | None) -> TestClient:
 )
 def test_require_role_matrix(role, path, expected):
     assert _probe_client(role).get(path).status_code == expected
+
+
+# --- OWASP audit A01 (2026-08): curation surfaces are analyst-gated ---------
+# The `user` tier is read-only by design (auth plan tier table); watchlist and
+# alert mutations plus the health-check trigger are actions, not reads.
+
+CURATION_POSTS = [
+    "/watchlist/add",
+    "/watchlist/1/delete",
+    "/alerts/mark-read",
+    "/api/v1/alerts/1/actioned",
+    "/api/v1/health",
+]
+
+
+@pytest.mark.parametrize("path", CURATION_POSTS)
+def test_user_role_cannot_mutate_curation_surfaces(env, authenticate, path):
+    client, factory = env
+    authenticate(client, factory, role="user", username="reader")
+    token = web._generate_csrf_token()
+    r = client.post(
+        path,
+        data={"csrf_token": token, "name": "x"},
+        headers={"X-CSRF-Token": token},
+        follow_redirects=False,
+    )
+    assert r.status_code == 403, path
+
+
+def test_analyst_passes_curation_gate(env, authenticate):
+    client, factory = env
+    authenticate(client, factory, role="analyst", username="ana")
+    token = web._generate_csrf_token()
+    r = client.post(
+        "/watchlist/add",
+        data={"csrf_token": token, "name": "Acme Corp"},
+        follow_redirects=False,
+    )
+    assert r.status_code == 303
+
+
+# --- OWASP audit A01 (2026-08): /lang open-redirect hardening ---------------
+
+
+@pytest.mark.parametrize("target", ["//evil.example", "/\\evil.example", "https://evil.example"])
+def test_lang_switch_never_redirects_off_site(env, target):
+    client, _factory = env
+    r = client.get("/lang/en", params={"next": target}, follow_redirects=False)
+    assert r.status_code == 303
+    assert r.headers["location"] == "/"

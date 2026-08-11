@@ -4,9 +4,13 @@
 {% block header %}{{ t('hdr_watchlist') }}{% endblock %}
 
 {% block content %}
+{# Watchlist/alert mutations are analyst-gated server-side (OWASP audit A01);
+   hide the affordances from read-only users rather than serving them a 403. #}
+{% set can_curate = request.state.user and request.state.user.role in ("analyst", "admin") %}
 <p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_watchlist') }}</p>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-1 space-y-4">
+        {% if can_curate %}
         <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
             <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_add_target') }}</h3>
             <form action="/watchlist/add" method="post" class="space-y-3">
@@ -26,6 +30,7 @@
                 <button type="submit" class="w-full text-xs bg-accent hover:bg-accent-dim text-white px-3 py-2 rounded">{{ t('btn_add_watchlist') }}</button>
             </form>
         </div>
+        {% endif %}
 
         <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">
             <h3 class="text-xs font-semibold text-slate-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('card_active_targets') }} ({{ targets|length }})</h3>
@@ -43,6 +48,7 @@
                         <span class="text-xs text-slate-500 dark:text-noir-mute font-mono ml-1">{{ t.domain }}</span>
                         {% endif %}
                     </div>
+                    {% if can_curate %}
                     <form action="/watchlist/{{ t.id }}/delete" method="post" class="inline"
                           onsubmit="return confirm('{{ rm_pre }} {{ t.name }} {{ rm_post }}');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -51,6 +57,7 @@
                                 aria-label="{{ rm_pre }} {{ t.name }} {{ rm_title_post }}"
                                 title="{{ rm_pre }} {{ t.name }} {{ rm_title_post }}">&times;</button>
                     </form>
+                    {% endif %}
                 </li>
             {% endfor %}
             </ul>
@@ -67,7 +74,7 @@
                     {{ t('card_alerts') }}
                     {% if unread %}<span class="ml-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">{{ unread }}</span>{% endif %}
                 </h3>
-                {% if unread %}
+                {% if unread and can_curate %}
                 <form action="/alerts/mark-read" method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="text-xs text-gray-500 dark:text-noir-mute hover:text-gray-700 dark:hover:text-noir-text">{{ t('btn_mark_all_read') }}</button>
