@@ -130,7 +130,7 @@
         {% if request.state.user %}
         <div class="px-2 pt-2 pb-1">
             <form action="/search" method="get" class="relative">
-                <input type="text" name="q" placeholder="Search..."
+                <input type="text" name="q" placeholder="{{ t('search_ph') }}"
                        class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-xs text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
                 <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-noir-mute hover:text-accent">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,21 +140,21 @@
             </form>
         </div>
         <nav class="flex-1 p-2 space-y-0.5">
-            <a href="/" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
-            <a href="/victims" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'victims' %}active{% endif %}">Victims</a>
-            <a href="/groups" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'groups' %}active{% endif %}">Adversaries</a>
-            <a href="/cyberattacks" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'cyberattacks' %}active{% endif %}">Cyberattacks</a>
-            <a href="/ai/articles" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'articles' %}active{% endif %}">Articles</a>
-            <a href="/ai/campaigns" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'campaigns' %}active{% endif %}">Campaigns</a>
-            <a href="/attack" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'attack' %}active{% endif %}">ATT&CK</a>
-            <a href="/map" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'map' %}active{% endif %}">Map</a>
-            <a href="/btc" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'btc' %}active{% endif %}">BTC Explorer</a>
-            <a href="/watchlist" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'watchlist' %}active{% endif %}">Watchlist</a>
+            <a href="/" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'dashboard' %}active{% endif %}">{{ t('nav_dashboard') }}</a>
+            <a href="/victims" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'victims' %}active{% endif %}">{{ t('nav_victims') }}</a>
+            <a href="/groups" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'groups' %}active{% endif %}">{{ t('nav_adversaries') }}</a>
+            <a href="/cyberattacks" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'cyberattacks' %}active{% endif %}">{{ t('nav_cyberattacks') }}</a>
+            <a href="/ai/articles" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'articles' %}active{% endif %}">{{ t('nav_articles') }}</a>
+            <a href="/ai/campaigns" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'campaigns' %}active{% endif %}">{{ t('nav_campaigns') }}</a>
+            <a href="/attack" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'attack' %}active{% endif %}">{{ t('nav_attack') }}</a>
+            <a href="/map" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'map' %}active{% endif %}">{{ t('nav_map') }}</a>
+            <a href="/btc" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'btc' %}active{% endif %}">{{ t('nav_btc') }}</a>
+            <a href="/watchlist" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'watchlist' %}active{% endif %}">{{ t('nav_watchlist') }}</a>
             <hr class="border-gray-200 dark:border-noir-border my-2">
-            <a href="/pipeline" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'pipeline' %}active{% endif %}">Pipeline</a>
+            <a href="/pipeline" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'pipeline' %}active{% endif %}">{{ t('nav_pipeline') }}</a>
             <a href="/guide" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'guide' %}active{% endif %}">{{ t('nav_guide') if t is defined else 'Guide' }}</a>
-            <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">FAQ</a>
-            <a href="/settings" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'settings' %}active{% endif %}">Settings</a>
+            <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">{{ t('nav_faq') }}</a>
+            <a href="/settings" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'settings' %}active{% endif %}">{{ t('nav_settings') }}</a>
         </nav>
         <div class="px-3 py-2 border-t border-gray-200 dark:border-noir-border flex items-center justify-between gap-2">
             <span class="text-xs text-gray-600 dark:text-noir-text truncate" title="Signed in as {{ request.state.user.username }} ({{ request.state.user.role }})">
@@ -163,7 +163,7 @@
             </span>
             <form method="post" action="/logout">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent" title="Sign out">Sign out</button>
+                <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent" title="{{ t('sign_out') }}">{{ t('sign_out') }}</button>
             </form>
         </div>
         {% else %}
@@ -171,17 +171,17 @@
         <div class="p-3 border-b border-gray-200 dark:border-noir-border">
             <form method="post" action="/login" class="space-y-2">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="text" name="username" placeholder="Username" required autocomplete="username"
+                <input type="text" name="username" placeholder="{{ t('username_ph') }}" required autocomplete="username"
                        class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-xs text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
-                <input type="password" name="password" placeholder="Password" required autocomplete="current-password"
+                <input type="password" name="password" placeholder="{{ t('password_ph') }}" required autocomplete="current-password"
                        class="w-full bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-xs text-gray-700 dark:text-noir-text placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30">
-                <button type="submit" class="w-full bg-accent text-white rounded px-2.5 py-1.5 text-xs font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent/50">Sign in</button>
+                <button type="submit" class="w-full bg-accent text-white rounded px-2.5 py-1.5 text-xs font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent/50">{{ t('sign_in') }}</button>
             </form>
-            <p class="text-[10px] text-gray-400 dark:text-noir-mute mt-2">Sign in to unlock the full platform.</p>
+            <p class="text-[10px] text-gray-400 dark:text-noir-mute mt-2">{{ t('signin_hint') }}</p>
         </div>
         <nav class="flex-1 p-2 space-y-0.5">
-            <a href="/" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
-            <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">FAQ</a>
+            <a href="/" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'dashboard' %}active{% endif %}">{{ t('nav_dashboard') }}</a>
+            <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">{{ t('nav_faq') }}</a>
         </nav>
         {% endif %}
         <!-- "There is no branch of detective science so important as the art of tracing footsteps." — Sherlock Holmes, Elementary -->

@@ -1,7 +1,7 @@
 <!-- "I have been wrong before. The important thing is I've never been wrong twice." — Sherlock Holmes, Elementary -->
 {% extends "base.html" %}
 {% block title %}Not Found — Elementary CTI{% endblock %}
-{% block header %}404 — Not Found{% endblock %}
+{% block header %}{{ t('hdr_404') }}{% endblock %}
 
 {% block content %}
 <p class="text-slate-500 dark:text-noir-mute">The requested resource does not exist.</p>

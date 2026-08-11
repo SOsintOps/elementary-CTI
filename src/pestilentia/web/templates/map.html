@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Map — Elementary CTI{% endblock %}
-{% block header %}Geographic Distribution{% endblock %}
+{% block header %}{{ t('hdr_map') }}{% endblock %}
 
 {% block head %}
 <script src="/static/vendor/plotly-2.35.2.min.js?v={{ app_version }}"></script>
