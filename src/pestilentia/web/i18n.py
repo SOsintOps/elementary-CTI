@@ -284,6 +284,65 @@ STRINGS: dict[str, dict[str, str]] = {
             "la raggiungibilità e l'integrità dei dati delle fonti esterne."
         ),
     },
+    "hdr_public_dashboard": {
+        "en": "Ransomware activity — last 30 days",
+        "it": "Attività ransomware — ultimi 30 giorni",
+    },
+    "kpi_victims": {"en": "Victims", "it": "Vittime"},
+    "kpi_groups": {"en": "Groups", "it": "Gruppi"},
+    "kpi_active_groups": {"en": "Active groups", "it": "Gruppi attivi"},
+    "kpi_cyberattacks": {"en": "Cyberattacks", "it": "Cyberattacchi"},
+    "kpi_countries": {"en": "Countries", "it": "Paesi"},
+    "kpi_countries_hit": {"en": "Countries hit", "it": "Paesi colpiti"},
+    "kpi_sources": {"en": "Sources", "it": "Fonti"},
+    "last_30_days": {"en": "last 30 days", "it": "ultimi 30 giorni"},
+    "victims_per_day": {"en": "Victims per day", "it": "Vittime al giorno"},
+    "victims_per_month": {"en": "Victims per Month", "it": "Vittime al mese"},
+    "last_24_months": {"en": "last 24 months", "it": "ultimi 24 mesi"},
+    "victim_distribution": {"en": "Victim Distribution", "it": "Distribuzione vittime"},
+    "recent_victims": {"en": "Recent Victims", "it": "Vittime recenti"},
+    "most_active_groups": {"en": "Most active groups", "it": "Gruppi più attivi"},
+    "most_active_adversaries": {"en": "Most Active Adversaries", "it": "Avversari più attivi"},
+    "no_victims_30d": {
+        "en": "No victims recorded in the last 30 days.",
+        "it": "Nessuna vittima registrata negli ultimi 30 giorni.",
+    },
+    "no_groups_30d": {
+        "en": "No group activity recorded in the last 30 days.",
+        "it": "Nessuna attività di gruppo registrata negli ultimi 30 giorni.",
+    },
+    "no_victims_period": {
+        "en": "No victims in this period.",
+        "it": "Nessuna vittima in questo periodo.",
+    },
+    "word_victim": {"en": "victim", "it": "vittima"},
+    "word_victims": {"en": "victims", "it": "vittime"},
+    "word_name": {"en": "Name", "it": "Nome"},
+    "word_group": {"en": "Group", "it": "Gruppo"},
+    "word_country": {"en": "Country", "it": "Paese"},
+    "word_discovered": {"en": "Discovered", "it": "Rilevata"},
+    "label_7d": {"en": "7 days", "it": "7 giorni"},
+    "label_1m": {"en": "1 month", "it": "1 mese"},
+    "label_1y": {"en": "1 year", "it": "1 anno"},
+    "last_update_label": {"en": "Last update:", "it": "Ultimo aggiornamento:"},
+    "refresh_now": {"en": "Refresh Now", "it": "Aggiorna ora"},
+    "js_refreshing": {"en": "Refreshing…", "it": "Aggiornamento…"},
+    "js_update_failed": {"en": "update failed", "it": "aggiornamento fallito"},
+    "want_more_head": {"en": "Want more?", "it": "Vuoi di più?"},
+    "want_more_body": {
+        "en": "Sign in from the left sidebar to unlock the full platform. Read the",
+        "it": (
+            "Accedi dalla barra laterale sinistra per sbloccare la piattaforma completa. Leggi le"
+        ),
+    },
+    "want_more_tail": {
+        "en": (
+            "to learn what Elementary CTI is, where the data comes from, and how to get an account."
+        ),
+        "it": (
+            "per scoprire cos'è Elementary CTI, da dove vengono i dati e come ottenere un account."
+        ),
+    },
     "nav_guide": {"en": "Guide", "it": "Guida"},
     "guide_lang_note": {
         "en": "This guide is currently available in Italian only. An English version is planned.",
