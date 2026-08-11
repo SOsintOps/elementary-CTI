@@ -113,6 +113,10 @@ def test_empty_matrix_explains_itself(monkeypatch, authenticate):
 
 
 def test_absence_is_labelled_as_unobserved_not_unused(seeded):
-    """A blank cell means "not seen in our data", which the page must say."""
+    """A blank cell means "not seen in our data", which the page must say —
+    in the default English UI and in Italian after the language toggle."""
     body = seeded.get("/attack").text
-    assert "non osservata nei nostri dati" in body
+    assert "not observed in our data" in body
+    seeded.get("/lang/it", follow_redirects=False)
+    body_it = seeded.get("/attack").text
+    assert "non osservata nei nostri dati" in body_it

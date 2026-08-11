@@ -63,6 +63,7 @@ from pestilentia.pipeline.backfill import BACKFILL_CATEGORY, BACKFILL_FIRST_YEAR
 from pestilentia.pipeline.ingest import ingest_source
 from pestilentia.security import hash_password, role_at_least, verify_password
 from pestilentia.web import sessions as _sessions
+from pestilentia.web.i18n import DEFAULT_LANG, SUPPORTED_LANGS, translate
 from pestilentia.web.mugshot import generate_mugshot
 
 BASE_DIR = Path(__file__).parent
@@ -72,7 +73,9 @@ PER_PAGE = 50
 # flow, and the two anonymous surfaces (step 5) — the public dashboard on "/"
 # (the route renders the TLP:CLEAR 30-day variant for anonymous visitors)
 # and the FAQ. Anonymous views of public paths are not activity-logged.
-_PUBLIC_PATHS = frozenset({"/healthz", "/favicon.ico", "/login", "/", "/faq"})
+_PUBLIC_PATHS = frozenset(
+    {"/healthz", "/favicon.ico", "/login", "/", "/faq", "/lang/en", "/lang/it"}
+)
 
 
 @asynccontextmanager
@@ -424,8 +427,11 @@ def login_submit(
         )
         # A brand-new token on every login: fresh sid, so a pre-login cookie
         # value can never name an authenticated session (fixation defence).
+        # The ?in=1 marker lets the landing page detect the silent-failure
+        # case where login succeeded but the browser refused the cookie
+        # (e.g. Secure flag on a plain-HTTP deployment).
         token = _sessions.issue_session(get_settings().secret_key, row.id)
-        response = RedirectResponse("/", status_code=303)
+        response = RedirectResponse("/?in=1", status_code=303)
         _set_session_cookie(response, token)
         return response
     finally:
@@ -451,6 +457,22 @@ def logout(request: Request, csrf_token: str = Form(default="")):
             session.close()
     response = RedirectResponse("/login", status_code=303)
     response.delete_cookie(_sessions.SESSION_COOKIE, path="/")
+    return response
+
+
+# --- UI language toggle (EN/IT) ---
+_LANG_COOKIE = "pest_lang"
+
+
+@app.get("/lang/{code}", include_in_schema=False)
+def set_language(code: str, next: str = "/"):
+    if code not in SUPPORTED_LANGS:
+        raise HTTPException(status_code=404, detail="Unsupported language")
+    # local paths only — no open redirect
+    if not next.startswith("/") or next.startswith("//"):
+        next = "/"
+    response = RedirectResponse(next, status_code=303)
+    response.set_cookie(_LANG_COOKIE, code, max_age=365 * 24 * 3600, samesite="lax", path="/")
     return response
 
 
@@ -1038,6 +1060,13 @@ templates.env.filters["safe_url"] = _safe_url
 
 # "The truth is rarely pure and never simple." — Sherlock Holmes, Elementary
 def _render(request: Request, name: str, ctx: dict, status_code: int = 200):
+    # UI language (EN default, IT via the sidebar toggle): resolved once per
+    # request and injected as `lang` + a bound `t()` for every template.
+    lang = request.cookies.get(_LANG_COOKIE, "")
+    if lang not in SUPPORTED_LANGS:
+        lang = DEFAULT_LANG
+    ctx.setdefault("lang", lang)
+    ctx.setdefault("t", lambda key: translate(key, lang))
     return templates.TemplateResponse(
         request=request, name=name, context=ctx, status_code=status_code
     )
@@ -1450,6 +1479,9 @@ def _public_dashboard(request: Request, now: datetime):
             "recent_victims": recent_victims,
             "top_groups": top_groups,
             "timeline": timeline,
+            # Login round-trip landed here anonymous: the browser did not
+            # keep the session cookie. Surface it instead of failing silently.
+            "cookie_lost": request.query_params.get("in") == "1",
         },
     )
 

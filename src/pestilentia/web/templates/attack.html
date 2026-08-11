@@ -12,16 +12,13 @@
 
 {% block content %}
 <p class="text-xs text-slate-400 dark:text-noir-mute mb-4">
-    Matrice di copertura MITRE ATT&amp;CK: le tattiche sono colonne in ordine di kill-chain,
-    le tecniche sono celle.
+    {{ t('intro_attack_head') }}
     {% if scoped_group %}
-    Vista ristretta a <strong>{{ scoped_group.group_name }}</strong>.
+    {{ t('attack_scoped_to') }} <strong>{{ scoped_group.group_name }}</strong>.
     {% else %}
-    L'intensità del colore indica <strong>quanti avversari distinti</strong> usano quella tecnica —
-    è una scala di magnitudine, quindi una sola tinta, più scuro = più diffuso.
+    {{ t('attack_magnitude') }}
     {% endif %}
-    Copre solo ciò che le fonti attribuiscono esplicitamente: l'assenza di una tecnica significa
-    "non osservata nei nostri dati", non "non usata".
+    {{ t('attack_absence') }}
 </p>
 
 <div class="flex items-center justify-between mb-3">

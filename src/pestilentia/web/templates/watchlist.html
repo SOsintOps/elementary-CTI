@@ -4,7 +4,7 @@
 {% block header %}Watchlist{% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Monitoraggio proattivo di organizzazioni specifiche. Aggiungi un target indicando il nome dell'azienda, il dominio e parole chiave opzionali. Ad ogni aggiornamento dati, il sistema confronta le nuove vittime con i target della watchlist usando un algoritmo di matching fuzzy (soglia configurabile, default 85%). Quando viene trovata una corrispondenza, viene generato un alert e le notifiche vengono inviate ai canali configurati (log, webhook). Gli alert possono essere contrassegnati come letti singolarmente o tutti in blocco.</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_watchlist') }}</p>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-1 space-y-4">
         <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4">

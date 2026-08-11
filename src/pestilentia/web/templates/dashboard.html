@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">Panoramica in tempo reale delle minacce ransomware. I contatori aggregano vittime, gruppi avversari, cyberattacchi e paesi coinvolti da tutte le fonti attive. Le vittime recenti sono filtrabili per periodo (7 giorni, 1 mese, 1 anno). Il contatore "Sources" include sia i feed dati primari sia le fonti di arricchimento (MITRE, Ransomwhere, deepdarkCTI). Clicca "Refresh Now" per forzare un aggiornamento manuale di tutte le fonti.</p>
+<p class="text-xs text-slate-400 dark:text-noir-mute mb-4">{{ t('intro_dashboard') }}</p>
 <!-- Stats cards -->
 <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     {# Only metrics that carry a date get a delta and a spark. Group, Country
