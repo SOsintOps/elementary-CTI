@@ -223,11 +223,24 @@ def test_priority_filter_narrows_the_list(seeded):
 # --- W16: decision-impact loop ---
 
 
+def _elevate_to_analyst(seeded):
+    # Acting on alerts is analyst work (OWASP audit A01): the read-only user
+    # role gets 403 from these endpoints, asserted in test_auth_roles.
+    from pestilentia.models.tables import User
+
+    with seeded.factory() as s:
+        row = s.query(User).filter(User.username == "tester").one()
+        row.role = "analyst"
+        s.commit()
+
+
 def test_alert_actioned_toggles_and_implies_seen(seeded):
     """ "Seen" is not "acted on"; the gap between them is the thing to measure."""
     from datetime import UTC, datetime
 
     from pestilentia.models.tables import Alert, Victim, Watchlist
+
+    _elevate_to_analyst(seeded)
 
     factory = web._session_factory
     with factory() as session:
@@ -255,6 +268,7 @@ def test_alert_actioned_toggles_and_implies_seen(seeded):
 
 
 def test_unknown_alert_is_404(seeded):
+    _elevate_to_analyst(seeded)
     token = web._generate_csrf_token()
     r = seeded.post("/api/v1/alerts/999999/actioned", headers={"X-CSRF-Token": token})
     assert r.status_code == 404

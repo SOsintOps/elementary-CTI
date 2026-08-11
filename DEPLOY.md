@@ -75,11 +75,9 @@ PEST_SECRET_KEY=<python -c "import secrets; print(secrets.token_hex(32))">
 # (session login; the pair is ignored once accounts exist):
 PEST_AUTH_USER=<your username>
 PEST_AUTH_PASS=<a strong password>
-# Plain-HTTP LAN deployments must disable the Secure cookie flag until a
-# TLS proxy fronts the app (keep the default true behind HTTPS):
-PEST_COOKIE_SECURE=false
-# Expose the web UI on the LAN (default is loopback only):
-PEST_WEB_BIND=0.0.0.0
+# Site address the bundled Caddy proxy serves (default localhost). For LAN
+# access use the host's mDNS name or its LAN IP:
+PEST_DOMAIN=<host>.local
 ```
 
 `docker-compose.yml` refuses to start without `POSTGRES_PASSWORD` and
@@ -121,14 +119,50 @@ schemas, and resets Postgres id sequences. Verify the counts it prints
 
 ```bash
 docker compose up -d
-docker compose ps              # web + scheduler + db, all healthy
+docker compose ps              # caddy + web + scheduler + db, all healthy
 ```
 
-Open `http://<host>:8000/`. Anonymous visitors see the public 30-day
-dashboard; sign in from the sidebar with the bootstrap admin credentials
-(`PEST_AUTH_USER`/`PEST_AUTH_PASS`) to unlock the full UI. Then create the
-accounts you need.
-`http://<host>:8000/healthz` is always public and is what Docker probes.
+Open `https://<PEST_DOMAIN>/` (port 80 redirects to 443). Anonymous visitors
+see the public 30-day dashboard; sign in from the sidebar with the bootstrap
+admin credentials (`PEST_AUTH_USER`/`PEST_AUTH_PASS`) to unlock the full UI.
+Then create the accounts you need. `/healthz` is always public and is what
+Docker probes — from inside the container, so it needs no host port.
+
+### TLS / reverse proxy (Caddy)
+
+The app container publishes **no host port**: the only way in is the `caddy`
+service on 80/443, which terminates TLS, adds HSTS, and forwards the client
+address via `X-Forwarded-For`. The app trusts that header only from the pinned
+compose subnet (`172.28.0.0/16`) and only its rightmost entry — the one the
+proxy appended — so the activity log records the real client and a header
+forged by anyone else is ignored.
+
+Three stages, all driven by `.env`; the `Caddyfile` in `deploy/caddy/` never
+changes:
+
+| Stage | `.env` | Certificate |
+|---|---|---|
+| default | *(nothing)* | `https://localhost`, Caddy's internal CA |
+| LAN | `PEST_DOMAIN=<mDNS name or LAN IP>` | internal CA — the browser shows a self-signed warning; import Caddy's root CA from the `caddy_data` volume to silence it |
+| public | `PEST_DOMAIN=<domain>`, `PEST_TLS_MODE=<ACME e-mail>` | Let's Encrypt, automatic |
+
+Clients that dial a raw IP send no SNI, so if the LAN IP is one of your site
+addresses set `PEST_DEFAULT_SNI` to it — otherwise the TLS handshake fails for
+those clients.
+
+Proxy-level rate limiting is deliberately absent: the Caddy plugin needs a
+custom `xcaddy` build, and the in-app login backoff already covers the
+credential surface.
+
+**Before exposing this to the internet**, read `SECURITY.md` and treat the
+public stage as a decision, not a default: it needs a DNS record and a router
+port-forward for 80/443 only.
+
+**Upgrading an existing deployment:** the compose network is now pinned to
+`172.28.0.0/16`, so run `docker compose down && docker compose up -d` once
+(a plain `up -d` cannot re-create the network), and drop any `PEST_WEB_BIND`
+or `PEST_COOKIE_SECURE=false` lines from `.env` — the first no longer exists,
+and the second must return to its secure default now that TLS fronts the app.
 
 ## 5. Operate & observe (multi-day trial)
 

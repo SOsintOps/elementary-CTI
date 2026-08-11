@@ -36,8 +36,33 @@ services:
       # Secure flag on the session cookie: true behind TLS (production),
       # false only for plain-HTTP LAN use (set in .env until Caddy lands).
       PEST_COOKIE_SECURE: ${PEST_COOKIE_SECURE:-true}
+      # The compose network (pinned below) — requests arriving from it are
+      # the proxy's, so its X-Forwarded-For is trusted for user_activity.
+      PEST_TRUSTED_PROXY_CIDR: ${PEST_TRUSTED_PROXY_CIDR:-172.28.0.0/16}
+    # No host port: the app is reachable only through the caddy proxy.
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
     ports:
-      - "${PEST_WEB_BIND:-127.0.0.1}:8000:8000"
+      - "80:80"
+      - "443:443"
+    environment:
+      # Site address: localhost (default), a LAN name/IP, or — at step 12,
+      # after the OWASP audit — the real public domain.
+      PEST_DOMAIN: ${PEST_DOMAIN:-localhost}
+      # "internal" = Caddy's own CA (self-signed). Set to an ACME e-mail
+      # address to switch the site to Let's Encrypt.
+      PEST_TLS_MODE: ${PEST_TLS_MODE:-internal}
+      # Certificate served to no-SNI handshakes (i.e. clients dialing a raw
+      # IP); set to the LAN IP when that is one of the site addresses.
+      PEST_DEFAULT_SNI: ${PEST_DEFAULT_SNI:-localhost}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
 
   scheduler:
     build: .
@@ -59,3 +84,14 @@ services:
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  # Pinned so PEST_TRUSTED_PROXY_CIDR is deterministic instead of depending
+  # on docker's network-creation order. 172.17/16 and 172.18/16 are already
+  # taken on the host; changing this requires `docker compose down` first.
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

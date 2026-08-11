@@ -222,3 +222,172 @@ def test_validators_are_stored_only_after_a_successful_parse():
         with pytest.raises(ValueError):
             rss.ingest_feed(session, src)
         assert src.etag == 'W/"new"', "validators must not update on a parse failure"
+
+
+# --- OWASP audit A10 (2026-08): SSRF guard on the fulltext fetch ------------
+# Article URLs come from third-party feeds; the fetch runs inside the
+# deployment's network. Non-public destinations must never be dialed.
+
+
+def _fake_resolver(mapping):
+    def resolver(host, *a, **k):
+        if host not in mapping:
+            raise OSError(f"unresolvable: {host}")
+        return [(2, 1, 6, "", (mapping[host], 0))]
+
+    return resolver
+
+
+def test_ssrf_guard_refuses_non_public_destinations(monkeypatch):
+    monkeypatch.setattr(
+        ft.socket,
+        "getaddrinfo",
+        _fake_resolver(
+            {
+                "public.example": "93.184.216.34",
+                "internal.example": "192.168.178.1",
+                "metadata.example": "169.254.169.254",
+                "localhost": "127.0.0.1",
+            }
+        ),
+    )
+    assert ft._is_publicly_routable("https://public.example/post") is True
+    assert ft._is_publicly_routable("http://internal.example/admin") is False
+    assert ft._is_publicly_routable("http://metadata.example/latest") is False
+    assert ft._is_publicly_routable("http://localhost:8000/healthz") is False
+    assert ft._is_publicly_routable("http://10.0.0.7/x") is False  # literal, no DNS
+    assert ft._is_publicly_routable("ftp://public.example/x") is False
+    assert ft._is_publicly_routable("http://nxdomain.example/x") is False
+
+
+def test_fetch_full_text_never_dials_refused_urls(monkeypatch):
+    def explode(*a, **k):
+        raise AssertionError("guard must reject before any HTTP request")
+
+    monkeypatch.setattr(ft.httpx, "stream", explode)
+    monkeypatch.setattr(ft, "_is_publicly_routable", lambda url: False)
+    assert ft.fetch_full_text("http://192.168.178.88/secret") is None
+
+
+class _FakeStream:
+    """httpx.stream() stand-in: a context manager yielding a canned response."""
+
+    def __init__(self, status_code, headers=None, text="", peer="93.184.216.34"):
+        self.status_code = status_code
+        self.headers = headers or {}
+        self._text = text
+        self._peer = peer
+        self.read_called = False
+
+    # -- context manager --------------------------------------------------
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    # -- httpx.Response surface used by fetch_full_text -------------------
+    @property
+    def extensions(self):
+        peer = self._peer
+
+        class _Stream:
+            def get_extra_info(self, name):
+                return (peer, 443) if name == "server_addr" and peer else None
+
+        return {"network_stream": _Stream() if peer else None}
+
+    @property
+    def is_redirect(self):
+        return self.status_code in (301, 302, 303, 307, 308)
+
+    def read(self):
+        self.read_called = True
+        return self._text.encode()
+
+    @property
+    def text(self):
+        return self._text
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise AssertionError(f"unexpected status {self.status_code}")
+
+
+_ARTICLE_HTML = "<html><body><article>" + "Real body text. " * 40 + "</article></body></html>"
+
+
+def test_redirect_to_internal_host_is_refused(monkeypatch):
+    """A public host answering 302 -> loopback must not be followed: the
+    guard would otherwise validate only the first URL (OWASP audit A10)."""
+    dialed = []
+
+    def fake_stream(method, url, **kwargs):
+        assert kwargs.get("follow_redirects") is False, "redirects must be walked by hand"
+        dialed.append(url)
+        if url == "https://public.example/post":
+            return _FakeStream(302, {"location": "http://169.254.169.254/latest/meta-data/"})
+        raise AssertionError(f"internal host was dialed: {url}")
+
+    monkeypatch.setattr(ft.httpx, "stream", fake_stream)
+    monkeypatch.setattr(
+        ft, "_is_publicly_routable", lambda url: url == "https://public.example/post"
+    )
+    assert ft.fetch_full_text("https://public.example/post") is None
+    assert dialed == ["https://public.example/post"]
+
+
+def test_redirect_to_public_host_is_followed(monkeypatch):
+    def fake_stream(method, url, **kwargs):
+        if url == "https://public.example/post":
+            return _FakeStream(301, {"location": "/final"})  # relative Location
+        return _FakeStream(200, text=_ARTICLE_HTML)
+
+    monkeypatch.setattr(ft.httpx, "stream", fake_stream)
+    monkeypatch.setattr(ft, "_is_publicly_routable", lambda url: True)
+    assert ft.fetch_full_text("https://public.example/post") is not None
+
+
+def test_redirect_loop_terminates(monkeypatch):
+    calls = []
+
+    def fake_stream(method, url, **kwargs):
+        calls.append(url)
+        return _FakeStream(302, {"location": "https://public.example/next"})
+
+    monkeypatch.setattr(ft.httpx, "stream", fake_stream)
+    monkeypatch.setattr(ft, "_is_publicly_routable", lambda url: True)
+    assert ft.fetch_full_text("https://public.example/post") is None
+    assert len(calls) == ft.MAX_REDIRECTS + 1
+
+
+# --- DNS rebinding: the name passed the check, the socket went elsewhere ----
+
+
+def test_rebound_peer_is_refused_before_the_body_is_read(monkeypatch):
+    """_is_publicly_routable says yes (attacker DNS answered public), but the
+    connection landed on the metadata service. The body must never be read."""
+    response = _FakeStream(200, text=_ARTICLE_HTML, peer="169.254.169.254")
+    monkeypatch.setattr(ft.httpx, "stream", lambda *a, **k: response)
+    monkeypatch.setattr(ft, "_is_publicly_routable", lambda url: True)
+
+    assert ft.fetch_full_text("https://rebind.example/post") is None
+    assert not response.read_called, "internal content must not be read into memory"
+
+
+def test_unverifiable_peer_fails_closed(monkeypatch):
+    response = _FakeStream(200, text=_ARTICLE_HTML, peer=None)
+    monkeypatch.setattr(ft.httpx, "stream", lambda *a, **k: response)
+    monkeypatch.setattr(ft, "_is_publicly_routable", lambda url: True)
+
+    assert ft.fetch_full_text("https://public.example/post") is None
+    assert not response.read_called
+
+
+def test_public_peer_is_accepted(monkeypatch):
+    response = _FakeStream(200, text=_ARTICLE_HTML, peer="93.184.216.34")
+    monkeypatch.setattr(ft.httpx, "stream", lambda *a, **k: response)
+    monkeypatch.setattr(ft, "_is_publicly_routable", lambda url: True)
+
+    assert ft.fetch_full_text("https://public.example/post") is not None
+    assert response.read_called

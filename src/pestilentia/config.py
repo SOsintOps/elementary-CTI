@@ -70,6 +70,10 @@ class Settings:
     cookie_secure: bool = True
     # user_activity rows older than this are purged on the scheduler cycle.
     activity_retention_days: int = 90
+    # CIDR of the reverse proxy(-only) network. When the request peer falls
+    # inside it, the rightmost X-Forwarded-For entry (the one the proxy
+    # appended) is recorded as the client IP; empty = trust no proxy.
+    trusted_proxy_cidr: str = ""
 
 
 _settings: Settings | None = None
@@ -111,6 +115,7 @@ def _load() -> Settings:
         "auth_user": os.getenv("PEST_AUTH_USER"),
         "auth_pass": os.getenv("PEST_AUTH_PASS"),
         "activity_retention_days": os.getenv("PEST_ACTIVITY_RETENTION_DAYS"),
+        "trusted_proxy_cidr": os.getenv("PEST_TRUSTED_PROXY_CIDR"),
     }
 
     # bool("false") is True — booleans need explicit parsing, not the
