@@ -11,7 +11,9 @@
     <script>
         (function () {
             var q = new URLSearchParams(window.location.search).get('theme');
-            var t = q || localStorage.getItem('pest-theme');
+            // Server-side per-user preference (settings page) is the default
+            // wherever this browser has no explicit choice yet.
+            var t = q || localStorage.getItem('pest-theme') || '{{ request.state.user.theme if request.state.user else "" }}';
             if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             if (t === 'dark') document.documentElement.classList.add('dark');
             if (q) localStorage.setItem('pest-theme', q);
@@ -152,6 +154,7 @@
             <a href="/pipeline" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'pipeline' %}active{% endif %}">Pipeline</a>
             <a href="/guide" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'guide' %}active{% endif %}">Guida</a>
             <a href="/faq" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'faq' %}active{% endif %}">FAQ</a>
+            <a href="/settings" class="sidebar-link block px-3 py-2 rounded text-sm {% if active == 'settings' %}active{% endif %}">Settings</a>
         </nav>
         <div class="px-3 py-2 border-t border-gray-200 dark:border-noir-border flex items-center justify-between gap-2">
             <span class="text-xs text-gray-600 dark:text-noir-text truncate" title="Signed in as {{ request.state.user.username }} ({{ request.state.user.role }})">

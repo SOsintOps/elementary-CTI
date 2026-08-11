@@ -1,0 +1,14 @@
+<div class="flex gap-1 mb-4 border-b border-gray-200 dark:border-noir-border" role="tablist" aria-label="Settings sections">
+    <a href="/settings" role="tab" aria-selected="{{ 'true' if tab == 'profile' else 'false' }}"
+       class="px-3 py-2 text-sm rounded-t {% if tab == 'profile' %}border border-b-0 border-gray-200 dark:border-noir-border text-accent font-medium bg-base-card dark:bg-noir-card{% else %}text-gray-500 dark:text-noir-mute hover:text-accent{% endif %}">Profile</a>
+    {% if is_admin %}
+    <a href="/settings/users" role="tab" aria-selected="{{ 'true' if tab == 'users' else 'false' }}"
+       class="px-3 py-2 text-sm rounded-t {% if tab == 'users' %}border border-b-0 border-gray-200 dark:border-noir-border text-accent font-medium bg-base-card dark:bg-noir-card{% else %}text-gray-500 dark:text-noir-mute hover:text-accent{% endif %}">Users</a>
+    <a href="/settings/activity" role="tab" aria-selected="{{ 'true' if tab == 'activity' else 'false' }}"
+       class="px-3 py-2 text-sm rounded-t {% if tab == 'activity' %}border border-b-0 border-gray-200 dark:border-noir-border text-accent font-medium bg-base-card dark:bg-noir-card{% else %}text-gray-500 dark:text-noir-mute hover:text-accent{% endif %}">Activity</a>
+    <a href="/settings/sources" role="tab" aria-selected="{{ 'true' if tab == 'sources' else 'false' }}"
+       class="px-3 py-2 text-sm rounded-t {% if tab == 'sources' %}border border-b-0 border-gray-200 dark:border-noir-border text-accent font-medium bg-base-card dark:bg-noir-card{% else %}text-gray-500 dark:text-noir-mute hover:text-accent{% endif %}">Sources</a>
+    <a href="/settings/keys" role="tab" aria-selected="{{ 'true' if tab == 'keys' else 'false' }}"
+       class="px-3 py-2 text-sm rounded-t {% if tab == 'keys' %}border border-b-0 border-gray-200 dark:border-noir-border text-accent font-medium bg-base-card dark:bg-noir-card{% else %}text-gray-500 dark:text-noir-mute hover:text-accent{% endif %}">Service keys</a>
+    {% endif %}
+</div>

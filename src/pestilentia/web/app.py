@@ -18,7 +18,7 @@ from fastapi.responses import JSONResponse, RedirectResponse, Response, Streamin
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
-from sqlalchemy import func
+from sqlalchemy import false, func
 from sqlalchemy.orm import Session, joinedload
 
 import pestilentia.clients.ransomware_live  # register source
@@ -31,12 +31,14 @@ from pestilentia.activity import (
     KIND_LOGIN_OK,
     KIND_LOGOUT,
     KIND_PAGE_VIEW,
+    KIND_PASSWORD_CHANGE,
     record_activity,
 )
 from pestilentia.clients.registry import SOURCES
 from pestilentia.matching import fuzzy_match_watchlist
 from pestilentia.models import (
     Alert,
+    ArticleSource,
     Country,
     Cyberattack,
     DataSource,
@@ -47,7 +49,15 @@ from pestilentia.models import (
     create_all,
     get_session_factory,
 )
-from pestilentia.models.tables import GroupBtcTransaction, GroupTool, GroupTTP, User
+from pestilentia.models.tables import (
+    AdminAudit,
+    GroupBtcTransaction,
+    GroupTool,
+    GroupTTP,
+    ServiceKey,
+    User,
+    UserActivity,
+)
 from pestilentia.notifications import dispatch_alerts
 from pestilentia.pipeline.backfill import BACKFILL_CATEGORY, BACKFILL_FIRST_YEAR
 from pestilentia.pipeline.ingest import ingest_source
@@ -336,6 +346,11 @@ def require_role(minimum: str):
     return _dep
 
 
+# Module-level dependency singletons (B008: no calls in argument defaults).
+REQUIRE_ADMIN = Depends(require_role("admin"))
+REQUIRE_ANALYST = Depends(require_role("analyst"))
+
+
 # --- Login / logout (v0.7 auth plan, step 3) ---
 _login_backoff = _sessions.LoginBackoff()
 
@@ -437,6 +452,497 @@ def logout(request: Request, csrf_token: str = Form(default="")):
     response = RedirectResponse("/login", status_code=303)
     response.delete_cookie(_sessions.SESSION_COOKIE, path="/")
     return response
+
+
+# --- Settings (v0.7 auth plan, steps 6-9) ---
+_MIN_PASSWORD_LEN = 10
+
+
+def _settings_ctx(request: Request, tab: str, extra: dict | None = None) -> dict:
+    ctx = {
+        "active": "settings",
+        "tab": tab,
+        "is_admin": role_at_least(request.state.user["role"], "admin"),
+    }
+    if extra:
+        ctx.update(extra)
+    return ctx
+
+
+@app.get("/settings", include_in_schema=False)
+def settings_profile(request: Request, saved: str = ""):
+    return _render(
+        request,
+        "settings_profile.html",
+        _settings_ctx(request, "profile", {"saved": saved, "error": None}),
+    )
+
+
+@app.post("/settings/password", include_in_schema=False)
+def settings_change_password(
+    request: Request,
+    current_password: str = Form(default=""),
+    new_password: str = Form(default=""),
+    confirm_password: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+
+    def _err(msg: str, code: int = 400):
+        return _render(
+            request,
+            "settings_profile.html",
+            _settings_ctx(request, "profile", {"saved": "", "error": msg}),
+            status_code=code,
+        )
+
+    if len(new_password) < _MIN_PASSWORD_LEN:
+        return _err(f"New password must be at least {_MIN_PASSWORD_LEN} characters.")
+    if new_password != confirm_password:
+        return _err("New password and confirmation do not match.")
+
+    session = get_db()
+    try:
+        row = session.get(User, request.state.user["id"])
+        if row is None or not verify_password(row.password_hash, current_password):
+            return _err("Current password is incorrect.", code=403)
+        row.password_hash = hash_password(new_password)
+        session.commit()
+        record_activity(
+            session,
+            KIND_PASSWORD_CHANGE,
+            actor_id=row.id,
+            actor_name=row.username,
+            client_ip=_client_ip(request),
+        )
+    finally:
+        session.close()
+    return RedirectResponse("/settings?saved=password", status_code=303)
+
+
+@app.post("/settings/theme", include_in_schema=False)
+def settings_change_theme(
+    request: Request,
+    theme: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    if theme not in ("light", "dark"):
+        raise HTTPException(status_code=400, detail="Theme must be light or dark")
+    session = get_db()
+    try:
+        row = session.get(User, request.state.user["id"])
+        if row is not None:
+            row.theme = theme
+            session.commit()
+    finally:
+        session.close()
+    return RedirectResponse("/settings?saved=theme", status_code=303)
+
+
+# --- Settings: Users + Activity admin tabs (step 7) ---
+
+
+def _audit(session: Session, request: Request, action: str, target: str, detail: str | None = None):
+    """One admin_audit row per admin mutation. Never store secrets in detail."""
+    actor = request.state.user
+    session.add(
+        AdminAudit(
+            actor_id=actor["id"],
+            actor_name=actor["username"],
+            action=action[:32],
+            target=target[:128],
+            detail=detail[:2048] if detail else None,
+        )
+    )
+    session.commit()
+
+
+def _active_admin_count(session: Session) -> int:
+    return session.query(User).filter(User.role == "admin", User.disabled == false()).count()
+
+
+def _is_last_active_admin(session: Session, row: User) -> bool:
+    return row.role == "admin" and not row.disabled and _active_admin_count(session) <= 1
+
+
+_USERNAME_RE = _re.compile(r"^[a-z0-9_.-]{3,64}$")
+
+
+@app.get("/settings/users", include_in_schema=False)
+def settings_users(request: Request, _admin: dict = REQUIRE_ADMIN, err: str = ""):
+    with get_db() as session:
+        users = session.query(User).order_by(User.username).all()
+        rows = [
+            {
+                "id": u.id,
+                "username": u.username,
+                "role": u.role,
+                "disabled": u.disabled,
+                "created_at": u.created_at,
+                "last_login_at": u.last_login_at,
+            }
+            for u in users
+        ]
+    return _render(
+        request, "settings_users.html", _settings_ctx(request, "users", {"users": rows, "err": err})
+    )
+
+
+def _users_redirect(err: str = "") -> RedirectResponse:
+    url = "/settings/users" + (f"?err={err}" if err else "")
+    return RedirectResponse(url, status_code=303)
+
+
+@app.post("/settings/users/create", include_in_schema=False)
+def settings_users_create(
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    username: str = Form(default=""),
+    password: str = Form(default=""),
+    role: str = Form(default="user"),
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    username = username.strip().lower()
+    if not _USERNAME_RE.fullmatch(username):
+        return _users_redirect("bad_username")
+    if len(password) < _MIN_PASSWORD_LEN:
+        return _users_redirect("short_password")
+    if role not in ("user", "analyst", "admin"):
+        return _users_redirect("bad_role")
+    with get_db() as session:
+        if session.query(User).filter(User.username == username).count():
+            return _users_redirect("exists")
+        session.add(User(username=username, password_hash=hash_password(password), role=role))
+        session.commit()
+        _audit(session, request, "user_create", username, f"role={role}")
+    return _users_redirect()
+
+
+@app.post("/settings/users/{uid}/toggle", include_in_schema=False)
+def settings_users_toggle(
+    uid: int,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    with get_db() as session:
+        row = session.get(User, uid)
+        if row is None:
+            return _users_redirect("not_found")
+        if row.id == request.state.user["id"]:
+            return _users_redirect("self")
+        if not row.disabled and _is_last_active_admin(session, row):
+            return _users_redirect("last_admin")
+        row.disabled = not row.disabled
+        session.commit()
+        _audit(session, request, "user_disable" if row.disabled else "user_enable", row.username)
+    return _users_redirect()
+
+
+@app.post("/settings/users/{uid}/delete", include_in_schema=False)
+def settings_users_delete(
+    uid: int,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    with get_db() as session:
+        row = session.get(User, uid)
+        if row is None:
+            return _users_redirect("not_found")
+        if row.id == request.state.user["id"]:
+            return _users_redirect("self")
+        if _is_last_active_admin(session, row):
+            return _users_redirect("last_admin")
+        name = row.username
+        session.delete(row)
+        session.commit()
+        _audit(session, request, "user_delete", name)
+    return _users_redirect()
+
+
+@app.post("/settings/users/{uid}/role", include_in_schema=False)
+def settings_users_role(
+    uid: int,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    role: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    if role not in ("user", "analyst", "admin"):
+        return _users_redirect("bad_role")
+    with get_db() as session:
+        row = session.get(User, uid)
+        if row is None:
+            return _users_redirect("not_found")
+        if row.role == "admin" and role != "admin" and _is_last_active_admin(session, row):
+            return _users_redirect("last_admin")
+        old = row.role
+        row.role = role
+        session.commit()
+        _audit(session, request, "user_role_change", row.username, f"{old} -> {role}")
+    return _users_redirect()
+
+
+@app.post("/settings/users/{uid}/reset-password", include_in_schema=False)
+def settings_users_reset_password(
+    uid: int,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    new_password: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    if len(new_password) < _MIN_PASSWORD_LEN:
+        return _users_redirect("short_password")
+    with get_db() as session:
+        row = session.get(User, uid)
+        if row is None:
+            return _users_redirect("not_found")
+        row.password_hash = hash_password(new_password)
+        session.commit()
+        _audit(session, request, "user_password_reset", row.username)
+    return _users_redirect()
+
+
+# --- Settings: Sources admin tab (step 8) ---
+# Reuses the toggle storage that already existed (DataSource.enabled,
+# InfoUpdate "<name>_enabled" rows, ArticleSource.enabled) — no new table;
+# recorded as a deviation in the step 6-9 plan.
+_ENRICHMENT_NAMES = ("mitre", "ransomwhere", "deepdarkcti", "articles")
+
+
+def _enrichment_enabled(session: Session, name: str) -> bool:
+    row = session.query(InfoUpdate).filter_by(category=f"{name}_enabled").first()
+    return True if row is None else bool(row.number)
+
+
+@app.get("/settings/sources", include_in_schema=False)
+def settings_sources(request: Request, _admin: dict = REQUIRE_ADMIN):
+    with get_db() as session:
+        primary = [
+            {"id": d.id, "name": d.source_name, "enabled": d.enabled}
+            for d in session.query(DataSource).order_by(DataSource.source_name)
+        ]
+        enrichments = [
+            {"name": n, "enabled": _enrichment_enabled(session, n)} for n in _ENRICHMENT_NAMES
+        ]
+        feeds = [
+            {"id": f.id, "name": f.name, "enabled": f.enabled, "tlp": f.default_tlp}
+            for f in session.query(ArticleSource).order_by(ArticleSource.name)
+        ]
+    return _render(
+        request,
+        "settings_sources.html",
+        _settings_ctx(
+            request,
+            "sources",
+            {"primary": primary, "enrichments": enrichments, "feeds": feeds},
+        ),
+    )
+
+
+@app.post("/settings/sources/primary/{sid}/toggle", include_in_schema=False)
+def settings_sources_primary_toggle(
+    sid: int,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    with get_db() as session:
+        row = session.get(DataSource, sid)
+        if row is None:
+            raise HTTPException(status_code=404, detail="Source not found")
+        row.enabled = not row.enabled
+        session.commit()
+        _audit(
+            session,
+            request,
+            "source_enable" if row.enabled else "source_disable",
+            row.source_name,
+        )
+    return RedirectResponse("/settings/sources", status_code=303)
+
+
+@app.post("/settings/sources/enrichment/{name}/toggle", include_in_schema=False)
+def settings_sources_enrichment_toggle(
+    name: str,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    if name not in _ENRICHMENT_NAMES:
+        raise HTTPException(status_code=404, detail="Unknown enrichment")
+    with get_db() as session:
+        cat = f"{name}_enabled"
+        row = session.query(InfoUpdate).filter_by(category=cat).first()
+        if row is None:
+            session.add(InfoUpdate(category=cat, number=0))
+            enabled = False
+        else:
+            row.number = 0 if row.number else 1
+            enabled = bool(row.number)
+        session.commit()
+        _audit(session, request, "source_enable" if enabled else "source_disable", name)
+    return RedirectResponse("/settings/sources", status_code=303)
+
+
+@app.post("/settings/sources/feed/{fid}/toggle", include_in_schema=False)
+def settings_sources_feed_toggle(
+    fid: int,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    with get_db() as session:
+        row = session.get(ArticleSource, fid)
+        if row is None:
+            raise HTTPException(status_code=404, detail="Feed not found")
+        row.enabled = not row.enabled
+        session.commit()
+        _audit(session, request, "source_enable" if row.enabled else "source_disable", row.name)
+    return RedirectResponse("/settings/sources", status_code=303)
+
+
+# --- Settings: Service keys admin tab (step 9) ---
+
+
+@app.get("/settings/keys", include_in_schema=False)
+def settings_keys(request: Request, _admin: dict = REQUIRE_ADMIN, err: str = ""):
+    from pestilentia.service_keys import KNOWN_SERVICES, key_status
+
+    with get_db() as session:
+        statuses = [key_status(session, name) for name in KNOWN_SERVICES]
+    return _render(
+        request,
+        "settings_keys.html",
+        _settings_ctx(request, "keys", {"statuses": statuses, "err": err}),
+    )
+
+
+@app.post("/settings/keys/{service}", include_in_schema=False)
+def settings_keys_set(
+    service: str,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    key_value: str = Form(default=""),
+    csrf_token: str = Form(default=""),
+):
+    from pestilentia.service_keys import KNOWN_SERVICES
+
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    if service not in KNOWN_SERVICES:
+        raise HTTPException(status_code=404, detail="Unknown service")
+    if not key_value.strip():
+        return RedirectResponse("/settings/keys?err=empty", status_code=303)
+    actor = request.state.user
+    with get_db() as session:
+        row = session.query(ServiceKey).filter_by(service=service).first()
+        if row is None:
+            row = ServiceKey(service=service, key_value="")
+            session.add(row)
+        row.key_value = key_value.strip()
+        row.updated_by_id = actor["id"]
+        row.updated_by_name = actor["username"]
+        row.updated_at = datetime.now(UTC)
+        session.commit()
+        _audit(session, request, "service_key_set", service)  # never the value
+    return RedirectResponse("/settings/keys", status_code=303)
+
+
+@app.post("/settings/keys/{service}/delete", include_in_schema=False)
+def settings_keys_delete(
+    service: str,
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    csrf_token: str = Form(default=""),
+):
+    if not _validate_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    with get_db() as session:
+        row = session.query(ServiceKey).filter_by(service=service).first()
+        if row is not None:
+            session.delete(row)
+            session.commit()
+            _audit(session, request, "service_key_delete", service)
+    return RedirectResponse("/settings/keys", status_code=303)
+
+
+_ACTIVITY_WINDOWS = {"24h": 1, "7d": 7, "30d": 30}
+
+
+@app.get("/settings/activity", include_in_schema=False)
+def settings_activity(
+    request: Request,
+    _admin: dict = REQUIRE_ADMIN,
+    kind: str = "",
+    user: str = "",
+    window: str = "7d",
+):
+    days = _ACTIVITY_WINDOWS.get(window, 7)
+    cutoff = datetime.now(UTC) - timedelta(days=days)
+    with get_db() as session:
+        q = session.query(UserActivity).filter(UserActivity.ts >= cutoff)
+        if kind:
+            q = q.filter(UserActivity.kind == kind)
+        if user:
+            q = q.filter(UserActivity.actor_name.ilike(f"%{_escape_like(user)}%", escape="\\"))
+        rows = q.order_by(UserActivity.ts.desc()).limit(200).all()
+        counters = dict(
+            session.query(UserActivity.kind, func.count(UserActivity.id))
+            .filter(
+                UserActivity.ts >= cutoff,
+                UserActivity.kind.in_(["login_fail", "lockout", "access_denied"]),
+            )
+            .group_by(UserActivity.kind)
+            .all()
+        )
+    return _render(
+        request,
+        "settings_activity.html",
+        _settings_ctx(
+            request,
+            "activity",
+            {
+                "rows": rows,
+                "counters": counters,
+                "kind": kind,
+                "user_filter": user,
+                "window": window,
+                "kinds": sorted(
+                    {
+                        "login_ok",
+                        "login_fail",
+                        "lockout",
+                        "logout",
+                        "access_denied",
+                        "page_view",
+                        "api_call",
+                        "password_change",
+                    }
+                ),
+            },
+        ),
+    )
 
 
 def _escape_like(val: str) -> str:
@@ -2054,7 +2560,10 @@ def _check_watchlist(session: Session) -> list[int]:
     return new_alert_ids
 
 
-@app.post("/api/v1/source/{source_name}/toggle", dependencies=[Depends(_require_csrf_header)])
+@app.post(
+    "/api/v1/source/{source_name}/toggle",
+    dependencies=[Depends(_require_csrf_header), REQUIRE_ADMIN],
+)
 def api_toggle_source(source_name: str):
     with get_db() as session:
         ds = session.query(DataSource).filter_by(source_name=source_name).first()
@@ -2065,7 +2574,10 @@ def api_toggle_source(source_name: str):
         return {"source": source_name, "enabled": ds.enabled}
 
 
-@app.post("/api/v1/mitre/toggle", dependencies=[Depends(_require_csrf_header)])
+@app.post(
+    "/api/v1/mitre/toggle",
+    dependencies=[Depends(_require_csrf_header), REQUIRE_ADMIN],
+)
 def api_toggle_mitre():
     with get_db() as session:
         row = session.query(InfoUpdate).filter_by(category="mitre_enabled").first()
@@ -2092,7 +2604,10 @@ def _is_enrichment_enabled(session: Session, name: str) -> bool:
     return bool(row.number)
 
 
-@app.post("/api/v1/enrichment/{name}/toggle", dependencies=[Depends(_require_csrf_header)])
+@app.post(
+    "/api/v1/enrichment/{name}/toggle",
+    dependencies=[Depends(_require_csrf_header), REQUIRE_ADMIN],
+)
 def api_toggle_enrichment(name: str):
     allowed = {"ransomwhere", "deepdarkcti", "articles"}
     if name not in allowed:
@@ -2109,7 +2624,10 @@ def api_toggle_enrichment(name: str):
         return {"source": name, "enabled": bool(row.number)}
 
 
-@app.post("/api/v1/refresh", dependencies=[Depends(_require_csrf_header)])
+@app.post(
+    "/api/v1/refresh",
+    dependencies=[Depends(_require_csrf_header), REQUIRE_ANALYST],
+)
 async def api_refresh():
     results = []
     mitre_stats: dict = {"skipped": True, "reason": "disabled"}

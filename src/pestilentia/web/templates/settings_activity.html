@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Activity — Settings — Elementary CTI{% endblock %}
+{% block header %}Settings{% endblock %}
+
+{% block content %}
+{% include "_settings_tabs.html" %}
+
+<!-- Failed-attempt counters -->
+<div class="grid grid-cols-3 gap-4 mb-6 max-w-2xl">
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Failed sign-ins</div>
+        <div class="text-2xl font-bold {{ 'text-red-600 dark:text-red-400' if counters.get('login_fail') else 'text-gray-800 dark:text-noir-hi' }} mt-1">{{ counters.get('login_fail', 0) }}</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Lockouts</div>
+        <div class="text-2xl font-bold {{ 'text-red-600 dark:text-red-400' if counters.get('lockout') else 'text-gray-800 dark:text-noir-hi' }} mt-1">{{ counters.get('lockout', 0) }}</div>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+        <div class="text-xs text-gray-400 dark:text-noir-mute uppercase tracking-wider">Denied requests</div>
+        <div class="text-2xl font-bold {{ 'text-red-600 dark:text-red-400' if counters.get('access_denied') else 'text-gray-800 dark:text-noir-hi' }} mt-1">{{ counters.get('access_denied', 0) }}</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="get" action="/settings/activity" class="flex flex-wrap items-end gap-3 mb-4">
+    <div>
+        <label for="f-kind" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Event</label>
+        <select id="f-kind" name="kind" class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
+            <option value="">all</option>
+            {% for k in kinds %}<option value="{{ k }}" {% if kind == k %}selected{% endif %}>{{ k }}</option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="f-user" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Username contains</label>
+        <input id="f-user" name="user" type="text" value="{{ user_filter }}"
+               class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
+    </div>
+    <div>
+        <label for="f-window" class="block text-xs text-gray-500 dark:text-noir-mute mb-1">Window</label>
+        <select id="f-window" name="window" class="bg-surface dark:bg-noir-raised border border-gray-200 dark:border-noir-border rounded px-2.5 py-1.5 text-sm text-gray-700 dark:text-noir-text">
+            {% for w, label in [("24h", "last 24 hours"), ("7d", "last 7 days"), ("30d", "last 30 days")] %}
+            <option value="{{ w }}" {% if window == w %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="bg-accent text-white rounded px-3 py-1.5 text-sm font-medium hover:opacity-90">Filter</button>
+</form>
+
+<!-- Rows -->
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm overflow-x-auto">
+    {% if rows %}
+    <table class="w-full text-xs">
+        <thead><tr class="text-gray-400 dark:text-noir-mute uppercase tracking-wider border-b border-gray-200 dark:border-noir-border">
+            <th class="text-left py-2 pr-3">Time (UTC)</th>
+            <th class="text-left py-2 pr-3">Event</th>
+            <th class="text-left py-2 pr-3">User</th>
+            <th class="text-left py-2 pr-3">Route</th>
+            <th class="text-left py-2 pr-3">Status</th>
+            <th class="text-left py-2">Client</th>
+        </tr></thead>
+        <tbody>
+        {% for r in rows %}
+        <tr class="border-b border-gray-100 dark:border-noir-line">
+            <td class="py-1.5 pr-3 text-gray-400 dark:text-noir-mute whitespace-nowrap">{{ r.ts.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td class="py-1.5 pr-3 {{ 'text-red-500' if r.kind in ('login_fail', 'lockout', 'access_denied') else 'text-gray-600 dark:text-noir-text' }}">{{ r.kind }}</td>
+            <td class="py-1.5 pr-3 text-gray-600 dark:text-noir-text">{{ r.actor_name or "—" }}</td>
+            <td class="py-1.5 pr-3 text-gray-500 dark:text-noir-mute font-mono">{{ r.method or "" }} {{ r.route or "" }}</td>
+            <td class="py-1.5 pr-3 text-gray-400 dark:text-noir-mute">{{ r.status or "" }}</td>
+            <td class="py-1.5 text-gray-400 dark:text-noir-mute">{{ r.client_ip or "" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p class="text-xs text-gray-400 dark:text-noir-mute mt-3">Showing the most recent {{ rows | length }} events (max 200) in the selected window. Retention: rows older than the configured period are purged automatically.</p>
+    {% else %}
+    <p class="text-sm text-gray-400 dark:text-noir-mute">No activity in the selected window.</p>
+    {% endif %}
+</div>
+{% endblock %}
