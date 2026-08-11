@@ -74,8 +74,12 @@ itself. If you forgot the password, ask an administrator to reset it.
 
 ### Can I change my password?
 
-Password self-service arrives with the settings page (in development). Until
-then, ask an administrator.
+Yes:
+
+1. Open **Settings** in the sidebar.
+2. In **Change password**, enter your current password and the new one
+   (minimum 10 characters), twice.
+3. Select **Update password**. You stay signed in.
 
 ### Why was I signed out without warning?
 
@@ -257,8 +261,10 @@ this is typically a Raspberry Pi, not a CDN.
 
 At first startup, if the `users` table is empty and `PEST_AUTH_USER` and
 `PEST_AUTH_PASS` are set, the application creates that account with the
-`admin` role. After that, manage accounts in the settings. The variables are
-not read again once users exist.
+`admin` role. After that, manage accounts in **Settings → Users** (create,
+disable, delete, change role, reset password — the last active admin is
+protected from lockout-by-accident). The variables are not read again once
+users exist.
 
 ### How do I apply database migrations?
 
@@ -296,8 +302,10 @@ TLS. An OWASP Top 10 audit gates the reference deployment's own exposure.
 
 ### Can I disable a data source?
 
-Source toggles are part of the settings page (in development). Until then,
-enrichment sources can be toggled through the pipeline API endpoints.
+Yes, as an administrator: **Settings → Sources** lists primary sources,
+enrichments, and article feeds, each with an enable/disable control. A
+disabled source is skipped from the scheduler's next cycle. Every change is
+recorded in the admin audit log.
 
 ## Security
 
@@ -317,8 +325,9 @@ Rows are purged after a configurable retention period (default 90 days).
 
 ### Who can read the activity log?
 
-Administrators, through the settings page (in development) or the database.
-Log rows never contain passwords or session tokens.
+Administrators, in **Settings → Activity**: filters by event type, username
+and time window, with counters for failed sign-ins, lockouts and denied
+requests. Log rows never contain passwords or session tokens.
 
 ### How do I report a security vulnerability?
 

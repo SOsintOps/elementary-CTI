@@ -66,9 +66,22 @@ def seeded(monkeypatch, authenticate):
     monkeypatch.setattr(web, "_session_factory", factory)
     client = TestClient(app)
     authenticate(client, factory)
+    client.factory = factory
     yield client
     web._session_factory = None
     config._settings = None
+
+
+@pytest.fixture
+def admin(seeded):
+    # Elevate the signed-in test user: the middleware re-reads the role from
+    # the DB on every request, so no new session cookie is needed.
+    from pestilentia.models.tables import User
+
+    with seeded.factory() as s:
+        row = s.query(User).filter(User.username == "tester").one()
+        row.role = "admin"
+        s.commit()
 
 
 def test_lists_articles_with_source_and_tlp(seeded):
@@ -125,8 +138,9 @@ def test_pipeline_page_shows_article_counters(seeded):
     assert "1 full text" in body
 
 
-def test_articles_toggle_is_allowed(seeded):
-    """The toggle allowlist gates the endpoint; omitting 'articles' would 404."""
+def test_articles_toggle_is_allowed(seeded, admin):
+    """The toggle allowlist gates the endpoint; omitting 'articles' would 404.
+    Toggling is admin-gated since auth plan step 8."""
     token = web._generate_csrf_token()
     r = seeded.post("/api/v1/enrichment/articles/toggle", headers={"X-CSRF-Token": token})
     assert r.status_code == 200
@@ -135,7 +149,7 @@ def test_articles_toggle_is_allowed(seeded):
     assert r2.json()["enabled"] is True
 
 
-def test_unknown_enrichment_still_rejected(seeded):
+def test_unknown_enrichment_still_rejected(seeded, admin):
     token = web._generate_csrf_token()
     r = seeded.post("/api/v1/enrichment/nonsense/toggle", headers={"X-CSRF-Token": token})
     assert r.status_code == 404

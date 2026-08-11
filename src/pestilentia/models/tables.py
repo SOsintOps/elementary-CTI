@@ -751,3 +751,19 @@ class UserActivity(Base):
     status: Mapped[int | None] = mapped_column(Integer, nullable=True)
     client_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(256), nullable=True)
+
+
+class ServiceKey(Base):
+    __tablename__ = "service_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    service: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
+    key_value: Mapped[str] = mapped_column(String(512), nullable=False)
+    # Snapshot alongside the FK: presence info survives actor deletion.
+    updated_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    updated_by_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )

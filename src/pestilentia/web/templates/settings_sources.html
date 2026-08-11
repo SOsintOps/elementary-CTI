@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Sources — Settings — Elementary CTI{% endblock %}
+{% block header %}Settings{% endblock %}
+
+{% block content %}
+{% include "_settings_tabs.html" %}
+
+{% macro toggle_row(action, name, enabled, extra="") %}
+<li class="py-2 flex items-center justify-between gap-3">
+    <span class="text-sm text-gray-700 dark:text-noir-text truncate">{{ name }}
+        {% if extra %}<span class="text-xs text-gray-400 dark:text-noir-mute ml-1">{{ extra }}</span>{% endif %}
+    </span>
+    <form method="post" action="{{ action }}" class="flex items-center gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if enabled %}
+        <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">enabled</span>
+        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">Disable</button>
+        {% else %}
+        <span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">disabled</span>
+        <button type="submit" class="text-xs text-gray-400 dark:text-noir-mute hover:text-accent">Enable</button>
+        {% endif %}
+    </form>
+</li>
+{% endmacro %}
+
+<p class="text-xs text-gray-400 dark:text-noir-mute mb-4 max-w-3xl">A disabled source is skipped by the scheduler from its next cycle (no restart needed). Every change writes an <code>admin_audit</code> row.</p>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl">
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-2">Primary sources</h3>
+        <ul class="divide-y divide-gray-100 dark:divide-noir-line">
+            {% for s in primary %}{{ toggle_row("/settings/sources/primary/" ~ s.id ~ "/toggle", s.name, s.enabled) }}{% endfor %}
+        </ul>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-2">Enrichments</h3>
+        <ul class="divide-y divide-gray-100 dark:divide-noir-line">
+            {% for e in enrichments %}{{ toggle_row("/settings/sources/enrichment/" ~ e.name ~ "/toggle", e.name, e.enabled) }}{% endfor %}
+        </ul>
+    </div>
+    <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-noir-hi mb-2">Article feeds</h3>
+        <ul class="divide-y divide-gray-100 dark:divide-noir-line">
+            {% for f in feeds %}{{ toggle_row("/settings/sources/feed/" ~ f.id ~ "/toggle", f.name, f.enabled, "TLP:" ~ f.tlp | upper) }}{% endfor %}
+        </ul>
+        {% if not feeds %}<p class="text-sm text-gray-400 dark:text-noir-mute">Feeds are seeded on the first scheduler cycle.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

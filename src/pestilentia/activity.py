@@ -20,6 +20,7 @@ KIND_LOGOUT = "logout"
 KIND_ACCESS_DENIED = "access_denied"
 KIND_PAGE_VIEW = "page_view"
 KIND_API_CALL = "api_call"
+KIND_PASSWORD_CHANGE = "password_change"
 
 
 def record_activity(

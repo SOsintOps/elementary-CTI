@@ -64,6 +64,7 @@ Grouped by the release that introduced them — see [`CHANGELOG.md`](CHANGELOG.m
 - **Activity audit log** — every authenticated action and every failed access attempt recorded with client address, retained for a configurable window
 - **Security response headers** — CSP, frame denial, referrer policy, permissions policy on every response
 - **Runtime on Python 3.14** — Docker image and CI aligned
+- **Settings page** — self-service password change and theme; admin tabs for user management (with last-admin guard), the activity log viewer, source enable/disable, and write-only service API keys with env-over-DB precedence
 
 ### Planned
 
