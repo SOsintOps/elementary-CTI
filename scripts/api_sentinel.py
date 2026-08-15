@@ -63,14 +63,19 @@ _DEEPDARK_PARSERS = {
 
 
 def _sample_of(payload: object) -> object:
-    """One representative record: fingerprinting 400 groups tells us nothing
-    ten wouldn't, and the first record keeps the run cheap and stable."""
-    if isinstance(payload, list) and payload:
-        return payload[0]
+    """The whole record list, not one record off the top.
+
+    One record cannot distinguish a stable contract from a field the upstream
+    types two different ways — and both ransomware.live endpoints do exactly
+    that, interleaved within a single page. `fingerprint` merges the list into
+    one structure and marks the inconsistent fields, so the cost of reading all
+    of them is a fold over records that were downloaded anyway."""
+    if isinstance(payload, list):
+        return payload
     if isinstance(payload, dict):
         for value in payload.values():
             if isinstance(value, list) and value:
-                return value[0]
+                return value
     return payload
 
 
@@ -129,7 +134,7 @@ def probe_all(update: bool) -> list[ContractResult]:
                 if not rows:
                     results.append(ContractResult(name, False, "drift", ["parser yielded 0 rows"]))
                     continue
-                handle(name, rows[0])
+                handle(name, rows)
             except Exception as exc:
                 results.append(ContractResult(name, False, "unreachable", [f"{url}: {exc}"]))
 

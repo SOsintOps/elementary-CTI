@@ -521,6 +521,19 @@ class ArticleSource(Base):
     url: Mapped[str] = mapped_column(String(500), nullable=False)
     source_type: Mapped[str] = mapped_column(String(50), nullable=False, default="rss")
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    #: What the analyst judges the feed to be worth, A to F, on UNODC's 6x6
+    #: source scale (migrations 0020 and 0021). A grade has written criteria
+    #: behind it; the float below is only its numeric expression.
+    #:
+    #: **Default F, cannot be judged, not D.** 0020 shipped with D and it was
+    #: wrong: D is "not usually reliable", which is a judgement, and asserting
+    #: one about a feed nobody has assessed is exactly the guess criterion 1c
+    #: forbids. F says the question was never answered, and the gate stages
+    #: what it cannot judge. The twelve seeded feeds carry real grades, so this
+    #: only ever affects a feed added by hand.
+    reliability_grade: Mapped[str] = mapped_column(String(1), nullable=False, default="F")
+    #: Derived from `reliability_grade` since 0020, kept because everything that
+    #: reads it today would otherwise break. The grade is what an analyst sets.
     trust_weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
     default_tlp: Mapped[str] = mapped_column(String(16), nullable=False, default="clear")
     share_with_third_party: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
@@ -579,6 +592,79 @@ class Article(Base):
     audit_rows: Mapped[list["AiEnrichmentAudit"]] = relationship(
         back_populates="article", cascade="all, delete-orphan", passive_deletes=True
     )
+    iocs: Mapped[list["ArticleIoc"]] = relationship(
+        back_populates="article", cascade="all, delete-orphan", passive_deletes=True
+    )
+    ttps: Mapped[list["ArticleTtp"]] = relationship(
+        back_populates="article", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class ArticleIoc(Base):
+    """One indicator the article was found to contain (Phase 4, migration 0018).
+
+    The span is the whole point. `value` is the canonical form and
+    `value_defanged` the article's own wording, but neither proves the article
+    said it — `span_start`/`span_end` do, and they index into `Article.body` so
+    a reader can be shown the sentence rather than asked to trust the row.
+
+    `confidence` stays null here. The model does not report one for indicators
+    and would not be believed if it did; Phase 5 computes a composite.
+    """
+
+    __tablename__ = "article_iocs"
+    __table_args__ = (UniqueConstraint("article_id", "ioc_type", "value", name="uq_article_ioc"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    article_id: Mapped[int] = mapped_column(
+        ForeignKey("articles.id", ondelete="CASCADE"), nullable=False
+    )
+    run_id: Mapped[int | None] = mapped_column(
+        ForeignKey("article_analysis_runs.id", ondelete="SET NULL"), nullable=True
+    )
+    ioc_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    value: Mapped[str] = mapped_column(String(500), nullable=False)
+    value_defanged: Mapped[str] = mapped_column(String(500), nullable=False)
+    span_start: Mapped[int] = mapped_column(Integer, nullable=False)
+    span_end: Mapped[int] = mapped_column(Integer, nullable=False)
+    context: Mapped[str | None] = mapped_column(Text, nullable=True)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    article: Mapped["Article"] = relationship(back_populates="iocs")
+
+
+class ArticleTtp(Base):
+    """One ATT&CK technique the article evidences (Phase 4, migration 0019).
+
+    The naming is the catalogue's, not the model's, and the technique id is the
+    live one after revocations are resolved — which is why the unique key is
+    `(article_id, technique_id)`: two ids that resolve to one technique are one
+    row, not two.
+
+    `tactic_name` is denormalised beside `tactic_id` because there is no tactics
+    table to join to, exactly as `group_ttps` already does. A technique the
+    bundle gives no kill-chain phase keeps both empty rather than being dropped.
+    """
+
+    __tablename__ = "article_ttps"
+    __table_args__ = (UniqueConstraint("article_id", "technique_id", name="uq_article_ttp"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    article_id: Mapped[int] = mapped_column(
+        ForeignKey("articles.id", ondelete="CASCADE"), nullable=False
+    )
+    run_id: Mapped[int | None] = mapped_column(
+        ForeignKey("article_analysis_runs.id", ondelete="SET NULL"), nullable=True
+    )
+    technique_id: Mapped[str] = mapped_column(String(20), nullable=False)
+    technique_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    tactic_id: Mapped[str] = mapped_column(String(20), nullable=False, default="")
+    tactic_name: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    evidence_span_start: Mapped[int] = mapped_column(Integer, nullable=False)
+    evidence_span_end: Mapped[int] = mapped_column(Integer, nullable=False)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    article: Mapped["Article"] = relationship(back_populates="ttps")
 
 
 class ArticleAnalysisRun(Base):
@@ -689,6 +775,94 @@ class GroupAliasProposal(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(UTC)
     )
+
+
+class StagedFinding(Base):
+    """One finding, its score broken into the parts that made it, and its fate
+    (Phase 5, migration 0020).
+
+    **Every finding gets a row, not only the rejected ones.** The ADR calls this
+    the staged-findings table and the name suggests a queue of failures, but a
+    table of failures cannot answer the question the gate exists to be asked:
+    is the threshold too high? Calibration needs the passes as much as the
+    stops, so `decision` carries `auto`, `staged` or `rejected` and the row is
+    written either way.
+
+    **The two axes are stored apart, never fused.** UNODC's *Criminal
+    Intelligence: Manual for Analysts*, chapter 4, states it as a principle:
+    the evaluation of the source is made separately to the evaluation of the
+    information. `source_grade` is the analyst's standing judgement of the feed,
+    A to F; `info_grade` is computed per finding from corroboration, agreement
+    and contradiction, 1 to 6. Each keeps the numeric factor that was actually
+    applied beside it, so a row explains its own arithmetic years later even if
+    the grade→factor map has since been retuned.
+
+    **`score_raw` survives the factors.** It is the composite before either axis
+    touches it, which is what lets a new map be applied to old rows and moved
+    findings be counted without a single LLM call. That, not the totals, is what
+    makes the gate recalibrable.
+
+    **The four components are nullable on purpose.** A missing component is not
+    a component scoring zero: indicators carry no self-assessment because the
+    model is not asked for one, and a zero there would punish a category for a
+    question nobody put to it. Null means not applicable, and the composite
+    substitutes a neutral value at the moment of the sum, where the choice is
+    visible in the code instead of frozen into the data.
+
+    `target_table` and `target_row_id` are null for the kinds that have no row
+    of their own — narrative, sketch, Diamond — which is half of why this table
+    exists: they have nowhere else to put a confidence.
+    """
+
+    __tablename__ = "staged_findings"
+    __table_args__ = (
+        # The review queue's own query: how deep is it, oldest first.
+        Index("ix_staged_status", "status", "created_at"),
+        Index("ix_staged_article", "article_id"),
+        # Corroboration: which other sources have already proposed this, for
+        # this target. Also the computation behind the validity axis.
+        Index("ix_staged_target", "finding_kind", "target_row_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    article_id: Mapped[int] = mapped_column(
+        ForeignKey("articles.id", ondelete="CASCADE"), nullable=False
+    )
+    run_id: Mapped[int | None] = mapped_column(
+        ForeignKey("article_analysis_runs.id", ondelete="SET NULL"), nullable=True
+    )
+    finding_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    target_table: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    target_row_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payload_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # The four components of the composite, in the roadmap's weights: 0.4
+    # anchoring, 0.3 critic agreement, 0.2 schema completeness, 0.1 self-report.
+    anchor_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    critic_agreement: Mapped[float | None] = mapped_column(Float, nullable=True)
+    schema_completeness: Mapped[float | None] = mapped_column(Float, nullable=True)
+    self_assessed: Mapped[float | None] = mapped_column(Float, nullable=True)
+    score_raw: Mapped[float] = mapped_column(Float, nullable=False)
+
+    # UNODC chapter 4: two axes, kept apart, each with the factor it applied.
+    source_grade: Mapped[str] = mapped_column(String(1), nullable=False)
+    source_factor_applied: Mapped[float] = mapped_column(Float, nullable=False)
+    info_grade: Mapped[str] = mapped_column(String(1), nullable=False)
+    info_factor_applied: Mapped[float] = mapped_column(Float, nullable=False)
+
+    threshold_applied: Mapped[float] = mapped_column(Float, nullable=False)
+    score_total: Mapped[float] = mapped_column(Float, nullable=False)
+    decision: Mapped[str] = mapped_column(String(16), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    tlp: Mapped[str] = mapped_column(String(16), nullable=False)
+    model_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    prompt_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(UTC)
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reviewed_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    notes: Mapped[str | None] = mapped_column(String(2048), nullable=True)
 
 
 class User(Base):

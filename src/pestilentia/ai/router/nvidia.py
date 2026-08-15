@@ -50,7 +50,12 @@ class NvidiaProvider:
         api_key: str,
         spec: ProviderSpec | None = None,
         base_url: str = BASE_URL,
-        timeout: float = 60.0,
+        # 300s, not 60. Measured on the Phase 4 acceptance run: the 70b model
+        # read-timed out at 60s and again at 120s on a 10.4k-token advisory,
+        # and an indicator selection is thousands of output tokens on a shared
+        # free tier. A timeout is the most expensive failure there is — the work
+        # is done upstream and thrown away at this end.
+        timeout: float = 300.0,
     ) -> None:
         # An empty key is legal here and refused at call time: the registry
         # must stay constructible in environments that will never call (the
@@ -103,6 +108,14 @@ class NvidiaProvider:
                 "NIM rate limit hit (~40 requests/min shared across all models "
                 "on the free tier); slow the caller down rather than retrying hot",
                 status=429,
+            )
+        if response.status_code == 503:
+            raise NvidiaError(
+                f"NIM has no capacity for {model_id!r} right now "
+                f"({response.text[:120]}). This is backpressure, not a bad "
+                "request: the same call succeeds later, so back off rather than "
+                "re-sending it.",
+                status=503,
             )
         if response.status_code != 200:
             raise NvidiaError(

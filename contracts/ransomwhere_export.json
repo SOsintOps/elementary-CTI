@@ -1,17 +1,19 @@
-{
-  "address": "str",
-  "balance": "int",
-  "balanceUSD": "float",
-  "blockchain": "str",
-  "createdAt": "str",
-  "family": "str",
-  "transactions": [
-    {
-      "amount": "int",
-      "amountUSD": "float",
-      "hash": "str",
-      "time": "int"
-    }
-  ],
-  "updatedAt": "str"
-}
+[
+  {
+    "address": "str",
+    "balance": "number",
+    "balanceUSD": "number",
+    "blockchain": "str",
+    "createdAt": "str",
+    "family": "str",
+    "transactions": [
+      {
+        "amount": "number",
+        "amountUSD": "number",
+        "hash": "str",
+        "time": "number"
+      }
+    ],
+    "updatedAt": "str"
+  }
+]

@@ -36,6 +36,8 @@ htmlcov/
 
 # Data cache
 data/enterprise-attack.json
+# Curated authority feeds: large, versioned upstream, fetched not mirrored
+data/feeds/
 
 # Documents
 *.pdf

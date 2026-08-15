@@ -120,6 +120,24 @@ onion sites, Telegram/Tox channels). Articles: 12 curated RSS feeds from
 vendor research labs and news outlets (CISA, The DFIR Report, Unit 42,
 Talos, Microsoft, SentinelLABS, BleepingComputer, and others).
 
+### How does the platform know that two adversary names are the same group?
+
+It asks a catalogue rather than deciding for itself. The same adversary is
+usually known by several names at once, because each research house names
+what it finds under its own scheme: one calls a Chinese group Panda, another
+calls it Typhoon, a third gives it a number until it is confident enough to
+name it. Reading a name and guessing the rest merges groups that are not the
+same, which is the one mistake here that nothing downstream can catch.
+
+So an alias is recorded only where a published catalogue lists it, and the
+record keeps which catalogue said so. The catalogues used are the MITRE
+ATT&CK intrusion sets, the MISP Project's threat-actor galaxy, and
+Microsoft's own published mapping of its actor names to the names other
+vendors use. All three are public, versioned, and can be checked by anyone
+holding the same file, which is what makes an alias evidence rather than an
+opinion. Where no catalogue lists the name, the platform says so and leaves
+the question to an analyst instead of inventing an answer.
+
 ### How fresh is the data?
 
 The scheduler polls sources every 4 hours. MITRE, Ransomwhere, and

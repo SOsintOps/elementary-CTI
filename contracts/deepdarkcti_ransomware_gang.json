@@ -1,8 +1,10 @@
-{
-  "comms_raw": "str",
-  "credentials": "str",
-  "name": "str",
-  "rss": "str",
-  "status": "str",
-  "url": "str"
-}
+[
+  {
+    "comms_raw": "str",
+    "credentials": "str",
+    "name": "str",
+    "rss": "empty",
+    "status": "str",
+    "url": "str"
+  }
+]

@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session, sessionmaker
 
 from pestilentia.ai.sources import ARTICLES_CATEGORY, run_article_ingest
+from pestilentia.ai.state.driver import analyse_articles
 from pestilentia.clients.base import BaseSource
 from pestilentia.clients.deepdarkcti import DEEPDARK_CATEGORY, enrich_deepdarkcti
 from pestilentia.clients.mitre_attack import MITRE_ENRICHMENT_CATEGORY, enrich_groups_incremental
@@ -146,6 +147,41 @@ async def _run_enrichment(
             logger.exception("%s enrichment failed (%.2fs)", name, time.monotonic() - t0)
 
 
+async def _run_article_analysis(session_factory: sessionmaker[Session]) -> None:
+    """One batch of article analysis, off the event loop.
+
+    `asyncio.to_thread` because the batch is synchronous and *sleeps*: the rate
+    limiter spaces requests out to stay inside the provider's per-minute
+    ceiling, and doing that on the event loop would stall every other job in the
+    cycle while waiting on someone else's quota.
+
+    No due-gate of its own. Analysis rides the article-ingest flag and the outer
+    cycle: there is nothing to analyse that the ingest did not just fetch, and a
+    second interval to keep in step would only be a second thing to get wrong.
+    """
+    t0 = time.monotonic()
+    try:
+        outcome = await asyncio.to_thread(_analyse_batch, session_factory)
+    except Exception:
+        logger.exception("Article analysis failed (%.2fs)", time.monotonic() - t0)
+        return
+    if outcome.attempted:
+        logger.info(
+            "Article analysis complete (%.2fs): %d analysed, %d dropped, %d incomplete",
+            time.monotonic() - t0,
+            outcome.analysed,
+            outcome.dropped,
+            outcome.incomplete,
+        )
+
+
+def _analyse_batch(session_factory: sessionmaker[Session]):
+    with session_factory() as session:
+        outcome = analyse_articles(session)
+        session.commit()
+        return outcome
+
+
 # "I find your lack of imagination disturbing." — Sherlock Holmes, Elementary
 async def run_scheduler(
     session_factory: sessionmaker[Session],
@@ -267,6 +303,8 @@ async def _scheduler_loop(
                 run_article_ingest,
                 article_interval_seconds,
             )
+            if not stop_event.is_set():
+                await _run_article_analysis(session_factory)
 
         # Health checks post-enrichment
         if not stop_event.is_set():

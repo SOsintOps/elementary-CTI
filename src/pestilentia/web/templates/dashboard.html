@@ -58,36 +58,7 @@
     </div>
 </div>
 
-<!-- Victims over time — the trend axis the dashboard was missing.
-     Single series, so no legend: the card title names it. Buckets are
-     aggregated in SQL, zero-filled, so the payload is one point per month. -->
-<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 mb-6 shadow-sm">
-    <div class="flex items-baseline justify-between mb-3">
-        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ t('victims_per_month') }}</h3>
-        {# Range controls sit in one row above the chart. The label states the
-           active window, so the chart is never ambiguous about what it shows. #}
-        <div class="flex items-center gap-2">
-            <span id="timeline-window" class="text-xs text-gray-400 dark:text-noir-mute">{{ t('last_24_months') }}</span>
-            <div class="flex gap-1" id="timeline-range" role="group" aria-label="Timeline range">
-                {% for months, label in [(3, '3m'), (12, '12m'), (24, '24m'), (60, '5y')] %}
-                <button type="button" data-months="{{ months }}"
-                        aria-pressed="{{ 'true' if months == 24 else 'false' }}"
-                        class="range-btn px-2 py-0.5 text-xs rounded border transition-colors
-                               {% if months == 24 %}border-accent text-accent font-semibold{% else %}border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent{% endif %}">{{ label }}</button>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    <div id="victim-timeline" style="height: 220px;"></div>
-</div>
-
-<!-- Map -->
-<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 mb-6 shadow-sm">
-    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('victim_distribution') }}</h3>
-    <div id="choropleth" style="height: 350px;"></div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <!-- Recent victims -->
     <div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
         <div class="flex items-center justify-between mb-3">
@@ -165,6 +136,35 @@
         </div>
         {% endfor %}
     </div>
+</div>
+
+<!-- Map -->
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 mb-6 shadow-sm">
+    <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider mb-3">{{ t('victim_distribution') }}</h3>
+    <div id="choropleth" style="height: 350px;"></div>
+</div>
+
+<!-- Victims over time — the trend axis the dashboard was missing.
+     Single series, so no legend: the card title names it. Buckets are
+     aggregated in SQL, zero-filled, so the payload is one point per month. -->
+<div class="bg-base-card dark:bg-noir-card border border-gray-200 dark:border-noir-border rounded-lg p-4 shadow-sm">
+    <div class="flex items-baseline justify-between mb-3">
+        <h3 class="text-xs font-semibold text-gray-400 dark:text-noir-mute uppercase tracking-wider">{{ t('victims_per_month') }}</h3>
+        {# Range controls sit in one row above the chart. The label states the
+           active window, so the chart is never ambiguous about what it shows. #}
+        <div class="flex items-center gap-2">
+            <span id="timeline-window" class="text-xs text-gray-400 dark:text-noir-mute">{{ t('last_24_months') }}</span>
+            <div class="flex gap-1" id="timeline-range" role="group" aria-label="Timeline range">
+                {% for months, label in [(3, '3m'), (12, '12m'), (24, '24m'), (60, '5y')] %}
+                <button type="button" data-months="{{ months }}"
+                        aria-pressed="{{ 'true' if months == 24 else 'false' }}"
+                        class="range-btn px-2 py-0.5 text-xs rounded border transition-colors
+                               {% if months == 24 %}border-accent text-accent font-semibold{% else %}border-gray-200 dark:border-noir-border text-gray-500 dark:text-noir-mute hover:border-accent hover:text-accent{% endif %}">{{ label }}</button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div id="victim-timeline" style="height: 220px;"></div>
 </div>
 
 <script>
@@ -264,28 +264,31 @@ function renderMap(cdata) {
     }], PEST.geoLayout({ height: 350 }), PEST.plotlyConfig);
 }
 
-renderMap(countryDataAll['7d'] || []);
-
+// Declared before the first render: switchVictimsTab assigns it, and a
+// throw in renderMap would otherwise leave the binding in the temporal
+// dead zone, killing the tabs with an error that names the wrong cause.
 let currentPeriod = '7d';
+
+renderMap(countryDataAll['7d'] || []);
 
 function switchVictimsTab(tab) {
     document.querySelectorAll('.vtab-panel').forEach(p => p.classList.add('hidden'));
-    document.querySelectorAll('.vtab-btn').forEach(b => { b.classList.remove('bg-accent', 'text-white'); b.classList.add('text-gray-400 dark:text-noir-mute'); });
+    document.querySelectorAll('.vtab-btn').forEach(b => { b.classList.remove('bg-accent', 'text-white'); b.classList.add('text-gray-400', 'dark:text-noir-mute'); });
     document.getElementById('vpanel-' + tab).classList.remove('hidden');
     const btn = document.getElementById('vtab-' + tab);
     btn.classList.add('bg-accent', 'text-white');
-    btn.classList.remove('text-gray-400 dark:text-noir-mute');
+    btn.classList.remove('text-gray-400', 'dark:text-noir-mute');
     currentPeriod = tab;
     renderMap(countryDataAll[tab] || []);
 }
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('bg-accent', 'text-white'); b.classList.add('text-gray-400 dark:text-noir-mute'); });
+    document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('bg-accent', 'text-white'); b.classList.add('text-gray-400', 'dark:text-noir-mute'); });
     document.getElementById('panel-' + tab).classList.remove('hidden');
     const btn = document.getElementById('tab-' + tab);
     btn.classList.add('bg-accent', 'text-white');
-    btn.classList.remove('text-gray-400 dark:text-noir-mute');
+    btn.classList.remove('text-gray-400', 'dark:text-noir-mute');
 }
 
 function doRefresh() {

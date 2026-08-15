@@ -129,6 +129,26 @@ operativi: siti onion, canali Telegram/Tox). Articoli: 12 feed RSS curati
 da laboratori di ricerca di vendor e testate di settore (CISA, The DFIR
 Report, Unit 42, Talos, Microsoft, SentinelLABS, BleepingComputer e altri).
 
+### Come fa la piattaforma a sapere che due nomi indicano lo stesso gruppo?
+
+Lo chiede a un catalogo invece di deciderlo da sé. Lo stesso avversario è
+quasi sempre conosciuto sotto più nomi insieme, perché ogni casa di ricerca
+battezza ciò che trova secondo il proprio schema: una chiama Panda un gruppo
+cinese, un'altra lo chiama Typhoon, una terza gli assegna un numero finché
+non è abbastanza sicura da dargli un nome. Leggere un nome e indovinare il
+resto fonde gruppi che non sono lo stesso, ed è l'unico errore che a valle
+nessuno può più vedere.
+
+Perciò un alias viene registrato solo dove un catalogo pubblicato lo elenca,
+e la registrazione conserva quale catalogo lo dice. I cataloghi usati sono
+gli intrusion set di MITRE ATT&CK, la galassia threat-actor del progetto
+MISP e la tabella che Microsoft pubblica dei propri nomi con quelli usati
+dagli altri vendor. Tutti e tre sono pubblici, versionati e verificabili da
+chiunque abbia lo stesso file, ed è questo a rendere un alias una prova
+invece che un'opinione. Dove nessun catalogo conosce il nome, la piattaforma
+lo dichiara e lascia la domanda a un analista invece di inventare una
+risposta.
+
 ### Quanto sono aggiornati i dati?
 
 Lo scheduler interroga le sorgenti ogni 4 ore. Gli arricchimenti MITRE,

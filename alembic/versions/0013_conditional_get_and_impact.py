@@ -33,9 +33,7 @@ def upgrade() -> None:
         batch.add_column(sa.Column("etag", sa.String(length=256), nullable=True))
         batch.add_column(sa.Column("last_modified", sa.String(length=128), nullable=True))
     with op.batch_alter_table("alerts", recreate="auto") as batch:
-        batch.add_column(
-            sa.Column("actioned_at", sa.DateTime(timezone=True), nullable=True)
-        )
+        batch.add_column(sa.Column("actioned_at", sa.DateTime(timezone=True), nullable=True))
 
 
 def downgrade() -> None:
