@@ -101,15 +101,27 @@ PROVIDERS: dict[str, ProviderSpec] = {
         models={
             Tier.TRIAGE: "meta/llama-3.1-8b-instruct",
             Tier.ANALYSIS: "meta/llama-3.3-70b-instruct",
+            # Deliberately not a Llama. The Verify state exists to catch the
+            # generator out, and a model from the same family shares its blind
+            # spots — the point is uncorrelated failure modes, not a second
+            # opinion from the same mind. Verified live 2026-08-12: served in
+            # the catalogue (102 models) and answers without the one-time
+            # family opt-in some NIM families need.
+            Tier.JUDGE: "deepseek-ai/deepseek-v4-flash-0731",
         },
         pricing={
             Tier.TRIAGE: Pricing(0.0, 0.0),
             Tier.ANALYSIS: Pricing(0.0, 0.0),
+            Tier.JUDGE: Pricing(0.0, 0.0),
         },
     ),
     "anthropic": ProviderSpec(
         name="anthropic",
         is_local=False,
+        # No judge model: one vendor is one family, and a Sonnet auditing a
+        # Sonnet is the arrangement this tier exists to avoid. A deployment
+        # with only Anthropic therefore has no judge, and `Verify` refuses
+        # rather than quietly grading its own homework.
         models={Tier.TRIAGE: "claude-haiku-4-5", Tier.ANALYSIS: "claude-sonnet-5"},
         pricing={
             Tier.TRIAGE: Pricing(1.00, 5.00),

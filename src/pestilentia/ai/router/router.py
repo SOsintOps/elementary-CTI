@@ -112,9 +112,16 @@ class Router:
                     f"{display_label(_coerce(self.cloud_max))} and no local provider "
                     f"serves the {tier.value} tier",
                 )
+            hint = (
+                " — register a provider with a model for it, or accept that "
+                "the audit does not run: an audit by the generator is worse "
+                "than none, because it looks like one"
+                if tier is Tier.JUDGE
+                else ""
+            )
             return Refusal(
                 RefusalReason.NO_PROVIDER,
-                f"no registered provider serves the {tier.value} tier",
+                f"no registered provider serves the {tier.value} tier{hint}",
             )
 
         # Gate 2 — budget. Only reached once *some* provider is allowed to take
@@ -125,10 +132,14 @@ class Router:
                 "spend ceiling reached; no further calls until the window resets",
             )
 
-        if tier is Tier.ANALYSIS and not budget_allows_tier:
+        # Every tier above triage, not `Tier.ANALYSIS` by name. ADR-006 §2's
+        # rule is that the cheap pre-filter keeps running when spend degrades
+        # and the expensive work does not; pinning it to one enum value let the
+        # judge tier walk through a degraded gate nobody had decided to open.
+        if tier is not Tier.TRIAGE and not budget_allows_tier:
             return Refusal(
                 RefusalReason.BUDGET_EXHAUSTED,
-                "past the degrade threshold; analysis-tier calls are paused",
+                f"past the degrade threshold; {tier.value}-tier calls are paused",
             )
 
         spec = candidates[0]

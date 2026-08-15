@@ -1,15 +1,30 @@
-{
-  "added": "str",
-  "claim_gang": "str",
-  "claim_url": "str",
-  "country": "str",
-  "date": "str",
-  "description": "str",
-  "domain": "str",
-  "has_infostealer_info": "bool",
-  "link": "str",
-  "summary": "str",
-  "title": "str",
-  "url": "str",
-  "victim": "str"
-}
+[
+  {
+    "added": "str",
+    "claim_gang": "varies",
+    "claim_url": "varies",
+    "country": "str",
+    "date": "str",
+    "description": "empty",
+    "domain": "str",
+    "has_infostealer_info": "bool",
+    "infostealer_data": {
+      "employees": "number",
+      "employees_url": "number",
+      "infostealer_stats": {
+        "*": "number"
+      },
+      "last_employee_compromised": "str",
+      "last_user_compromised": "str",
+      "thirdparties": "number",
+      "update": "str",
+      "users": "number",
+      "users_url": "number"
+    },
+    "link": "str",
+    "summary": "str",
+    "title": "str",
+    "url": "str",
+    "victim": "str"
+  }
+]

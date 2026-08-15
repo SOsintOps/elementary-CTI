@@ -17,15 +17,28 @@ def test_nvidia_is_the_preferred_cloud_provider():
     assert first_cloud.name == "nvidia"
 
 
-def test_nvidia_serves_both_tiers_with_llama():
+def test_nvidia_works_in_llama_and_judges_in_something_else():
+    """The judge's whole value is being from another family.
+
+    A Llama auditing a Llama shares its blind spots, which is a second opinion
+    from the same mind rather than an independent one.
+    """
     spec = PROVIDERS["nvidia"]
-    assert spec.serves(Tier.TRIAGE) and spec.serves(Tier.ANALYSIS)
-    assert all(model.startswith("meta/llama-") for model in spec.models.values())
+    assert spec.serves(Tier.TRIAGE) and spec.serves(Tier.ANALYSIS) and spec.serves(Tier.JUDGE)
+    assert spec.models[Tier.TRIAGE].startswith("meta/llama-")
+    assert spec.models[Tier.ANALYSIS].startswith("meta/llama-")
+    assert not spec.models[Tier.JUDGE].startswith("meta/llama-")
+
+
+def test_anthropic_offers_no_judge():
+    """One vendor is one family. Rather than pretend, it declines the tier —
+    and `Verify` then refuses instead of grading its own homework."""
+    assert not PROVIDERS["anthropic"].serves(Tier.JUDGE)
 
 
 def test_nvidia_free_tier_prices_at_zero():
     spec = PROVIDERS["nvidia"]
-    for tier in (Tier.TRIAGE, Tier.ANALYSIS):
+    for tier in (Tier.TRIAGE, Tier.ANALYSIS, Tier.JUDGE):
         assert spec.pricing[tier].usd(1_000_000, 1_000_000) == 0.0
 
 

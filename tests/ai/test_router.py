@@ -23,7 +23,11 @@ from pestilentia.ai.tlp import TlpLevel
 CLOUD = ProviderSpec(
     name="anthropic",
     is_local=False,
-    models={Tier.TRIAGE: "claude-haiku-4-5", Tier.ANALYSIS: "claude-sonnet-5"},
+    models={
+        Tier.TRIAGE: "claude-haiku-4-5",
+        Tier.ANALYSIS: "claude-sonnet-5",
+        Tier.JUDGE: "a-model-from-another-family",
+    },
 )
 LOCAL = ProviderSpec(name="ollama", is_local=True, models={Tier.TRIAGE: "qwen2.5:1.5b"})
 BOTH = [CLOUD, LOCAL]

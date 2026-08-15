@@ -101,6 +101,29 @@
             · {{ articles.sources_enabled }}/{{ articles.sources_total }} feeds
         </div>
     </div>
+
+    {# Extraction pipeline (AI Phase 4). Counted from the run rows on every
+       render: a stored total that drifts from the rows is the one an operator
+       believes. "Dropped" is triage refusing an article, which is the pipeline
+       working, so it is shown apart from the ones needing a person. #}
+    <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4" id="card-analysis">
+        <div class="flex items-center justify-between mb-1">
+            <div class="text-xs text-slate-500 dark:text-noir-mute uppercase tracking-wider">Analysis</div>
+        </div>
+        <div class="text-lg font-bold mt-1 {% if analysis.analysed %}text-status-ok dark:text-status-ok-dot{% else %}text-status-warn dark:text-status-warn-dot{% endif %}">
+            {{ analysis.analysed }} analysed
+        </div>
+        <div class="text-xs text-slate-500 dark:text-noir-mute mt-1">
+            {{ analysis.pending }} pending
+            · {{ analysis.dropped }} dropped at triage
+            {% if analysis.staged %}· <span class="text-status-warn dark:text-status-warn-dot">{{ analysis.staged }} staged</span>{% endif %}
+            {% if analysis.blocked %}· <span class="text-status-off dark:text-status-off-dot">{{ analysis.blocked }} blocked</span>{% endif %}
+        </div>
+        <div class="text-xs text-slate-500 dark:text-noir-mute mt-1">
+            {{ analysis.indicators }} indicators · {{ analysis.techniques }} techniques
+            · ${{ '%.2f'|format(analysis.spend_this_month) }} this month
+        </div>
+    </div>
 </div>
 
 <div class="bg-white dark:bg-noir-card border border-gray-200 dark:border-noir-border shadow-sm rounded-lg p-4 mb-6">

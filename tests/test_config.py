@@ -55,3 +55,36 @@ def test_partial_env_uses_defaults(monkeypatch):
     assert s.log_level == "WARNING"
     assert s.db_url == "sqlite:///elementaryctiDB.db"
     assert s.web_port == 8000
+
+
+# --- Phase 5: the confidence gate's thresholds -------------------------------
+
+
+def test_a_gate_threshold_is_read_from_the_environment(monkeypatch):
+    monkeypatch.setenv("PEST_AI_GATE_IOC_MIN", "0.6")
+
+    assert _load().ai_gate_ioc_min == 0.6
+
+
+@pytest.mark.parametrize("bad", ["85", "-0.1", "1.5"])
+def test_a_threshold_outside_zero_to_one_aborts_at_start_up(monkeypatch, capsys, bad):
+    """The failure being refused is a percentage typed where a fraction belongs.
+
+    `PEST_AI_GATE_IOC_MIN=85` meant as 85% would otherwise be read as a float
+    no finding can ever reach, and the gate would look like a scoring bug for
+    as long as it took someone to find it. Coercing it to something permissive
+    would be worse: the gate would open silently.
+    """
+    monkeypatch.setenv("PEST_AI_GATE_IOC_MIN", bad)
+
+    with pytest.raises(SystemExit):
+        _load()
+
+    assert "PEST_AI_GATE_IOC_MIN" in capsys.readouterr().err
+
+
+def test_the_local_lift_is_validated_like_the_thresholds(monkeypatch):
+    monkeypatch.setenv("PEST_AI_GATE_LOCAL_LIFT", "2.0")
+
+    with pytest.raises(SystemExit):
+        _load()

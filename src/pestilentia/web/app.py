@@ -1968,6 +1968,11 @@ def pipeline_status(request: Request):
             "sources_total": session.query(func.count(ArticleSource.id)).scalar() or 0,
         }
 
+        # Extraction pipeline (AI Phase 4)
+        from pestilentia.ai.state.driver import analysis_counters
+
+        analysis_status = analysis_counters(session)
+
         # Source health status
         from pestilentia.models.tables import SourceHealth
 
@@ -1985,6 +1990,7 @@ def pipeline_status(request: Request):
             "ransomwhere": rw_status,
             "deepdarkcti": dd_status,
             "articles": art_status,
+            "analysis": analysis_status,
             "health": health_map,
         },
     )

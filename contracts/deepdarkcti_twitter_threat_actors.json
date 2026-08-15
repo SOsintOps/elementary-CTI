@@ -1,5 +1,7 @@
-{
-  "name": "str",
-  "status": "str",
-  "url": "str"
-}
+[
+  {
+    "name": "str",
+    "status": "str",
+    "url": "str"
+  }
+]

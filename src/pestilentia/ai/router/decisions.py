@@ -14,10 +14,17 @@ from enum import StrEnum
 
 class Tier(StrEnum):
     """Task tiers from ADR-006. Triage is the cheap pre-filter that decides
-    whether analysis is worth spending on at all."""
+    whether analysis is worth spending on at all.
+
+    `JUDGE` is analysis-grade spend served by a **different model family** from
+    the generator. It is a tier rather than a per-state override because the
+    router is where the TLP and budget gates live: a model chosen outside it is
+    a model chosen without them.
+    """
 
     TRIAGE = "triage"
     ANALYSIS = "analysis"
+    JUDGE = "judge"
 
 
 class RefusalReason(StrEnum):

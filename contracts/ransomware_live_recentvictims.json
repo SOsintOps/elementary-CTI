@@ -1,17 +1,35 @@
-{
-  "activity": "str",
-  "attackdate": "str",
-  "claim_url": "str",
-  "country": "str",
-  "data_size": "null",
-  "description": "str",
-  "discovered": "str",
-  "domain": "str",
-  "group": "str",
-  "infostealer": "str",
-  "press": "null",
-  "ransom": "null",
-  "screenshot": "str",
-  "url": "str",
-  "victim": "str"
-}
+[
+  {
+    "activity": "str",
+    "attackdate": "str",
+    "claim_url": "str",
+    "country": "str",
+    "data_size": "null",
+    "description": "str",
+    "discovered": "str",
+    "domain": "str",
+    "group": "str",
+    "infostealer": {
+      "employees": "number",
+      "employees_url": "number",
+      "infostealer_stats": {
+        "*": "number"
+      },
+      "last_employee_compromised": "str",
+      "last_user_compromised": "str",
+      "thirdparties": "number",
+      "update": "str",
+      "users": "number",
+      "users_url": "number"
+    },
+    "press": {
+      "link": "str",
+      "source": "str",
+      "summary": "str"
+    },
+    "ransom": "null",
+    "screenshot": "str",
+    "url": "str",
+    "victim": "str"
+  }
+]

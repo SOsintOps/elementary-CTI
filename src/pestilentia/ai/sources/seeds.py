@@ -8,6 +8,7 @@ All feeds live-verified. Public sources → TLP clear.
 
 from sqlalchemy.orm import Session
 
+from pestilentia.ai.confidence.grading import grade_for_weight
 from pestilentia.models.tables import ArticleSource
 
 SEED_SOURCES: list[dict] = [
@@ -90,7 +91,18 @@ SEED_SOURCES: list[dict] = [
 
 
 def seed_article_sources(session: Session) -> int:
-    """Insert missing seed sources (idempotent by name). Returns rows added."""
+    """Insert missing seed sources (idempotent by name). Returns rows added.
+
+    **The skip on an existing row is load-bearing, not incidental.** Since
+    migration 0020 the reliability grade is the number an analyst sets by hand,
+    and `trust_weight` is derived from it. A seed that overwrote existing rows
+    would silently discard every grade anyone had tuned, on the next start-up,
+    with no audit row to show for it. There is a test that nails this, because
+    without one somebody eventually "fixes" the skip into an upsert.
+
+    New rows take their grade from the seed's weight. That is a starting point
+    and not an assessment: `set_source_grade` is how it becomes one.
+    """
     added = 0
     for spec in SEED_SOURCES:
         if session.query(ArticleSource).filter_by(name=spec["name"]).first():
@@ -102,6 +114,7 @@ def seed_article_sources(session: Session) -> int:
                 source_type="rss",
                 default_tlp="clear",
                 trust_weight=spec["trust_weight"],
+                reliability_grade=grade_for_weight(spec["trust_weight"]).value,
                 cadence_hours=spec["cadence_hours"],
             )
         )

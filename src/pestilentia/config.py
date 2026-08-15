@@ -55,6 +55,24 @@ class Settings:
     # adapter refuses at call time with a message naming this setting).
     ai_nvidia_api_key: str = ""
 
+    # --- Phase 5: the confidence gate -----------------------------------
+    # Per-category floors a finding's composite must clear to enrich the
+    # adversary tables directly; below one it lands in the review queue.
+    # Defaults are the roadmap's. Narrative is highest because a wrong
+    # sentence in a report is read as an assessment, and a wrong indicator
+    # is read as an indicator.
+    ai_gate_ioc_min: float = 0.85
+    ai_gate_ttp_min: float = 0.70
+    ai_gate_narrative_min: float = 0.90
+    ai_gate_sketch_min: float = 0.75
+    # Applied after the per-category floor, never instead of it.
+    ai_gate_overall_min: float = 0.75
+    # ADR-006 section 4 and roadmap criterion 2: "Local-model runs lift every
+    # threshold by +0.10." It lifts the *thresholds*, which makes a local
+    # model harder to pass, not the score, which would make it easier. The
+    # two readings run in opposite directions and the sources decide.
+    ai_gate_local_lift: float = 0.10
+
     # Campaign clustering vectoriser: "auto" prefers embeddings and falls
     # back to TF-IDF when the model was never fetched; "embedding" and
     # "tfidf" pin one explicitly. Measured comparison in
@@ -110,6 +128,12 @@ def _load() -> Settings:
         "ai_model_analysis": os.getenv("PEST_AI_MODEL_ANALYSIS"),
         "ai_model_local": os.getenv("PEST_AI_MODEL_LOCAL"),
         "ai_nvidia_api_key": os.getenv("PEST_AI_NVIDIA_API_KEY"),
+        "ai_gate_ioc_min": os.getenv("PEST_AI_GATE_IOC_MIN"),
+        "ai_gate_ttp_min": os.getenv("PEST_AI_GATE_TTP_MIN"),
+        "ai_gate_narrative_min": os.getenv("PEST_AI_GATE_NARRATIVE_MIN"),
+        "ai_gate_sketch_min": os.getenv("PEST_AI_GATE_SKETCH_MIN"),
+        "ai_gate_overall_min": os.getenv("PEST_AI_GATE_OVERALL_MIN"),
+        "ai_gate_local_lift": os.getenv("PEST_AI_GATE_LOCAL_LIFT"),
         "cluster_backend": os.getenv("PEST_AI_CLUSTER_BACKEND"),
         "secret_key": os.getenv("PEST_SECRET_KEY"),
         "auth_user": os.getenv("PEST_AUTH_USER"),
@@ -164,6 +188,23 @@ def _load() -> Settings:
             print(
                 "ERROR: PEST_AI_TLP_CLOUD_MAX must be a TLP 2.0 level "
                 f"(clear, green, amber, amber+strict, red); got {tlp_ceiling!r}.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    # A threshold outside [0, 1] aborts at start-up rather than being coerced
+    # to something permissive, exactly as the TLP ceiling already does. The
+    # failure mode being refused here is a typo that silently opens the gate:
+    # PEST_AI_GATE_IOC_MIN=85, meant as a percentage, would otherwise be read
+    # as a float no finding can reach — or, with the sign the other way, as one
+    # every finding clears.
+    for key, value in kwargs.items():
+        if not key.startswith("ai_gate_"):
+            continue
+        if not 0.0 <= value <= 1.0:
+            print(
+                f"ERROR: PEST_{key.upper()} must be between 0 and 1 (got {value!r}). "
+                "Thresholds are fractions, not percentages.",
                 file=sys.stderr,
             )
             sys.exit(1)
