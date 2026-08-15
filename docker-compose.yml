@@ -39,6 +39,15 @@ services:
       # The compose network (pinned below) — requests arriving from it are
       # the proxy's, so its X-Forwarded-For is trusted for user_activity.
       PEST_TRUSTED_PROXY_CIDR: ${PEST_TRUSTED_PROXY_CIDR:-172.28.0.0/16}
+      # Empty is a supported state, not a misconfiguration: with no key the
+      # analysis driver logs "idle" once per cycle and the rest of the app runs.
+      PEST_AI_NVIDIA_API_KEY: ${PEST_AI_NVIDIA_API_KEY:-}
+    volumes:
+      # The ATT&CK bundle and the curated feeds, fetched on the host (DEPLOY.md
+      # §0). Read-only, so a catalogue cannot change under a run in progress,
+      # and a bind rather than a COPY because a 54 MB layer would be rebuilt
+      # every time a publisher updates a file the code only ever reads.
+      - ./data:/app/data:ro
     # No host port: the app is reachable only through the caddy proxy.
 
   caddy:
@@ -76,6 +85,11 @@ services:
       PEST_API_BASE_URL: https://api.ransomware.live/v2
       PEST_POLL_INTERVAL_HOURS: "4"
       PEST_SECRET_KEY: ${PEST_SECRET_KEY:?set PEST_SECRET_KEY in .env}
+      # This is the process that actually analyses articles, so without the key
+      # the pipeline is off. See the note on the web service.
+      PEST_AI_NVIDIA_API_KEY: ${PEST_AI_NVIDIA_API_KEY:-}
+    volumes:
+      - ./data:/app/data:ro
     command: ["uv", "run", "python", "-m", "pestilentia"]
     # No HTTP server here — disable the image's web HEALTHCHECK (the slim image
     # has no pgrep either). The restart policy still recovers a crashed process.

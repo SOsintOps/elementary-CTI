@@ -222,8 +222,12 @@
         {% endif %}
     </div>
 
-    {% set all_health_keys = ['mitre_attack', 'ransomwhere', 'deepdarkcti:ransomware_gang', 'deepdarkcti:telegram_threat_actors', 'deepdarkcti:twitter_threat_actors'] %}
-    {% set health_labels = {'mitre_attack': 'MITRE ATT&CK', 'ransomwhere': 'Ransomwhere API', 'deepdarkcti:ransomware_gang': 'deepdarkCTI — Ransomware Gangs', 'deepdarkcti:telegram_threat_actors': 'deepdarkCTI — Telegram Actors', 'deepdarkcti:twitter_threat_actors': 'deepdarkCTI — Twitter Actors'} %}
+    {# `db-backup-push` is not an upstream source: it is this deployment's own
+       off-device backup, and it sits here because this is the page an operator
+       already reads. Three nightly pushes failed silently in August 2026
+       because their only witness was a journal nobody keeps. #}
+    {% set all_health_keys = ['mitre_attack', 'ransomwhere', 'deepdarkcti:ransomware_gang', 'deepdarkcti:telegram_threat_actors', 'deepdarkcti:twitter_threat_actors', 'db-backup-push'] %}
+    {% set health_labels = {'mitre_attack': 'MITRE ATT&CK', 'ransomwhere': 'Ransomwhere API', 'deepdarkcti:ransomware_gang': 'deepdarkCTI — Ransomware Gangs', 'deepdarkcti:telegram_threat_actors': 'deepdarkCTI — Telegram Actors', 'deepdarkcti:twitter_threat_actors': 'deepdarkCTI — Twitter Actors', 'db-backup-push': 'Off-device DB backup'} %}
 
     {% if health %}
     {# Summary banner #}

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily off-device DB backup push (after the local backup)
+
+[Timer]
+# The local backup runs ~03:35; push the fresh dump off-device at 04:30.
+OnCalendar=*-*-* 04:30
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

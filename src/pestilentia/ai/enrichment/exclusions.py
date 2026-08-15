@@ -29,11 +29,16 @@ wrong. That trade was put to the user and taken deliberately.
 
 from __future__ import annotations
 
+import bisect
 import ipaddress
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from urllib.parse import urlsplit
+
+#: Larger than any IPv6 address, so a bisection key of `(version, n, _MAX)`
+#: always sorts after every real span starting at `n`.
+_MAX_ADDRESS = 1 << 128
 
 #: Domains that host other people's things. Each carries why it is here, because
 #: an entry with no reason is one nobody will be able to defend later, and a
@@ -125,18 +130,25 @@ class RentedSpace:
 
     exact: frozenset[str] = frozenset()
     networks: tuple[ipaddress.IPv4Network | ipaddress.IPv6Network, ...] = ()
+    #: Half-open-free inclusive spans as `(version, first, last)`, sorted, from
+    #: sources that publish start-end pairs rather than prefixes. Kept as
+    #: integers instead of being summarised into CIDR blocks because one span
+    #: can need dozens of prefixes to express, and fifteen thousand spans would
+    #: become a list nobody wants to walk per indicator.
+    spans: tuple[tuple[int, int, int], ...] = ()
 
     @classmethod
     def from_entries(cls, entries: Iterable[str]) -> RentedSpace:
-        """Individual addresses and CIDR blocks, from lines somebody else wrote.
+        """Addresses, CIDR blocks and start-end spans, from lines others wrote.
 
         A line that does not parse is skipped rather than raised on. These files
-        are fetched daily from other people, and one of them was found shipping
+        are fetched from other people, and one of them was found shipping
         unresolved merge-conflict markers in the middle of its rows: one bad
         line must cost that line and not the run.
         """
         exact: set[str] = set()
         networks: list[ipaddress.IPv4Network | ipaddress.IPv6Network] = []
+        spans: list[tuple[int, int, int]] = []
         for entry in entries:
             candidate = entry.strip()
             if not candidate:
@@ -144,11 +156,18 @@ class RentedSpace:
             try:
                 if "/" in candidate:
                     networks.append(ipaddress.ip_network(candidate, strict=False))
+                elif "-" in candidate:
+                    first_text, _, last_text = candidate.partition("-")
+                    first = ipaddress.ip_address(first_text.strip())
+                    last = ipaddress.ip_address(last_text.strip())
+                    if first.version != last.version or int(last) < int(first):
+                        continue
+                    spans.append((first.version, int(first), int(last)))
                 else:
                     exact.add(str(ipaddress.ip_address(candidate)))
             except ValueError:
                 continue
-        return cls(frozenset(exact), tuple(networks))
+        return cls(frozenset(exact), tuple(networks), tuple(sorted(spans)))
 
     def covers(self, value: str) -> str:
         """Why this address says nothing durable, or empty if it might."""
@@ -161,10 +180,30 @@ class RentedSpace:
         for network in self.networks:
             if address.version == network.version and address in network:
                 return f"inside {network}, published as rented or platform space"
+        span = self._span_covering(address.version, int(address))
+        if span is not None:
+            first = ipaddress.ip_address(span[1])
+            last = ipaddress.ip_address(span[2])
+            return f"inside {first}-{last}, announced by a provider that rents address space"
         return ""
 
+    def _span_covering(self, version: int, number: int) -> tuple[int, int, int] | None:
+        """The span containing this address, found by bisection, or None.
+
+        The spans do not overlap within a version — each prefix is announced by
+        one origin in the table these come from — so the candidate is the last
+        span that starts at or before the address, and one comparison settles it.
+        """
+        index = bisect.bisect_right(self.spans, (version, number, _MAX_ADDRESS)) - 1
+        if index < 0:
+            return None
+        candidate = self.spans[index]
+        if candidate[0] != version or candidate[2] < number:
+            return None
+        return candidate
+
     def __bool__(self) -> bool:
-        return bool(self.exact or self.networks)
+        return bool(self.exact or self.networks or self.spans)
 
 
 def rented_address(value: str, ranges: tuple[str, ...] = ()) -> str:
