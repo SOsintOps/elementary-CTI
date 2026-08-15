@@ -1,0 +1,8 @@
+[Unit]
+Description=Elementary CTI — push the latest DB dump off-device to the db-backup branch
+Documentation=file://%h/github/elementary-CTI/.planning/PLAN-DB-OFFSITE-2026-08.md
+
+[Service]
+Type=oneshot
+ExecStart=%h/github/elementary-CTI/scripts/push_db_backup.sh
+TimeoutStartSec=300
