@@ -78,6 +78,7 @@ from pestilentia.ai.schemas import (
     TriageOutput,
     TtpMapping,
 )
+from pestilentia.ai.style import check as style_check
 from pestilentia.models.tables import (
     Article,
     ArticleAnalysisRun,
@@ -103,6 +104,27 @@ BACKOFF_SECONDS = (5.0, 15.0, 30.0)
 #: verdict has somewhere to live without colliding with a schema field.
 OUTPUT_KEY = "output"
 GROUNDING_KEY = "grounding"
+#: Where the residual house-style violations sit, beside the grounding verdict
+#: and for the same reason: a row has to say what was checked and what survived,
+#: or a reader cannot tell a clean text from an unexamined one.
+STYLE_KEY = "style"
+
+#: The prose fields each state writes for a human, and whether counsel belongs
+#: in them. `recommendations_md` is the one field whose whole job is advice; in
+#: every other field advice is a rule violation, which is why the flag travels
+#: with the field name rather than being decided at the call site.
+PROSE_FIELDS: dict[str, tuple[tuple[str, bool], ...]] = {
+    "narrative": (
+        ("key_judgement", False),
+        ("summary_md", False),
+        ("recommendations_md", True),
+    ),
+    "adversary_sketch": (
+        ("cluster_summary", False),
+        ("shared_infrastructure_note", False),
+        ("false_flag_note", False),
+    ),
+}
 
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE)
 
@@ -193,6 +215,25 @@ class RunReport:
     @property
     def completed(self) -> bool:
         return self.stopped_at is None
+
+
+def _style_violations(
+    output: BaseModel, fields: tuple[tuple[str, bool], ...]
+) -> list[dict[str, str]]:
+    """Every house-style breach in this output's prose, with the words."""
+    found: list[dict[str, str]] = []
+    for name, advice_allowed in fields:
+        text = getattr(output, name, "") or ""
+        for violation in style_check(text, advice_allowed=advice_allowed):
+            found.append(
+                {
+                    "field": name,
+                    "rule": violation.rule,
+                    "text": violation.text[:120],
+                    "note": violation.note,
+                }
+            )
+    return found
 
 
 def _parse(text: str) -> dict:
@@ -458,9 +499,12 @@ class ExtractionMachine:
                 continue
 
             grounded, grounding = self._ground(session, article, row, output)
+            grounded, style = self._restyle(provider, decision, prompt, state, grounded, budget)
             stored: dict[str, Any] = {OUTPUT_KEY: grounded.model_dump(mode="json")}
             if grounding is not None:
                 stored[GROUNDING_KEY] = grounding
+            if style is not None:
+                stored[STYLE_KEY] = style
             row.raw_output_json = stored
             self._project(article, grounded)
             verdict = RunStatus.DROPPED if self._irrelevant(state, grounded) else RunStatus.OK
@@ -470,6 +514,88 @@ class ExtractionMachine:
         # a model that answered wrongly is a prompt problem for a human, a model
         # that never answered is an outage to wait out.
         return self._close(row, RunStatus.ERROR if unreachable else RunStatus.STAGED, detail=detail)
+
+    def _restyle(
+        self,
+        provider: Completer,
+        decision: ModelChoice,
+        prompt: Any,
+        state: str,
+        output: BaseModel,
+        budget: int,
+    ) -> tuple[BaseModel, dict[str, Any] | None]:
+        """Name the offending words, ask once for a rewrite, keep the better one.
+
+        The measurement that produced this: the style block forbids advice in a
+        summary and forbids vagueness, and across seventy regenerated articles
+        those two defects moved from 13 to 12 and from 60 to 56. Two different
+        wordings of the rule, the same result.
+
+        The diagnosis is in the asymmetry. The block states rules **in general**
+        and before the text exists; a violation names **the words in this text**.
+        Only the second is information the model did not already have, and it is
+        the same reason `iocs.reconcile` does not ask a model to be accurate but
+        tells it which indicator is not in the article.
+
+        **Once, not in a loop.** A model that does not fix it on the second
+        occasion does not fix it on the fifth, and paying for five to find that
+        out is the worst way to find it out.
+
+        What survives is recorded rather than refused. At two violations per
+        assessment, staging everything that has one would queue the whole
+        corpus, and a queue holding everything is not a queue: it is a refusal
+        to work wearing the clothes of rigour.
+        """
+        fields = PROSE_FIELDS.get(state)
+        if fields is None:
+            return output, None
+
+        found = _style_violations(output, fields)
+        if not found:
+            return output, {"violations": [], "rewritten": False}
+
+        rewritten = self._ask_for_a_rewrite(provider, decision, prompt, state, found, budget)
+        if rewritten is not None:
+            after = _style_violations(rewritten, fields)
+            if len(after) < len(found):
+                log.info(
+                    "state %s restyled: %s violations became %s", state, len(found), len(after)
+                )
+                return rewritten, {"violations": after, "rewritten": True}
+
+        return output, {"violations": found, "rewritten": rewritten is not None}
+
+    def _ask_for_a_rewrite(
+        self,
+        provider: Completer,
+        decision: ModelChoice,
+        prompt: Any,
+        state: str,
+        found: list[dict[str, str]],
+        budget: int,
+    ) -> BaseModel | None:
+        """One follow-up turn, carrying the exact words that broke the rules."""
+        complaints = "\n".join(
+            f"- {item['field']}: {item['text']!r} breaks {item['rule']} — {item['note']}"
+            for item in found[:12]
+        )
+        messages = [
+            *prompt.messages,
+            {
+                "role": "user",
+                "content": (
+                    "Your answer broke the house style in the places listed below. "
+                    "Rewrite it, fixing exactly these and changing nothing else about "
+                    "what it says. Same JSON schema, no commentary.\n\n" + complaints
+                ),
+            },
+        ]
+        try:
+            result = provider.complete(decision.model_id, messages, max_tokens=budget)
+            return STATE_SCHEMAS[state].model_validate(_parse(result.text))
+        except Exception as exc:  # a rewrite is an improvement, never a requirement
+            log.info("state %s rewrite did not land: %s", state, exc)
+            return None
 
     def _back_off(self, attempts: int) -> None:
         """Wait before asking again, longer each time, and never on the last."""

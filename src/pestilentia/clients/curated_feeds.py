@@ -147,3 +147,34 @@ def load_json_feed(feed: Feed) -> object | None:
         log.warning("feed %s is not on disk; layers that need it will not answer", feed.name)
         return None
     return json.loads(feed.path.read_text(encoding="utf-8"))
+
+
+def load_address_ranges() -> tuple[str, ...]:
+    """Every address and block the infrastructure-context feeds publish.
+
+    Two files with two shapes, read for the one column each of them is for: the
+    Microsoft file lists CIDR prefixes, the VPN file lists one server per row.
+    Anything else on the line is ignored rather than parsed, which is what keeps
+    this working when the publisher adds a column.
+
+    Returns an empty tuple when neither file has been fetched, and the caller
+    must treat that as "this check cannot run" rather than as "nothing is
+    excluded". The two look identical in the output and mean opposite things.
+    """
+    entries: list[str] = []
+    for name, column in (("microsoft-ip-ranges", 0), ("nordvpn-servers", 1)):
+        feed = FEEDS_BY_NAME[name]
+        if not feed.path.exists():
+            log.warning("feed %s is not on disk; its addresses will not be excluded", name)
+            continue
+        with feed.path.open(encoding="utf-8", errors="replace") as handle:
+            for index, line in enumerate(handle):
+                # The header, and the merge-conflict markers one publisher was
+                # found shipping in the middle of its own rows. Grade A is a
+                # claim about who publishes a file, never about it being clean.
+                if index == 0 or line[:1] in "<=>":
+                    continue
+                fields = line.split(",")
+                if len(fields) > column:
+                    entries.append(fields[column].strip())
+    return tuple(entries)

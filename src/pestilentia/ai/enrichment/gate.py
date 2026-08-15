@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
@@ -42,8 +43,10 @@ from pestilentia.ai.confidence.grading import (
 )
 from pestilentia.ai.confidence.thresholds import Decision, FindingKind, decide
 from pestilentia.ai.enrichment.apply import apply_enrichment
+from pestilentia.ai.enrichment.exclusions import RentedSpace, not_the_adversarys
 from pestilentia.ai.enrichment.resolver import resolve
 from pestilentia.ai.schemas import ExtractedIoc, TtpMapping
+from pestilentia.clients.curated_feeds import load_address_ranges
 from pestilentia.config import Settings
 from pestilentia.models.tables import (
     Article,
@@ -409,6 +412,17 @@ def _synonyms(session: Session, actors: list[dict]) -> list[tuple[str, object]]:
 INFRASTRUCTURE_TYPES = {"btc_address": "btc_addresses", "url": "profile_urls"}
 
 
+@lru_cache(maxsize=1)
+def _rented_space() -> RentedSpace:
+    """The published address space, read once per process.
+
+    Cached because the gate walks every article in a run and the VPN list is
+    twelve thousand rows: rebuilding it per article would make the guard cost
+    more than the thing it guards.
+    """
+    return RentedSpace.from_entries(load_address_ranges())
+
+
 def _infrastructure_from(session: Session, article: Article) -> dict[str, list[str]]:
     """Wallets and leak-site URLs from this article's indicators that passed.
 
@@ -418,6 +432,19 @@ def _infrastructure_from(session: Session, article: Article) -> dict[str, list[s
     `article_iocs` is what keeps that honest.
     """
     values: dict[str, list[str]] = {}
+    rented = _rented_space()
+    if not rented:
+        # The same discipline the ATT&CK bundle gets: a deployment without it
+        # runs the pipeline not at all rather than badly. An exclusion list that
+        # cannot run and an exclusion list that excludes nothing produce
+        # identical output and mean opposite things, and the second one would be
+        # believed. Scoring and staging carry on; only the write to `groups` is
+        # refused, because that is the only part this guards.
+        log.warning(
+            "not enriching: the infrastructure-context feeds are not on disk, so "
+            "no address can be checked against what its owner publishes"
+        )
+        return {}
     rows = session.execute(
         select(StagedFinding.payload_json).where(
             StagedFinding.article_id == article.id,
@@ -427,6 +454,19 @@ def _infrastructure_from(session: Session, article: Article) -> dict[str, list[s
     ).all()
     for (payload,) in rows:
         field_name = INFRASTRUCTURE_TYPES.get((payload or {}).get("ioc_type"))
-        if field_name and payload.get("value"):
-            values.setdefault(field_name, []).append(payload["value"])
+        value = (payload or {}).get("value")
+        if not field_name or not value:
+            continue
+        # Believing an indicator and knowing whose it is are two questions, and
+        # the gate only ever answered the first. The live acceptance measured
+        # the cost: `warlock` was given Microsoft's own distribution network as
+        # one of its properties, at a high score, from an anchored quote. The
+        # refusal is logged with its reason rather than silent, because an
+        # exclusion nobody can see is indistinguishable from an extraction that
+        # missed something.
+        reason = not_the_adversarys(value, rented)
+        if reason:
+            log.info("not promoting %s to %s: %s", value, field_name, reason)
+            continue
+        values.setdefault(field_name, []).append(value)
     return values

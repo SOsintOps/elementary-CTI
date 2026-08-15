@@ -31,21 +31,28 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from pathlib import Path
 
 from sqlalchemy import create_engine, delete, func, select
 from sqlalchemy.orm import sessionmaker
 
+from pestilentia.ai import report as report_module
 from pestilentia.ai.confidence.thresholds import reachability
 from pestilentia.ai.enrichment.gate import run_gate
+from pestilentia.ai.enrichment.identity import IdentityCatalog
 from pestilentia.ai.prompts import PROMPTS
 from pestilentia.ai.sources.fulltext import backfill_fulltext
 from pestilentia.ai.state.driver import analyse_articles, build_machine, stratified_pending
+from pestilentia.ai.state.machine import OUTPUT_KEY
 from pestilentia.ai.style import check, tally
+from pestilentia.clients.curated_feeds import FEEDS_BY_NAME, load_json_feed
+from pestilentia.clients.mitre_attack import download_stix_bundle
 from pestilentia.config import get_settings
 from pestilentia.models.tables import (
     Article,
     ArticleAnalysisRun,
     ArticleSource,
+    Group,
     StagedFinding,
 )
 
@@ -83,7 +90,21 @@ def _sweep(args) -> int:
 def _analyse(args) -> int:
     factory = _session_factory()
     with factory() as session:
-        sample = stratified_pending(session, per_source=args.per_source)
+        if args.article:
+            # Named articles instead of a sample. The stratified draw is right
+            # for calibration, where the corpus has to stand in for itself, and
+            # wrong for an acceptance run, where the point is a *particular*
+            # article that exercises a particular path. Step 10 needs one whose
+            # indicators can reach a group we already hold, and waiting for the
+            # sample to offer one would cost hundreds of calls to reproduce a
+            # condition that can simply be asked for.
+            sample = [session.get(Article, article_id) for article_id in args.article]
+            missing = [i for i, a in zip(args.article, sample, strict=True) if a is None]
+            if missing:
+                print(f"no such article: {missing}", file=sys.stderr)
+                return 1
+        else:
+            sample = stratified_pending(session, per_source=args.per_source)
         names = dict(session.query(ArticleSource.id, ArticleSource.name).all())
 
         per_feed: dict[str, int] = {}
@@ -307,6 +328,75 @@ def _restyle(args) -> int:
     return 0
 
 
+def _identity_catalog(session) -> IdentityCatalog:
+    """Every catalogue this deployment holds, asked in the order that matters.
+
+    Home first. A name this deployment already tracks is one somebody here has
+    already reasoned about, and an outside catalogue must not quietly rename it.
+    Missing files cost their own layer and not the run: the report then says a
+    name is recognised by nothing, which is true of what is on disk.
+    """
+    local = IdentityCatalog.from_group_names(
+        [(name, []) for (name,) in session.execute(select(Group.group_name)).all() if name]
+    )
+    catalogs = [local]
+    try:
+        catalogs.append(IdentityCatalog.from_bundle(download_stix_bundle()))
+    except (OSError, ValueError) as exc:
+        print(f"no ATT&CK bundle, its names will not resolve: {exc}", file=sys.stderr)
+    galaxy = load_json_feed(FEEDS_BY_NAME["misp-galaxy-threat-actor"])
+    if galaxy is not None:
+        catalogs.append(IdentityCatalog.from_misp_galaxy(galaxy))
+    naming = load_json_feed(FEEDS_BY_NAME["microsoft-actor-naming"])
+    if naming is not None:
+        catalogs.append(IdentityCatalog.from_microsoft_mapping(naming))
+    return IdentityCatalog.merged(*catalogs)
+
+
+def _report(args) -> int:
+    """One article's analysis in the shape the sources prescribe.
+
+    Costs nothing and calls nothing: the report is a projection of what the
+    eight states already wrote. That is also why it can be printed as often as
+    anyone likes while the form is being argued about.
+    """
+    factory = _session_factory()
+    with factory() as session:
+        article = session.get(Article, args.article)
+        if article is None:
+            print(f"no such article: {args.article}", file=sys.stderr)
+            return 1
+        rows = {
+            row.state: (row.raw_output_json or {}).get(OUTPUT_KEY) or {}
+            for row in session.scalars(
+                select(ArticleAnalysisRun).where(
+                    ArticleAnalysisRun.article_id == article.id,
+                    ArticleAnalysisRun.status == "ok",
+                )
+            )
+        }
+        if "narrative" not in rows:
+            print(f"article {article.id} has no narrative: nothing to report", file=sys.stderr)
+            return 1
+        source = session.get(ArticleSource, article.source_id)
+        text = report_module.build(
+            article_title=article.title or "",
+            narrative=rows.get("narrative", {}),
+            sketch=rows.get("adversary_sketch", {}),
+            source_name=(source.name if source else ""),
+            source_url=article.url or "",
+            published=str(article.published_at or "")[:10],
+            catalog=_identity_catalog(session),
+        ).to_markdown()
+
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"written to {args.out}")
+    else:
+        print(text)
+    return 0
+
+
 def _gate(args) -> int:
     """Run the confidence gate over every finished analysis and report the shape.
 
@@ -394,6 +484,13 @@ def main(argv: list[str] | None = None) -> int:
 
     analyse = sub.add_parser("analyse", help="run the extraction machine over a stratified sample")
     analyse.add_argument("--per-source", type=int, default=10, help="articles per feed")
+    analyse.add_argument(
+        "--article",
+        type=int,
+        action="append",
+        default=[],
+        help="analyse these article ids instead of a stratified sample",
+    )
     analyse.add_argument("--dry-run", action="store_true", help="show the sample, call nothing")
     analyse.set_defaults(func=_analyse)
 
@@ -408,6 +505,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     restyle.add_argument("--limit", type=int, default=5, help="how many articles to restyle")
     restyle.set_defaults(func=_restyle)
+
+    report = sub.add_parser("report", help="assemble one article's report (no LLM calls)")
+    report.add_argument("article", type=int, help="article id")
+    report.add_argument("--out", default="", help="write to this file instead of the screen")
+    report.set_defaults(func=_report)
 
     gate = sub.add_parser("gate", help="score every finished analysis (no LLM calls)")
     gate.add_argument("--limit", type=int, default=1000, help="articles to gate")
