@@ -31,6 +31,24 @@ from pestilentia.models.tables import (
 CONFIG = Settings()
 
 
+@pytest.fixture(autouse=True)
+def published_space(monkeypatch):
+    """The exclusion feeds, supplied rather than inherited from the disk.
+
+    Found by the isolated gate in the distributable, where the feeds are not
+    fetched: without this the enrichment tests passed on the machine that had
+    downloaded them and failed everywhere else. A unit test that reads what
+    happens to be in `data/` is not testing the gate, it is testing the
+    developer's afternoon.
+    """
+    from pestilentia.ai.enrichment import gate as gate_module
+
+    gate_module._rented_space.cache_clear()
+    monkeypatch.setattr(gate_module, "load_address_ranges", lambda: ("192.0.2.0/24",))
+    yield
+    gate_module._rented_space.cache_clear()
+
+
 @pytest.fixture
 def session():
     engine = create_engine(

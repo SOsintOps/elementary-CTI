@@ -995,3 +995,63 @@ def test_a_degraded_budget_pauses_the_judge_as_well_as_the_analysis(session, art
     for tier in (Tier.ANALYSIS, Tier.JUDGE):
         assert isinstance(verdicts[tier], Refusal)
         assert verdicts[tier].reason is RefusalReason.BUDGET_EXHAUSTED
+
+
+# --- the style rule that gets applied rather than repeated --------------------
+
+
+def test_a_clean_answer_is_recorded_as_checked_and_not_merely_unflagged(session, article, catalog):
+    """A row has to say what was checked, or nobody can tell a clean text from
+    an unexamined one."""
+    _machine(ScriptedProvider(), catalog).run(session, article)
+
+    style = _runs(session, article)["narrative"].raw_output_json["style"]
+    assert style["violations"] == []
+    assert style["rewritten"] is False
+
+
+def test_a_violation_gets_one_rewrite_carrying_the_offending_words(session, article, catalog):
+    """The diagnosis behind this step: the style block states rules in general
+    and before the text exists, while a violation names the words in this text.
+    Only the second is information the model did not already have.
+    """
+    dirty = {**ANSWERS["narrative"], "summary_md": "They used various tools, and more."}
+    clean = {**ANSWERS["narrative"], "summary_md": "They used Mimikatz and PsExec."}
+    provider = ScriptedProvider({"narrative": dirty})
+
+    original = provider.complete
+
+    def once_then_clean(model_id, messages, **kwargs):
+        if any("broke the house style" in m["content"] for m in messages):
+            return Reply(json.dumps(clean), model_id=model_id)
+        return original(model_id, messages, **kwargs)
+
+    provider.complete = once_then_clean
+    _machine(provider, catalog).run(session, article)
+
+    stored = _runs(session, article)["narrative"].raw_output_json
+    assert stored[OUTPUT_KEY]["summary_md"] == "They used Mimikatz and PsExec."
+    assert stored["style"]["rewritten"] is True
+    assert stored["style"]["violations"] == []
+
+
+def test_what_the_rewrite_does_not_fix_is_recorded_rather_than_refused(session, article, catalog):
+    """At two violations per assessment, staging everything with one would queue
+    the whole corpus, and a queue holding everything is a refusal to work wearing
+    the clothes of rigour."""
+    dirty = {**ANSWERS["narrative"], "summary_md": "They used various tools, and more."}
+
+    _machine(ScriptedProvider({"narrative": dirty}), catalog).run(session, article)
+
+    row = _runs(session, article)["narrative"]
+    assert row.status == RunStatus.OK, "recorded as non-conforming, not thrown away"
+    rules = {v["rule"] for v in row.raw_output_json["style"]["violations"]}
+    assert {"vague_quantifier", "open_enumeration"} <= rules
+
+
+def test_a_state_that_writes_no_prose_is_not_style_checked(session, article, catalog):
+    """`extract_ioc` writes indicators. Measuring its prose would be measuring
+    something that does not exist and reporting it as clean."""
+    _machine(ScriptedProvider(), catalog).run(session, article)
+
+    assert "style" not in _runs(session, article)["extract_ioc"].raw_output_json

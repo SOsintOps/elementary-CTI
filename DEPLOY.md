@@ -59,6 +59,31 @@ sudo usermod -aG docker "$USER"   # then log out/in so the group takes effect
 docker compose version            # sanity check
 ```
 
+### Reference data the analysis pipeline needs
+
+Three files are fetched rather than shipped: they are large, they change on
+their publishers' schedule, and a repository is not a mirror. All three are
+gitignored.
+
+```bash
+# The ATT&CK bundle. Without it the analysis pipeline refuses to start,
+# which is deliberate: a deployment missing its reference data should run
+# nothing rather than run badly.
+uv run python -c "from pestilentia.clients.mitre_attack import download_stix_bundle; download_stix_bundle()"
+
+# The adversary-name catalogues and the exclusion feeds.
+uv run python -c "
+from pestilentia.clients.curated_feeds import FEEDS, download_feed
+for feed in FEEDS: print(download_feed(feed))"
+```
+
+**The gate refuses to enrich the adversary tables without the exclusion feeds**,
+and that is a feature. A check that cannot run and a check that found nothing
+write the same thing into the database, and only one of them is true: on real
+data the unguarded gate recorded a vendor's own software-distribution network as
+a ransomware group's property. Scoring and the review queue still work without
+the feeds; only the write to `groups` is refused, with the reason in the log.
+
 ## 1. Configure `.env`
 
 ```bash

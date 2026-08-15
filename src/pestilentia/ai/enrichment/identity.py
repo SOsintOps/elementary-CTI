@@ -29,6 +29,7 @@ deciding anything on a score.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Self
@@ -372,6 +373,30 @@ class IdentityCatalog:
             others = [n.strip() for n in (row.get("Other names") or "").split(",") if n.strip()]
             names = tuple(dict.fromkeys([canonical, *others]))
             entry = {"canonical": canonical, "aliases": names, "authority": "microsoft"}
+            for alias in names:
+                for key in (_key(alias), _stripped(alias), _squashed(alias)):
+                    actors.setdefault(key, entry)
+        return cls(actors, {}, {})
+
+    @classmethod
+    def from_group_names(cls, rows: Iterable[tuple[str, Sequence[str]]]) -> Self:
+        """The adversaries this deployment already holds, with their alias lists.
+
+        Layer one of the stack and the last one written, which is its own small
+        lesson: the report showed `Warlock` as recognised by nothing while
+        `warlock` sat in the local table, because every catalogue had been
+        wired except the one at home.
+
+        Asked first, ahead of ATT&CK and the galaxy, because a name this
+        deployment already tracks is one an analyst here has already reasoned
+        about, and an outside catalogue must not quietly rename it.
+        """
+        actors: dict[str, dict] = {}
+        for canonical, aliases in rows:
+            if not canonical:
+                continue
+            names = tuple(dict.fromkeys([canonical, *(aliases or [])]))
+            entry = {"canonical": canonical, "aliases": names, "authority": "this database"}
             for alias in names:
                 for key in (_key(alias), _stripped(alias), _squashed(alias)):
                     actors.setdefault(key, entry)
