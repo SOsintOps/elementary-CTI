@@ -6,7 +6,7 @@ examples. That matters: a rule written against a made-up sentence tends to
 catch the made-up sentence and nothing else, and the point of the checker is to
 catch what the system actually produces.
 
-Sources for every rule are in `docs/intelligence-writing-style.md`.
+Sources for every rule are cited beside it in `pestilentia.ai.style`.
 """
 
 import pytest
@@ -145,6 +145,14 @@ def test_a_conditional_with_its_condition_is_left_alone():
 def test_the_icd_203_scale_is_not_mistaken_for_a_bare_conditional():
     """A likelihood statement is the sanctioned alternative, not a violation."""
     assert check("Gunra affiliates will very likely retain FortiGate access.") == []
+
+
+def test_the_top_of_the_icd_203_scale_is_not_a_vague_quantifier():
+    """`certain` is vague on its own; inside "almost certain" it is the top of
+    the sanctioned likelihood scale."""
+    assert check("Gunra affiliates almost certainly retain FortiGate access.") == []
+    assert check("Retention of FortiGate access is almost certain.") == []
+    assert any(v.rule == "vague_quantifier" for v in check("They used certain tools."))
 
 
 def test_an_absolute_under_a_limiting_modifier_says_so_in_the_note():

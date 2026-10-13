@@ -26,13 +26,13 @@ The Docker build needs no manual steps: it fetches the embedding model itself.
   clean and the release notes are cut from it.
 - **Tests accompany code.** A behaviour change without a test pinning it will
   be asked for one.
-- **Every user-visible change updates `CHANGELOG.md` `[Unreleased]`**, and
-  every session updates `PROJECT_STATUS.md`. This repo treats documentation
-  drift as a defect, not a chore.
+- **Every user-visible change updates `CHANGELOG.md` `[Unreleased]`.** This
+  repo treats documentation drift as a defect, not a chore.
 - **No remote front-end assets.** Everything under `static/` is vendored;
   never reference a CDN in a template (`UI-SPEC.md` §6).
 - **Protected paths** need explicit maintainer approval before changes:
-  `docs/prd/00-prd.md`, `docs/adr/`, `docker-compose.yml`.
+  `docker-compose.yml`, and the design records (product requirements and ADRs,
+  kept outside this distribution).
 - **Schema changes are migrations.** Model edits without an Alembic revision
   break the deployed PostgreSQL — `create_all` does not alter existing tables.
 
@@ -42,9 +42,10 @@ The Docker build needs no manual steps: it fetches the embedding model itself.
 |---|---|
 | Schema source of truth | `src/pestilentia/models/tables.py` + `alembic/` |
 | API reference | FastAPI's `/docs` and `/redoc` on a running instance |
-| Current state & history | `PROJECT_STATUS.md`, `CHANGELOG.md` |
-| Design decisions | `docs/adr/` |
-| Development playbook | `docs/codex-machinae.md` |
+| Current state & history | `CHANGELOG.md` |
+| Design decisions | Kept outside this distribution; the reasoning that matters to users is in `docs/FAQ.md` and in the module docstrings |
+| Development playbook | [Codex Machinae](https://github.com/SOsintOps/codex-machinae) |
+| Intelligence method (grading, estimative language, report writing) | [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes) |
 
 ## Licence
 

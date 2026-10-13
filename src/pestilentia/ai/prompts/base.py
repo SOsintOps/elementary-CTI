@@ -24,8 +24,11 @@ records it per run, and a comparison between two runs of different weeks means
 nothing unless the prompt they used can be named.
 
 The tradecraft blocks below are adapted from `the-italian-job`'s prompt library
-(ICD 203 §6, Roccia's *Visual Threat Intelligence*, Heuer's ACH). Adapted, not
-copied: there they shape prose for an analyst in conversation, here they shape
+(ICD 203's likelihood scale; Roccia's *Visual Threat Intelligence*,
+https://www.amazon.com/Visual-Threat-Intelligence-Illustrated-Researchers/dp/B0C7JCF8XD;
+Heuer's ACH,
+https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/).
+Adapted, not copied: there they shape prose for an analyst in conversation, here they shape
 fields in a validated object. The OBSERVED/INFERRED fence is the clearest case —
 a text prefix there, an enum the parser enforces here.
 """
@@ -195,17 +198,21 @@ verbatim stretch of the article body — copied, not paraphrased, not corrected.
 A quote that cannot be found in the body is discarded downstream along with the \
 claim it was supporting."""
 
+# The likelihood terms are the first row of the ICD 203 table
+# (https://www.dni.gov/files/documents/ICD/ICD-203.pdf). ICD 203 requires
+# confidence to be expressed but does not define levels: high/moderate/low is
+# the common convention, not an ICD 203 scale.
 ICD_203 = """\
-## Uncertainty language (ICD 203 §6)
+## Uncertainty language (ICD 203)
 
 Two scales, never mixed in one statement:
 
-  Likelihood: remote · very unlikely · unlikely · roughly even chance · likely · \
-very likely · nearly certain
+  Likelihood: almost no chance · very unlikely · unlikely · roughly even chance · likely · \
+very likely · almost certain
   Confidence: high confidence · moderate confidence · low confidence
 
 Likelihood is how probable the event is; confidence is how good your basis is for \
-saying so. "High confidence that this is nearly certain" states nothing.
+saying so. "High confidence that this is almost certain" states nothing.
 
 State the main judgement first. Do not avoid a difficult judgement to reduce the \
 risk of being wrong, and do not overstate one to sound useful. Where the article \
@@ -243,12 +250,14 @@ Use these terms with their intelligence meanings:
 - **TLP** — traffic light protocol: the handling marking on the material.
 - **Triage** — deciding what deserves analysis before spending on it."""
 
+# CIA DI Style Manual & Writers Guide: https://irp.fas.org/cia/product/style.pdf
 HOUSE_STYLE = """\
 ## How the prose is written
 
 The rules below come from the CIA Directorate of Intelligence *Style Manual & \
-Writers Guide*, chapter 9, and from the US DOJ BLUF format. They are checked \
-after you write, so a breach is found whether or not anyone reads the text.
+Writers Guide*, chapter 9, and from the BLUF format as taught in US intelligence \
+training. They are checked after you write, so a breach is found whether or not \
+anyone reads the text.
 
 **Structure.** The first sentence of a paragraph covers everything in that \
 paragraph, like an umbrella. Anything that does not fit under it belongs in \

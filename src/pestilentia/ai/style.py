@@ -1,9 +1,11 @@
 # "You have a grand gift for silence, Watson." — Sherlock Holmes
 """House-style checking for the prose the pipeline writes.
 
-The rules and their sources are in `docs/intelligence-writing-style.md`. This
-module implements only the part of that document a machine can decide without
-judgement, and it is deliberate that the two are not the same size: whether a
+The rules come from the CIA DI *Style Manual & Writers Guide*
+(https://irp.fas.org/cia/product/style.pdf) and the house report-writing notes
+(https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/report-writing.md).
+This module implements only the part of those rules a machine can decide without
+judgement, and it is deliberate that the two sets are not the same size: whether a
 paragraph opens on its own bottom line is a judgement, whether it contains the
 phrase "and more" is not.
 
@@ -74,6 +76,11 @@ VAGUE_QUANTIFIERS = (
     "a variety of",
     "a range of",
 )
+
+#: ICD 203 likelihood terms that contain a vague quantifier. "almost certain"
+#: is the top of the sanctioned scale, not a vague "certain", so a hit inside
+#: one of these is not a violation.
+LIKELIHOOD_TERMS = ("almost certain",)
 
 #: DI manual ch. 9, `absolutes`. Whole thing or nothing; they do not take
 #: limiting modifiers, and most uses in the wild mean "notable" instead.
@@ -297,8 +304,11 @@ def check(text: str, *, advice_allowed: bool = True) -> list[Violation]:
             )
         )
 
+    sanctioned = [span for term in LIKELIHOOD_TERMS for span in _finditer(text, term)]
     for phrase in VAGUE_QUANTIFIERS:
         for start, end in _finditer(text, phrase):
+            if any(s <= start and end <= e for s, e in sanctioned):
+                continue
             found.append(
                 Violation(
                     "vague_quantifier",

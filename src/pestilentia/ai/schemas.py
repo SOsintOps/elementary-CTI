@@ -70,8 +70,10 @@ class AuditLabel(StrEnum):
 
 
 class ConfidenceLevel(StrEnum):
-    """ICD 203 §6 confidence scale. Never mixed with `Likelihood` in one
-    statement — "high confidence that this is nearly certain" says nothing."""
+    """Analytic confidence. ICD 203 requires confidence to be expressed but
+    defines no levels; high/moderate/low is the common convention. Never mixed
+    with `Likelihood` in one statement — "high confidence that this is almost
+    certain" says nothing."""
 
     HIGH = "high confidence"
     MODERATE = "moderate confidence"
@@ -79,15 +81,15 @@ class ConfidenceLevel(StrEnum):
 
 
 class Likelihood(StrEnum):
-    """ICD 203 §6 likelihood scale, in order."""
+    """ICD 203 likelihood scale (first row of its table), in order."""
 
-    REMOTE = "remote"
+    ALMOST_NO_CHANCE = "almost no chance"
     VERY_UNLIKELY = "very unlikely"
     UNLIKELY = "unlikely"
     EVEN_CHANCE = "roughly even chance"
     LIKELY = "likely"
     VERY_LIKELY = "very likely"
-    NEARLY_CERTAIN = "nearly certain"
+    ALMOST_CERTAIN = "almost certain"
 
 
 class ArticleType(StrEnum):

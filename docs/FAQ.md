@@ -4,13 +4,89 @@ This FAQ answers common questions about Elementary CTI: what it is, how to
 get access, where the data comes from, how to run your own instance, and how
 to solve common problems. It is rendered live at `/faq` on every deployment.
 
+## Table of Contents
+
+* [About the project](#about-the-project)
+  * [What is Elementary CTI?](#what-is-elementary-cti)
+  * [Why is it called "Elementary"?](#why-is-it-called-elementary)
+  * [Is this a commercial product?](#is-this-a-commercial-product)
+  * [Who is it for?](#who-is-it-for)
+* [Access and accounts](#access-and-accounts)
+  * [Why do I see only a small dashboard and a sign-in box?](#why-do-i-see-only-a-small-dashboard-and-a-sign-in-box)
+  * [How do I get an account?](#how-do-i-get-an-account)
+  * [What are the roles?](#what-are-the-roles)
+  * [How do I sign in?](#how-do-i-sign-in)
+  * [How long does a session last?](#how-long-does-a-session-last)
+  * [I typed my password wrong several times and now I am locked out. What do I do?](#i-typed-my-password-wrong-several-times-and-now-i-am-locked-out-what-do-i-do)
+  * [Can I change my password?](#can-i-change-my-password)
+  * [Why was I signed out without warning?](#why-was-i-signed-out-without-warning)
+* [The public dashboard and TLP](#the-public-dashboard-and-tlp)
+  * [What exactly does the public dashboard show?](#what-exactly-does-the-public-dashboard-show)
+  * [What is TLP and how does this site apply it?](#what-is-tlp-and-how-does-this-site-apply-it)
+  * [The public page names ransomware victims. Is that responsible?](#the-public-page-names-ransomware-victims-is-that-responsible)
+* [Data and sources](#data-and-sources)
+  * [Where does the data come from?](#where-does-the-data-come-from)
+  * [How does the platform know that two adversary names are the same group?](#how-does-the-platform-know-that-two-adversary-names-are-the-same-group)
+  * [Why the 6 x 6 grading and not the UNODC 4 x 4 used by the other SOsintOps tools?](#why-the-6-x-6-grading-and-not-the-unodc-4-x-4-used-by-the-other-sosintops-tools)
+  * [How fresh is the data?](#how-fresh-is-the-data)
+  * [A victim entry is wrong or should be removed. Can you fix it?](#a-victim-entry-is-wrong-or-should-be-removed-can-you-fix-it)
+  * [What is the source health monitor?](#what-is-the-source-health-monitor)
+  * [Does the site track its visitors?](#does-the-site-track-its-visitors)
+* [Using the UI](#using-the-ui)
+  * [What is the difference between "Victims" and "Cyberattacks"?](#what-is-the-difference-between-victims-and-cyberattacks)
+  * [What do the adversary pages show?](#what-do-the-adversary-pages-show)
+  * [What is the ATT&CK matrix page?](#what-is-the-attck-matrix-page)
+  * [How does the watchlist work?](#how-does-the-watchlist-work)
+  * [What are Articles and Campaigns?](#what-are-articles-and-campaigns)
+  * [Can I export data?](#can-i-export-data)
+* [The AI pipeline](#the-ai-pipeline)
+  * [What does the AI actually do?](#what-does-the-ai-actually-do)
+  * [Which LLM providers does it use?](#which-llm-providers-does-it-use)
+  * [Can my data leak to a cloud LLM?](#can-my-data-leak-to-a-cloud-llm)
+  * [What stops the AI from spending money?](#what-stops-the-ai-from-spending-money)
+  * [Can the AI hallucinate an indicator into the database?](#can-the-ai-hallucinate-an-indicator-into-the-database)
+* [REST API](#rest-api)
+  * [Is there an API?](#is-there-an-api)
+  * [How do I authenticate API calls?](#how-do-i-authenticate-api-calls)
+  * [Is there a rate limit?](#is-there-a-rate-limit)
+* [Self-hosting](#self-hosting)
+  * [What do I need to run my own instance?](#what-do-i-need-to-run-my-own-instance)
+  * [How do I install it?](#how-do-i-install-it)
+  * [How is the first admin account created?](#how-is-the-first-admin-account-created)
+  * [How do I apply database migrations?](#how-do-i-apply-database-migrations)
+  * [How do I back up the database?](#how-do-i-back-up-the-database)
+  * [Which environment variables matter most?](#which-environment-variables-matter-most)
+  * [Can I expose my instance to the internet?](#can-i-expose-my-instance-to-the-internet)
+  * [Can I disable a data source?](#can-i-disable-a-data-source)
+* [Security](#security)
+  * [How is authentication implemented?](#how-is-authentication-implemented)
+  * [What is recorded in the activity log?](#what-is-recorded-in-the-activity-log)
+  * [Who can read the activity log?](#who-can-read-the-activity-log)
+  * [How do I report a security vulnerability?](#how-do-i-report-a-security-vulnerability)
+  * [Is my password stored safely?](#is-my-password-stored-safely)
+* [Troubleshooting](#troubleshooting)
+  * [I cannot sign in.](#i-cannot-sign-in)
+  * [The sign-in succeeds but I am immediately signed out.](#the-sign-in-succeeds-but-i-am-immediately-signed-out)
+  * [The administrator is locked out and no other admin exists.](#the-administrator-is-locked-out-and-no-other-admin-exists)
+  * [The maps are blank.](#the-maps-are-blank)
+  * [The FAQ or Changelog page is empty.](#the-faq-or-changelog-page-is-empty)
+  * [`docker compose up` fails with a secret-key error.](#docker-compose-up-fails-with-a-secret-key-error)
+  * [A migration fails on upgrade.](#a-migration-fails-on-upgrade)
+  * [The scheduler is not ingesting.](#the-scheduler-is-not-ingesting)
+* [Project and license](#project-and-license)
+  * [What license does Elementary CTI use?](#what-license-does-elementary-cti-use)
+  * [Can I contribute?](#can-i-contribute)
+  * [Where is the roadmap?](#where-is-the-roadmap)
+  * [Are there related SOsintOps projects?](#are-there-related-sosintops-projects)
+  * [Was any Large Language Model unduly stressed during development?](#was-any-large-language-model-unduly-stressed-during-development)
+
 ## About the project
 
 ### What is Elementary CTI?
 
 Elementary CTI is a multi-source ransomware threat-intelligence aggregator.
 It collects victim and cyberattack data from public ransomware tracking
-sources, enriches it with MITRE ATT&CK TTPs, Bitcoin payment intelligence,
+sources, enriches it with [MITRE ATT&CK](https://attack.mitre.org/) TTPs, Bitcoin payment intelligence,
 and operational data, and presents everything through a web UI built for
 analyst investigation.
 
@@ -97,7 +173,7 @@ public tracking sources. There are no links into the full dataset.
 
 ### What is TLP and how does this site apply it?
 
-TLP (Traffic Light Protocol) marks how widely information may be shared.
+TLP ([Traffic Light Protocol](https://www.first.org/tlp/), version 2.0) marks how widely information may be shared.
 Elementary CTI marks every ingested article with a TLP level. The public
 dashboard never queries TLP-marked content at all, so nothing above
 TLP:CLEAR can appear there — by construction, not by filter. The same
@@ -137,6 +213,14 @@ vendors use. All three are public, versioned, and can be checked by anyone
 holding the same file, which is what makes an alias evidence rather than an
 opinion. Where no catalogue lists the name, the platform says so and leaves
 the question to an analyst instead of inventing an answer.
+
+### Why the 6 x 6 grading and not the UNODC 4 x 4 used by the other SOsintOps tools?
+
+Every finding the AI pipeline proposes is graded on two separate axes before it can enrich the database: how reliable the source is, and how valid the information is. They stay apart because, as the UNODC [*Criminal Intelligence: Manual for Analysts*](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf) puts it, the source must be evaluated separately from the information. The other SOsintOps tools grade on that manual's 4 x 4 system; Elementary CTI keeps the 6 x 6 system (source A to F, information 1 to 6) on purpose.
+
+The reason is what is being graded. The 4 x 4 information axis asks whether the source knew the information personally, and rates hearsay lower: a question made for a human informant, which an RSS article or a leak-site record cannot answer. The 6 x 6 information axis asks whether an item is confirmed by other sources, consistent in itself and uncontradicted, and those are predicates the platform can compute over the records it already holds. On the source axis the 6 x 6 can say "fairly reliable" (C), which fits a trade outlet that reports other people's research competently, where the 4 x 4 C means "in most instances proved to be unreliable".
+
+Two rules follow. F on the source axis and 6 on the information axis mean the question could not be answered, and a finding that cannot be judged is never enriched automatically: it is staged for an analyst. And the exception stays inside this tool: when an item graded here moves into a case report written with the other SOsintOps tools, convert the source grade and re-grade the information on the 4 x 4 questions, as explained in [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/source-evaluation.md#one-exception-machine-graded-cti-feeds).
 
 ### How fresh is the data?
 
@@ -198,7 +282,7 @@ incident covered by five outlets reads as one story.
 
 ### Can I export data?
 
-Yes. Each adversary offers a STIX 2.1 bundle export (`/api/v1/groups/{id}/stix`),
+Yes. Each adversary offers a [STIX 2.1](https://docs.oasis-open.org/cti/stix/v2.1/stix-v2.1.html) bundle export (`/api/v1/groups/{id}/stix`),
 ready for MISP or OpenCTI. The REST API serves JSON for everything else.
 
 ## The AI pipeline
@@ -430,9 +514,19 @@ guidelines.
 
 ### Where is the roadmap?
 
-High level: `README.md` and the `/guide` page. In detail: `docs/adr/` for
-architectural decisions and `.planning/` for the working plans (private
-working repo).
+High level: `README.md` and the `/guide` page. The detailed design records and working plans are kept outside this distribution; the decisions that matter to users are explained in this FAQ and in `CHANGELOG.md` (rendered at `/changelog`).
+
+### Are there related SOsintOps projects?
+
+Yes. Elementary CTI is one of several open-source tools published by [SOsintOps](https://github.com/SOsintOps), and they share one method.
+
+- **[Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes)** - The method notes behind all of them: source grading, estimative language (the [ICD 203](https://www.dni.gov/files/documents/ICD/ICD-203.pdf) likelihood terms the AI pipeline writes with), analytic techniques such as Heuer's Analysis of Competing Hypotheses from [*Psychology of Intelligence Analysis*](https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/), and report writing with the bottom line first, after the CIA [*Style Manual & Writers Guide*](https://irp.fas.org/cia/product/style.pdf).
+- **[Aethelburg](https://github.com/SOsintOps/Aethelburg-project)** - Analyses UK Companies House data for shell companies and anomalous corporate structures: the next step when a victim named on a leak site has to be profiled in a company register.
+- **[Quaesitor](https://github.com/SOsintOps/quaesitor)** - A local case graph with the UNODC link-analysis method, for the picture around an actor or an incident once it leaves the feed.
+- **[Acta Diurna](https://github.com/SOsintOps/acta-diurna)** - A dashboard (in Italian) that monitors news on law-enforcement operations in Italy: the same feed-monitoring problem in a different domain.
+- **[Codex Machinae](https://github.com/SOsintOps/codex-machinae)** - The development playbook this project is built with; its classification module covers ATT&CK, STIX and TLP for intelligence tooling.
+- **[Exploratores](https://github.com/SOsintOps/Exploratores)**, **[Argos](https://github.com/SOsintOps/Argos)** and **[Speculator](https://github.com/SOsintOps/Speculator-Project)** - A browser OSINT toolkit and two OSINT workstations, for the manual investigation (domains, companies, accounts) that follows a finding.
+- **[Il Conclave](https://github.com/SOsintOps/il-conclave)** - A Claude Code skill (in Italian) that runs ACH, a premortem and other structured techniques on a question, useful when an attribution is contested.
 
 ### Was any Large Language Model unduly stressed during development?
 

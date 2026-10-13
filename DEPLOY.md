@@ -32,7 +32,7 @@ report, never auto-applied.
 - After a *deliberate* upstream change is absorbed: re-capture baselines with
   `uv run python scripts/api_sentinel.py --update` and commit `contracts/`.
 
-Plan and drill evidence are kept in the upstream working repository.
+Plan and drill evidence are kept outside this distribution.
 
 ## Build prerequisites
 

@@ -12,8 +12,10 @@ names the bottom-line rule instead of listing contents. A new file rather than
 an edit, per the package docstring: an edit would rewrite the history of every
 run that cited v1, and v1 is the baseline this is measured against.
 
-Rules and sources: `docs/intelligence-writing-style.md`. Enforcement afterwards:
-`ai/style.py`.
+Rules: `HOUSE_STYLE` in `base.py`, after the CIA DI *Style Manual & Writers
+Guide* and the report-writing notes at
+https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/report-writing.md.
+Enforcement afterwards: `ai/style.py`.
 """
 
 from __future__ import annotations

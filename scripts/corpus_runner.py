@@ -11,8 +11,8 @@
 whole truncated backlog. `analyse` runs the extraction machine over a sample
 stratified by feed, and that one costs eight NIM calls per article: at ten per
 feed it is roughly 960 calls, which is a run to leave going, not a command to
-wait on. `style` scores the summaries already written against the house style in
-`docs/intelligence-writing-style.md`, grouped by the prompt version that wrote
+wait on. `style` scores the summaries already written against the house style
+checked by `pestilentia.ai.style`, grouped by the prompt version that wrote
 them, and costs nothing because the checker is deterministic.
 
 All the logic lives in the library — `backfill_fulltext`, `stratified_pending`,

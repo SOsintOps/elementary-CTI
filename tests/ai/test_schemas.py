@@ -217,6 +217,22 @@ def test_likelihood_and_confidence_are_separate_fields():
     assert {"likelihood", "confidence"} <= set(AdversarySketchOutput.model_fields)
 
 
+def test_the_likelihood_scale_is_the_first_row_of_the_icd_203_table():
+    """One vocabulary, in order: the second row's "remote" and "nearly certain"
+    once sat at the two ends of a scale built from the first."""
+    from pestilentia.ai.schemas import Likelihood
+
+    assert [term.value for term in Likelihood] == [
+        "almost no chance",
+        "very unlikely",
+        "unlikely",
+        "roughly even chance",
+        "likely",
+        "very likely",
+        "almost certain",
+    ]
+
+
 # --- Verify ------------------------------------------------------------------
 
 

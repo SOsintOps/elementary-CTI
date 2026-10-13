@@ -134,3 +134,65 @@ def _load_0020():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+# --- 0022: the likelihood scale uses the first row of the ICD 203 table ------
+
+
+def test_stored_sketch_likelihoods_move_to_the_first_row_and_back(tmp_path):
+    """A sketch stored with "remote" or "nearly certain" would no longer
+    validate against the enum, so 0022 rewrites the two terms in place and its
+    downgrade restores them. Other states and other terms are left alone."""
+    import json
+
+    from sqlalchemy import text
+
+    db = tmp_path / "likelihood.db"
+    env = {**os.environ, "PEST_DB_URL": f"sqlite:///{db}"}
+
+    def alembic(*args):
+        r = subprocess.run(
+            ["uv", "run", "alembic", *args],
+            cwd=REPO_ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        assert r.returncode == 0, r.stderr
+
+    alembic("upgrade", "0021")
+    engine = create_engine(f"sqlite:///{db}")
+    rows = [
+        (1, "adversary_sketch", "remote"),
+        (2, "adversary_sketch", "nearly certain"),
+        (3, "adversary_sketch", "likely"),
+        (4, "narrative", "remote"),
+    ]
+    with engine.begin() as conn:
+        for run_id, state, term in rows:
+            conn.execute(
+                text(
+                    "INSERT INTO article_analysis_runs "
+                    "(id, article_id, state, status, attempts, raw_output_json) "
+                    "VALUES (:id, :id, :state, 'ok', 1, :payload)"
+                ),
+                {
+                    "id": run_id,
+                    "state": state,
+                    "payload": json.dumps({"output": {"likelihood": term}}),
+                },
+            )
+
+    def stored():
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT id, raw_output_json FROM article_analysis_runs"))
+            return {
+                row.id: json.loads(row.raw_output_json)["output"]["likelihood"] for row in result
+            }
+
+    alembic("upgrade", "0022")
+    assert stored() == {1: "almost no chance", 2: "almost certain", 3: "likely", 4: "remote"}
+
+    alembic("downgrade", "0021")
+    assert stored() == {1: "remote", 2: "nearly certain", 3: "likely", 4: "remote"}
+    engine.dispose()

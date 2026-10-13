@@ -3,6 +3,7 @@
 
 > Evaluation of the source must be made separately to the information.
 > — UNODC, *Criminal Intelligence: Manual for Analysts*, ch. 4, principle 2
+> (https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf)
 
 That sentence is the whole design. The reputation of the feed and the validity
 of what it reported are two different questions with two different answers, and

@@ -44,16 +44,16 @@ Grouped by the release that introduced them — see [`CHANGELOG.md`](CHANGELOG.m
 
 ### v0.8.0 — August 2026
 
-- **CTI article pipeline** — 12 curated vendor and government feeds polled on the scheduler, canonical-URL and near-duplicate dedup, full-text extraction, read-only article view with source/TLP filters
+- **CTI article pipeline** — 12 curated vendor and government feeds polled on the scheduler, canonical-URL and near-duplicate dedup, full-text extraction, read-only article view with source/[TLP](https://www.first.org/tlp/) filters
 - **Priority Intelligence Requirements** — the active watchlist doubles as the PIR set; articles matching it are flagged and filterable
 - **Campaign grouping** — articles describing the same incident across outlets read as one story
 - **ATT&CK coverage matrix** — techniques by tactic in kill-chain order, intensity by how many tracked adversaries use each
-- **STIX 2.1 export** — per-adversary bundles (intrusion-set, attack-pattern, tool, `uses`) pushable into MISP or OpenCTI
+- **[STIX 2.1](https://docs.oasis-open.org/cti/stix/v2.1/stix-v2.1.html) export** — per-adversary bundles (intrusion-set, attack-pattern, tool, `uses`) pushable into MISP or OpenCTI
 - **Triaged alerts** — three severity levels plus an "actioned" flag to measure decision impact
 - **First time series** — victims per month with range selector and per-adversary sparklines
 - **Conditional feed caching** — etag / last-modified handling and a versioned User-Agent
 
-### Since v0.8.0 (0.9.0.dev0 — August 2026)
+### Since v0.8.0 (0.9.0.dev1 — October 2026)
 
 - **Campaign clustering on local embeddings** — model2vec (256 dim, ~30 MB, no torch, no network at request time), with a recurring-series guard so a publisher's weekly column is not mistaken for a campaign
 - **LLM router, live** — provider-agnostic routing behind a fail-closed TLP gate and hard budget ceilings; first real calls run on NVIDIA NIM's free tier, every call logged with cost and token counts
@@ -112,6 +112,7 @@ real calls on NVIDIA NIM's free tier. See [`CHANGELOG.md`](CHANGELOG.md) for rel
 | Document | Description |
 |----------|-------------|
 | [`docs/FAQ.md`](docs/FAQ.md) | Frequently asked questions (also rendered live at `/faq`) |
+| [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes) | The method notes behind the analysis: source grading, estimative language, report writing |
 | [`DEPLOY.md`](DEPLOY.md) | Single-host Docker + Postgres deployment runbook (incl. SQLite→Postgres migration and the weekly API sentinel) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Clone-to-green setup, the gates a change must pass, and conventions |
 | [`DEPENDENCIES.md`](DEPENDENCIES.md) | Every dependency with version, contract and rationale |
@@ -139,7 +140,7 @@ real calls on NVIDIA NIM's free tier. See [`CHANGELOG.md`](CHANGELOG.md) for rel
 | Package manager | uv |
 | Containerisation | Docker + docker-compose |
 
-The architectural rationale (ADR series) is kept in the working repository.
+The architectural rationale (ADR series) is kept outside this distribution; the decisions that affect users are explained in the [FAQ](docs/FAQ.md).
 
 ## Data Sources
 
@@ -187,7 +188,9 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Related Projects
 
-- [Exploratores](https://github.com/SOsintOps/Exploratores) — OSINT toolkit with 50+ company registry integrations
+The method behind the analysis (source grading, estimative language, report writing) is documented in [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes). Other SOsintOps tools: [Aethelburg](https://github.com/SOsintOps/Aethelburg-project) (UK company registers), [Quaesitor](https://github.com/SOsintOps/quaesitor) (case graph), [Codex Machinae](https://github.com/SOsintOps/codex-machinae) (ATT&CK, STIX and TLP classification module) and [Il Conclave](https://github.com/SOsintOps/il-conclave) (ACH and other structured techniques as an AI procedure).
+
+- [Exploratores](https://github.com/SOsintOps/Exploratores) — OSINT toolkit with 50+ company registry integrations (SOsintOps)
 - [RansomLook](https://github.com/RansomLook/RansomLook) — Ransomware leak site monitor
 - [ransomwatch](https://github.com/joshhighet/ransomwatch) — Ransomware leak site scraper
 - [OpenCTI](https://github.com/OpenCTI-Platform/opencti) — Full CTI platform

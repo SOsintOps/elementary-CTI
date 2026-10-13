@@ -10,7 +10,8 @@ sitting in front of it.
 A new file rather than an edit, per the package docstring: an edit would
 rewrite the history of every run that cited v1.
 
-Rules and sources: `docs/intelligence-writing-style.md`.
+Rules: `HOUSE_STYLE` in `base.py`; report-writing notes at
+https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/report-writing.md.
 """
 
 from __future__ import annotations
